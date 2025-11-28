@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, } from 'typeorm';
 import { Tariff } from './tariff.entity';
 import { Article } from './article.entity';
 import { Ad } from './ad.entity';
@@ -8,11 +8,17 @@ export class Company {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()
-  password_hash: string;
+  password: string;
+
+  @Column({ name: 'is_email_confirmed', default: false })
+  isEmailConfirmed: boolean;
+
+  @Column({ nullable: true })
+  currentHashedRefreshToken: string | null;
 
   @Column()
   name: string;
@@ -46,4 +52,10 @@ export class Company {
 
   @OneToMany(() => Ad, (ad) => ad.company)
   ads: Ad[];
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 }
