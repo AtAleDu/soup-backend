@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { NewsModule } from './news/news.module'
 
 @Module({
   imports: [
@@ -8,16 +8,19 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
     }),
 
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.POSTGRESQL_HOST,
-      port: parseInt(process.env.POSTGRESQL_PORT),
-      username: process.env.POSTGRESQL_USER,
-      password: process.env.POSTGRESQL_PASSWORD,
-      database: process.env.POSTGRESQL_DBNAME,
-      autoLoadEntities: true,
-      synchronize: false,
-    }),
+    // Временно  отключаем БД
+    // TypeOrmModule.forRoot({
+    //   type: 'postgres',
+    //   host: process.env.POSTGRESQL_HOST,
+    //   port: parseInt(process.env.POSTGRESQL_PORT),
+    //   username: process.env.POSTGRESQL_USER,
+    //   password: process.env.POSTGRESQL_PASSWORD,
+    //   database: process.env.POSTGRESQL_DBNAME,
+    //   autoLoadEntities: true,
+    //   synchronize: false,
+    // }),
+
+    NewsModule,
   ],
 })
 export class AppModule {}
