@@ -6,25 +6,28 @@ import {
   Delete,
   Body,
   Param,
-} from '@nestjs/common'
-import { NewsService } from './news.service'
+} from '@nestjs/common';
+import { NewsService } from './news.service';
 
-@Controller('news')
+@Controller('/news')
 export class NewsController {
   constructor(private readonly service: NewsService) {}
 
   @Post()
-  create(@Body() body: {
-    image: string
-    imageAlt: string
-    category: string
-    title: string
-    description?: string
-    date?: string
-    content?: string[]
-    isAds?: boolean
-    isImportantNew?: boolean
-  }) {
+  create(
+    @Body()
+    body: {
+      image: string;
+      imageAlt: string;
+      category: string;
+      title: string;
+      description?: string;
+      date?: string;
+      content?: string[];
+      isAds?: boolean;
+      isImportantNew?: boolean;
+    },
+  ) {
     return this.service.create({
       image: body.image,
       imageAlt: body.imageAlt,
@@ -35,17 +38,17 @@ export class NewsController {
       content: body.content,
       isAds: body.isAds,
       isImportantNew: body.isImportantNew,
-    })
+    });
   }
 
   @Get()
   findAll() {
-    return this.service.findAll()
+    return this.service.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.service.findOne(+id)
+    return this.service.findOne(+id);
   }
 
   @Put(':id')
@@ -53,22 +56,22 @@ export class NewsController {
     @Param('id') id: string,
     @Body()
     body: {
-      image?: string
-      imageAlt?: string
-      category?: string
-      title?: string
-      description?: string
-      date?: string
-      content?: string[]
-      isAds?: boolean
-      isImportantNew?: boolean
+      image?: string;
+      imageAlt?: string;
+      category?: string;
+      title?: string;
+      description?: string;
+      date?: string;
+      content?: string[];
+      isAds?: boolean;
+      isImportantNew?: boolean;
     },
   ) {
-    return this.service.update(+id, body)
+    return this.service.update(+id, body);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.service.remove(+id)
+    return this.service.remove(+id);
   }
 }
