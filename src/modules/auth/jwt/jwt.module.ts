@@ -13,9 +13,6 @@ import { JwtStrategy } from './jwt.strategy'
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const secret = config.get<string>('JWT_ACCESS_SECRET')
-
-        console.log('JWT_ACCESS_SECRET in JwtModule =', secret)
-
         return {
           secret,
           signOptions: {
@@ -30,4 +27,4 @@ import { JwtStrategy } from './jwt.strategy'
   providers: [JwtStrategy],
   exports: [JwtModule, PassportModule],
 })
-export class JwtAuthModule {}
+export class JwtAuthModule { }

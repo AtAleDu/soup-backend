@@ -20,6 +20,8 @@
 
 `JWT_SECRET=soup`
 
+`JWT_ACCESS_SECRET=soup`
+
 3) npm start
 
 4) Для получения документации по API используйте /api
