@@ -7,6 +7,7 @@ import { Contest } from './contest.entity';
 import { SearchIndex } from './search-index.entity';
 import { Tariff } from './tariff.entity';
 import { NewsEntity } from './news.entity';
+import { User } from './user.entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { NewsEntity } from './news.entity';
       SearchIndex,
       Tariff,
       NewsEntity,
+      User,
     ]),
   ],
   exports: [TypeOrmModule],

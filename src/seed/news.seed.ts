@@ -1,10 +1,10 @@
-import { DataSource } from 'typeorm'
-import { NewsEntity } from '../entities/news.entity'
-import { NEWS_DATA } from './news.data'
+import { DataSource } from 'typeorm';
+import { NewsEntity } from '../entities/news.entity';
+import { NEWS_DATA } from './news.data';
 
 export async function seedNews(dataSource: DataSource) {
-  const repo = dataSource.getRepository(NewsEntity)
+  const repo = dataSource.getRepository(NewsEntity);
 
-  await repo.clear()
-  await repo.save(NEWS_DATA)
+  await repo.clear();
+  await repo.save(NEWS_DATA);
 }

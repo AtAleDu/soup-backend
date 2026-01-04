@@ -1,4 +1,4 @@
-import { NewsEntity } from '../entities/news.entity'
+import { NewsEntity } from '../entities/news.entity';
 
 export const NEWS_DATA: Partial<NewsEntity>[] = [
   {
@@ -49,7 +49,8 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
       'https://s3.twcstorage.ru/4b615622-soup/news/%D1%84%D1%83%D1%82%D0%B1%20%D0%BF%D0%BE%D0%BB%D0%B5.svg',
     imageAlt: 'Футбольное поле под мостом с оранжевыми строениями',
     category: 'Спортивные комплексы',
-    title: '«Бруснике» пришлось потратить очень много времени на благоустройство',
+    title:
+      '«Бруснике» пришлось потратить очень много времени на благоустройство',
     description:
       'Футбольное поле под мостом превратили в уютный дворик с безопасным покрытием и подсветкой.',
     date: '9 ноября',
@@ -79,7 +80,8 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
       'https://s3.twcstorage.ru/4b615622-soup/news/%D0%BF%D0%BB%D0%BE%D1%89%D0%B0%D0%B4%D0%BA%D0%B0%20%D0%B4%D0%B5%D1%82%D1%81%D0%BA%D0%B0%D1%8F.svg',
     imageAlt: 'Двор с зелёными насаждениями, бассейном и деревянными террасами',
     category: 'Архитектура',
-    title: '«Бруснике» пришлось потратить очень много времени на благоустройство',
+    title:
+      '«Бруснике» пришлось потратить очень много времени на благоустройство',
     description:
       'Двор с террасами, водой и детской площадкой объединяет жильцов вокруг зелёного ядра.',
     date: '1 ноября',
@@ -88,4 +90,4 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
       'Лавки и тёплые деревянные настилы формируют места для отдыха.',
     ],
   },
-]
+];
