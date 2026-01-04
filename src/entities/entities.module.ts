@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Ad } from './ad.entity';
-import { Article } from './article.entity';
-import { Company } from './company.entity';
-import { Contest } from './contest.entity';
-import { SearchIndex } from './search-index.entity';
-import { Tariff } from './tariff.entity';
-import { NewsEntity } from './news.entity';
-import { User } from './user.entity';
+import { Ad } from './Ad/ad.entity';
+import { Article } from './Article/article.entity';
+import { Company } from './Company/company.entity';
+import { Contest } from './Contest/contest.entity';
+import { SearchIndex } from './Search/search-index.entity';
+import { Tariff } from './Tarif/tariff.entity';
+import { NewsEntity } from './News/news.entity';
+import { User } from './User/user.entity';
 
 @Module({
   imports: [
@@ -24,4 +24,4 @@ import { User } from './user.entity';
   ],
   exports: [TypeOrmModule],
 })
-export class EntitiesModule {}
+export class EntitiesModule { }

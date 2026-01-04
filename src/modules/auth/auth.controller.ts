@@ -1,10 +1,8 @@
-import {Controller,Post,Body,Get,Req,UseGuards,} from '@nestjs/common'
-import {ApiTags,ApiOperation,ApiResponse,ApiBearerAuth,} from '@nestjs/swagger'
+import { Controller, Post, Body, Get, Req, UseGuards, } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, } from '@nestjs/swagger'
 import type { Request } from 'express'
-
 import { AuthService } from './auth.service'
 import { JwtAuthGuard } from './jwt/jwt-auth.guard'
-
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
 import { AuthResponseDto } from './dto/auth-response.dto'
@@ -13,7 +11,7 @@ import { MeResponseDto } from './dto/me-response.dto'
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @ApiOperation({ summary: 'Регистрация пользователя' })
   @ApiResponse({

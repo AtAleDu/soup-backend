@@ -1,4 +1,4 @@
-import { NewsEntity } from '../entities/news.entity';
+import { NewsEntity } from '../entities/News/news.entity';
 
 export const NEWS_DATA: Partial<NewsEntity>[] = [
   {

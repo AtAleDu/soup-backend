@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
-import { NewsEntity } from '../entities/news.entity';
+import { NewsEntity } from '../entities/News/news.entity';
 import { seedNews } from './news.seed';
 
 const dataSource = new DataSource({

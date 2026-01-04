@@ -18,5 +18,8 @@
 
 `POSTGRESQL_DBNAME=soup`
 
+`JWT_SECRET=soup`
 
 3) npm start
+
+4) Для получения документации по API используйте /api

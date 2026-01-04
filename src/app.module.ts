@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { NewsModule } from './news/news.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+// Сущности
 import { EntitiesModule } from './entities/entities.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+
+// Модули
+import { NewsModule } from './modules/news/news.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -27,7 +29,5 @@ import { AuthModule } from './auth/auth.module';
     NewsModule,
     AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

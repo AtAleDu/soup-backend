@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Company } from './company.entity';
+import { Company } from '../Company/company.entity';
 
 @Entity('tariffs')
 export class Tariff {

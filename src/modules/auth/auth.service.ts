@@ -8,11 +8,10 @@ import { Repository } from 'typeorm'
 import * as bcrypt from 'bcrypt'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
-
-import { User } from '../entities/user.entity'
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
 import { AuthResponseDto } from './dto/auth-response.dto'
+import { User } from '@entities/User/user.entity'
 
 @Injectable()
 export class AuthService {
@@ -21,7 +20,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   private async issueTokens(user: User): Promise<AuthResponseDto> {
     const accessExpiresIn = Number(

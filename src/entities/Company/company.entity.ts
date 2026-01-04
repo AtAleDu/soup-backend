@@ -7,9 +7,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Tariff } from './tariff.entity';
-import { Article } from './article.entity';
-import { Ad } from './ad.entity';
+import { Article } from '../Article/article.entity';
+import { Ad } from '../Ad/ad.entity';
+import { Tariff } from '../Tarif/tariff.entity';
 
 @Entity('companies')
 export class Company {
