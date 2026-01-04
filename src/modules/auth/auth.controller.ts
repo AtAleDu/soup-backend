@@ -1,63 +1,115 @@
-import { Controller, Post, Body, Get, Req, UseGuards, } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, } from '@nestjs/swagger'
-import type { Request } from 'express'
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Req,
+  Res,
+  UseGuards,
+  UnauthorizedException,
+} from '@nestjs/common'
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger'
+import type { Request, Response } from 'express'
 import { AuthService } from './auth.service'
 import { JwtAuthGuard } from './jwt/jwt-auth.guard'
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
-import { AuthResponseDto } from './dto/auth-response.dto'
 import { MeResponseDto } from './dto/me-response.dto'
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Регистрация пользователя' })
-  @ApiResponse({
-    status: 201,
-    description: 'Пользователь успешно зарегистрирован',
-    type: AuthResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Пользователь уже существует',
-  })
+  private setRefreshCookie(res: Response, token: string) {
+    res.cookie('refreshToken', token, {
+      httpOnly: true,
+      secure: false, // ⚠️ true в PROD
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/auth/refresh',
+    })
+  }
+
+  private clearRefreshCookie(res: Response) {
+    res.clearCookie('refreshToken', {
+      path: '/auth/refresh',
+    })
+  }
+
   @Post('register')
-  register(
+  async register(
     @Body() body: RegisterDto,
-  ): Promise<AuthResponseDto> {
-    return this.authService.register(body)
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken } =
+      await this.authService.register(body)
+
+    this.setRefreshCookie(res, refreshToken)
+
+    return { accessToken }
   }
 
-  @ApiOperation({ summary: 'Авторизация пользователя' })
-  @ApiResponse({
-    status: 200,
-    description: 'Успешный вход',
-    type: AuthResponseDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Неверный email или пароль',
-  })
   @Post('login')
-  login(
+  async login(
     @Body() body: LoginDto,
-  ): Promise<AuthResponseDto> {
-    return this.authService.login(body)
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken } =
+      await this.authService.login(body)
+
+    this.setRefreshCookie(res, refreshToken)
+
+    return { accessToken }
   }
 
-  @ApiOperation({ summary: 'Получить текущего пользователя' })
+  @Post('refresh')
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = req.cookies?.refreshToken
+
+    if (!refreshToken) {
+      throw new UnauthorizedException()
+    }
+
+    const payload =
+      this.authService.verifyRefreshToken(refreshToken)
+
+    const user =
+      await this.authService.getUserIfRefreshTokenMatches(
+        payload.sub as string,
+        refreshToken,
+      )
+
+    const {
+      accessToken,
+      refreshToken: newRefreshToken,
+    } = await this.authService.issueTokens(user)
+
+    this.setRefreshCookie(res, newRefreshToken)
+
+    return { accessToken }
+  }
+
   @ApiBearerAuth()
-  @ApiResponse({
-    status: 200,
-    description: 'Данные текущего пользователя',
-    type: MeResponseDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Не авторизован',
-  })
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = req.user as { sub: string }
+
+    await this.authService.logout(user.sub)
+
+    this.clearRefreshCookie(res)
+
+    return { success: true }
+  }
+
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('me')
   me(@Req() req: Request): MeResponseDto {

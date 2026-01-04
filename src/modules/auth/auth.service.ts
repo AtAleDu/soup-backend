@@ -10,8 +10,8 @@ import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
-import { AuthResponseDto } from './dto/auth-response.dto'
 import { User } from '@entities/User/user.entity'
+import type { JwtPayload } from 'jsonwebtoken'
 
 @Injectable()
 export class AuthService {
@@ -20,15 +20,22 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
-  private async issueTokens(user: User): Promise<AuthResponseDto> {
+  async issueTokens(user: User): Promise<{
+    accessToken: string
+    refreshToken: string
+  }> {
     const accessExpiresIn = Number(
       this.configService.get('JWT_ACCESS_EXPIRES_IN'),
     )
+
     const refreshExpiresIn = Number(
       this.configService.get('JWT_REFRESH_EXPIRES_IN'),
     )
+
+    const refreshSecret =
+      this.configService.get<string>('JWT_REFRESH_SECRET')!
 
     const payload = {
       sub: user.id,
@@ -40,6 +47,7 @@ export class AuthService {
     })
 
     const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: refreshSecret,
       expiresIn: refreshExpiresIn,
     })
 
@@ -49,21 +57,50 @@ export class AuthService {
       refreshTokenHash,
     })
 
-    return {
-      accessToken,
-      refreshToken,
+    return { accessToken, refreshToken }
+  }
+
+  verifyRefreshToken(token: string): JwtPayload {
+    try {
+      return this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      })
+    } catch {
+      throw new UnauthorizedException()
     }
   }
 
-  async register(data: RegisterDto): Promise<AuthResponseDto> {
+  async getUserIfRefreshTokenMatches(
+    userId: string,
+    refreshToken: string,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    })
+
+    if (!user || !user.refreshTokenHash) {
+      throw new UnauthorizedException()
+    }
+
+    const isMatch = await bcrypt.compare(
+      refreshToken,
+      user.refreshTokenHash,
+    )
+
+    if (!isMatch) {
+      throw new UnauthorizedException()
+    }
+
+    return user
+  }
+
+  async register(data: RegisterDto) {
     const existingUser = await this.userRepository.findOne({
       where: { email: data.email },
     })
 
     if (existingUser) {
-      throw new BadRequestException(
-        'Неверные данные для регистрации',
-      )
+      throw new BadRequestException('Пользователь уже существует')
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10)
@@ -78,15 +115,13 @@ export class AuthService {
     return this.issueTokens(user)
   }
 
-  async login(data: LoginDto): Promise<AuthResponseDto> {
+  async login(data: LoginDto) {
     const user = await this.userRepository.findOne({
       where: { email: data.email },
     })
 
     if (!user) {
-      throw new UnauthorizedException(
-        'Неверный email или пароль',
-      )
+      throw new UnauthorizedException('Неверный email или пароль')
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -95,11 +130,15 @@ export class AuthService {
     )
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException(
-        'Неверный email или пароль',
-      )
+      throw new UnauthorizedException('Неверный email или пароль')
     }
 
     return this.issueTokens(user)
+  }
+
+  async logout(userId: string) {
+    await this.userRepository.update(userId, {
+      refreshTokenHash: null,
+    })
   }
 }

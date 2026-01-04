@@ -1,15 +1,21 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity()
+export enum UserRole {
+  USER = 'user',
+  COMPANY = 'company',
+}
+
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({
     type: 'enum',
-    enum: ['customer', 'executor'],
+    enum: UserRole,
+    default: UserRole.USER,
   })
-  role: 'customer' | 'executor';
+  role: UserRole;
 
   @Column()
   name: string;
@@ -21,5 +27,5 @@ export class User {
   password: string;
 
   @Column({ nullable: true })
-  refreshTokenHash?: string | null;
+  refreshTokenHash: string | null;
 }
