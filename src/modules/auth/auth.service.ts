@@ -95,25 +95,32 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: data.email },
-    })
-
-    if (existingUser) {
-      throw new BadRequestException('Пользователь уже существует')
-    }
-
-    const hashedPassword = await bcrypt.hash(data.password, 10)
-
-    const user = await this.userRepository.save(
-      this.userRepository.create({
-        ...data,
-        password: hashedPassword,
-      }),
-    )
-
-    return this.issueTokens(user)
+  if (data.password !== data.passwordConfirm) {
+    throw new BadRequestException('Пароли не совпадают')
   }
+
+  const existingUser = await this.userRepository.findOne({
+    where: { email: data.email },
+  })
+
+  if (existingUser) {
+    throw new BadRequestException('Пользователь уже существует')
+  }
+
+  const hashedPassword = await bcrypt.hash(data.password, 10)
+
+  const user = await this.userRepository.save(
+    this.userRepository.create({
+      email: data.email,
+      name: data.name,
+      role: data.role,
+      password: hashedPassword,
+    }),
+  )
+
+  return this.issueTokens(user)
+}
+
 
   async login(data: LoginDto) {
     const user = await this.userRepository.findOne({
