@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtStrategy } from './jwt.strategy'
+import type { StringValue } from 'ms'
 
 @Module({
   imports: [
@@ -16,9 +17,7 @@ import { JwtStrategy } from './jwt.strategy'
         return {
           secret,
           signOptions: {
-            expiresIn: Number(
-              config.get<string>('JWT_ACCESS_EXPIRES_IN'),
-            ),
+            expiresIn: config.get<string>('JWT_ACCESS_EXPIRES_IN') as StringValue,
           },
         }
       },

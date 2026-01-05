@@ -8,19 +8,28 @@
 2) Ставите зависимости:
 Создайте файл `.env` в `soup-backend` и добавьте:
 
-`POSTGRESQL_HOST=localhost`
+// База данных
 
-`POSTGRESQL_PORT=5432`
+POSTGRESQL_HOST=localhost
 
-`POSTGRESQL_USER=postgres`
+POSTGRESQL_PORT=5432
 
-`POSTGRESQL_PASSWORD=postgres`
+POSTGRESQL_USER=postgres
 
-`POSTGRESQL_DBNAME=soup`
+POSTGRESQL_PASSWORD=Vova2005
 
-`JWT_SECRET=soup`
+POSTGRESQL_DBNAME=soup
 
-`JWT_ACCESS_SECRET=soup`
+// JWT
+
+JWT_ACCESS_SECRET=soup
+
+JWT_REFRESH_SECRET=soup
+
+JWT_ACCESS_EXPIRES_IN=15m
+
+JWT_REFRESH_EXPIRES_IN=7d
+
 
 3) npm start
 

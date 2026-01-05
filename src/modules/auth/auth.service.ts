@@ -12,6 +12,7 @@ import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
 import { User } from '@entities/User/user.entity'
 import type { JwtPayload } from 'jsonwebtoken'
+import type { StringValue } from 'ms'
 
 @Injectable()
 export class AuthService {
@@ -26,13 +27,13 @@ export class AuthService {
     accessToken: string
     refreshToken: string
   }> {
-    const accessExpiresIn = Number(
-      this.configService.get('JWT_ACCESS_EXPIRES_IN'),
-    )
+    const accessExpiresIn = this.configService.get<string>(
+      'JWT_ACCESS_EXPIRES_IN',
+    ) as StringValue
 
-    const refreshExpiresIn = Number(
-      this.configService.get('JWT_REFRESH_EXPIRES_IN'),
-    )
+    const refreshExpiresIn = this.configService.get<string>(
+      'JWT_REFRESH_EXPIRES_IN',
+    ) as StringValue
 
     const refreshSecret =
       this.configService.get<string>('JWT_REFRESH_SECRET')!
