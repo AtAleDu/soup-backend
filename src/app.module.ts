@@ -1,13 +1,10 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { TypeOrmModule } from '@nestjs/typeorm'
 
-// Сущности
-import { EntitiesModule } from './entities/entities.module';
-
-// Модули
-import { NewsModule } from './modules/news/news.module';
-import { AuthModule } from './modules/auth/auth.module';
+import { EntitiesModule } from './entities/entities.module'
+import { NewsModule } from './modules/news/news.module'
+import { AuthModule } from './modules/auth/auth.module'
 
 @Module({
   imports: [
@@ -18,16 +15,25 @@ import { AuthModule } from './modules/auth/auth.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRESQL_HOST,
-      port: parseInt(process.env.POSTGRESQL_PORT),
+      port: Number(process.env.POSTGRESQL_PORT),
       username: process.env.POSTGRESQL_USER,
       password: process.env.POSTGRESQL_PASSWORD,
       database: process.env.POSTGRESQL_DBNAME,
+
       autoLoadEntities: true,
-      synchronize: true,
+
+      synchronize: process.env.NODE_ENV !== 'production',
+
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? { rejectUnauthorized: false }
+          : false,
     }),
+
+    // DOMAINS
     EntitiesModule,
     NewsModule,
     AuthModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

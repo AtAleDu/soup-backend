@@ -5,148 +5,97 @@ import {
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import * as bcrypt from 'bcrypt'
-import { JwtService } from '@nestjs/jwt'
-import { ConfigService } from '@nestjs/config'
+
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
-import { User } from '@entities/User/user.entity'
-import type { JwtPayload } from 'jsonwebtoken'
-import type { StringValue } from 'ms'
+
+import {
+  User,
+  UserStatus,
+} from '@entities/User/user.entity'
+
+import { PasswordService } from './password/password.service'
+import { TokenService } from './token/token.service'
+import { RefreshTokenService } from './refresh-token/refresh-token.service'
+import { VerificationService } from './verification/verification.service'
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly users: Repository<User>,
+
+    private readonly passwordService: PasswordService,
+    private readonly tokenService: TokenService,
+    private readonly refreshTokenService: RefreshTokenService,
+    private readonly verificationService: VerificationService,
   ) {}
 
-  async issueTokens(user: User): Promise<{
-    accessToken: string
-    refreshToken: string
-  }> {
-    const accessExpiresIn = this.configService.get<string>(
-      'JWT_ACCESS_EXPIRES_IN',
-    ) as StringValue
-
-    const refreshExpiresIn = this.configService.get<string>(
-      'JWT_REFRESH_EXPIRES_IN',
-    ) as StringValue
-
-    const refreshSecret =
-      this.configService.get<string>('JWT_REFRESH_SECRET')!
-
-    const payload = {
-      sub: user.id,
-      role: user.role,
+  async register(dto: RegisterDto) {
+    if (dto.password !== dto.passwordConfirm) {
+      throw new BadRequestException('Пароли не совпадают')
     }
 
-    const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: accessExpiresIn,
+    const exists = await this.users.findOne({
+      where: { email: dto.email },
     })
 
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: refreshSecret,
-      expiresIn: refreshExpiresIn,
-    })
-
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 10)
-
-    await this.userRepository.update(user.id, {
-      refreshTokenHash,
-    })
-
-    return { accessToken, refreshToken }
-  }
-
-  verifyRefreshToken(token: string): JwtPayload {
-    try {
-      return this.jwtService.verify(token, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-      })
-    } catch {
-      throw new UnauthorizedException()
-    }
-  }
-
-  async getUserIfRefreshTokenMatches(
-    userId: string,
-    refreshToken: string,
-  ): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    })
-
-    if (!user || !user.refreshTokenHash) {
-      throw new UnauthorizedException()
+    if (exists) {
+      throw new BadRequestException('Пользователь уже существует')
     }
 
-    const isMatch = await bcrypt.compare(
-      refreshToken,
-      user.refreshTokenHash,
-    )
+    const user = await this.users.save({
+      email: dto.email,
+      name: dto.name,
+      role: dto.role,
+      password: await this.passwordService.hash(dto.password),
+      status: UserStatus.PENDING,
+    })
 
-    if (!isMatch) {
-      throw new UnauthorizedException()
-    }
-
-    return user
+    return this.verificationService.create(user.id)
   }
 
-  async register(data: RegisterDto) {
-  if (data.password !== data.passwordConfirm) {
-    throw new BadRequestException('Пароли не совпадают')
-  }
-
-  const existingUser = await this.userRepository.findOne({
-    where: { email: data.email },
-  })
-
-  if (existingUser) {
-    throw new BadRequestException('Пользователь уже существует')
-  }
-
-  const hashedPassword = await bcrypt.hash(data.password, 10)
-
-  const user = await this.userRepository.save(
-    this.userRepository.create({
-      email: data.email,
-      name: data.name,
-      role: data.role,
-      password: hashedPassword,
-    }),
-  )
-
-  return this.issueTokens(user)
-}
-
-
-  async login(data: LoginDto) {
-    const user = await this.userRepository.findOne({
-      where: { email: data.email },
+  async login(dto: LoginDto) {
+    const user = await this.users.findOne({
+      where: { email: dto.email },
     })
 
     if (!user) {
       throw new UnauthorizedException('Неверный email или пароль')
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      data.password,
-      user.password,
-    )
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Неверный email или пароль')
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('Email не подтверждён')
     }
 
-    return this.issueTokens(user)
+    await this.passwordService.compare(dto.password, user.password)
+
+    const tokens = await this.tokenService.issue(user)
+    await this.refreshTokenService.save(
+      user.id,
+      tokens.refreshToken,
+    )
+
+    return tokens
+  }
+
+  async refresh(userId: string, refreshToken: string) {
+    const user =
+      await this.refreshTokenService.validate(
+        userId,
+        refreshToken,
+      )
+
+    const tokens = await this.tokenService.issue(user)
+    await this.refreshTokenService.save(
+      user.id,
+      tokens.refreshToken,
+    )
+
+    return tokens
   }
 
   async logout(userId: string) {
-    await this.userRepository.update(userId, {
-      refreshTokenHash: null,
-    })
+    await this.refreshTokenService.revoke(userId)
   }
 }

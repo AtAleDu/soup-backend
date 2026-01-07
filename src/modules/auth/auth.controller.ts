@@ -10,44 +10,31 @@ import {
 } from '@nestjs/common'
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import type { Request, Response } from 'express'
+
 import { AuthService } from './auth.service'
+import { VerificationService } from './verification/verification.service'
 import { JwtAuthGuard } from './jwt/jwt-auth.guard'
+
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
+import { VerifyDto } from './dto/verify.dto'
+import { ResendDto } from './dto/resend.dto'
 import { MeResponseDto } from './dto/me-response.dto'
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly verificationService: VerificationService,
+  ) {}
 
-  private setRefreshCookie(res: Response, token: string) {
-    res.cookie('refreshToken', token, {
-      httpOnly: true,
-      secure: false, 
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/auth/refresh',
-    })
-  }
-
-  private clearRefreshCookie(res: Response) {
-    res.clearCookie('refreshToken', {
-      path: '/auth/refresh',
-    })
-  }
-
+  // --------------------
+  // auth
+  // --------------------
   @Post('register')
-  async register(
-    @Body() body: RegisterDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const { accessToken, refreshToken } =
-      await this.authService.register(body)
-
-    this.setRefreshCookie(res, refreshToken)
-
-    return { accessToken }
+  register(@Body() body: RegisterDto) {
+    return this.authService.register(body)
   }
 
   @Post('login')
@@ -58,39 +45,37 @@ export class AuthController {
     const { accessToken, refreshToken } =
       await this.authService.login(body)
 
-    this.setRefreshCookie(res, refreshToken)
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: false,
+      path: '/auth/refresh',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
 
     return { accessToken }
   }
 
-  @Post('refresh')
-  async refresh(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const refreshToken = req.cookies?.refreshToken
+  @Post('verify')
+  verify(@Body() body: VerifyDto) {
+    return this.verificationService.verify(
+      body.verificationId,
+      body.code,
+    )
+  }
 
-    if (!refreshToken) {
-      throw new UnauthorizedException()
-    }
+  @Post('resend')
+  resend(@Body() body: ResendDto) {
+    return this.verificationService.resend(
+      body.verificationId,
+    )
+  }
 
-    const payload =
-      this.authService.verifyRefreshToken(refreshToken)
-
-    const user =
-      await this.authService.getUserIfRefreshTokenMatches(
-        payload.sub as string,
-        refreshToken,
-      )
-
-    const {
-      accessToken,
-      refreshToken: newRefreshToken,
-    } = await this.authService.issueTokens(user)
-
-    this.setRefreshCookie(res, newRefreshToken)
-
-    return { accessToken }
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  me(@Req() req: Request): MeResponseDto {
+    return req.user as MeResponseDto
   }
 
   @ApiBearerAuth()
@@ -104,15 +89,10 @@ export class AuthController {
 
     await this.authService.logout(user.sub)
 
-    this.clearRefreshCookie(res)
+    res.clearCookie('refreshToken', {
+      path: '/auth/refresh',
+    })
 
     return { success: true }
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  me(@Req() req: Request): MeResponseDto {
-    return req.user as MeResponseDto
   }
 }
