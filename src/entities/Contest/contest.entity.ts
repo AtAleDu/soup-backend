@@ -1,28 +1,36 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm'
 
 @Entity('contests')
 export class Contest {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number
 
   @Column()
-  title: string;
+  title: string
 
-  @Column({ nullable: true })
-  description: string;
-
-  @Column({ type: 'date', nullable: true })
-  start_date: string;
+  @Column({ type: 'text', nullable: true })
+  description?: string
 
   @Column({ type: 'date', nullable: true })
-  end_date: string;
+  startDate?: string
+
+  @Column({ type: 'date', nullable: true })
+  endDate?: string
+
+  @Column({ type: 'text', nullable: true })
+  result?: string
 
   @Column({ nullable: true })
-  result: string;
+  imageUrl?: string
 
-  @Column({ nullable: true })
-  image_url: string;
+  @Column({ default: true })
+  isPublished: boolean
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
+  @CreateDateColumn()
+  createdAt: Date
 }

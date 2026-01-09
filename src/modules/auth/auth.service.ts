@@ -1,18 +1,11 @@
-import {
-  Injectable,
-  BadRequestException,
-  UnauthorizedException,
-} from '@nestjs/common'
+import {Injectable,BadRequestException,UnauthorizedException,} from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
 
-import {
-  User,
-  UserStatus,
-} from '@entities/User/user.entity'
+import {User,UserStatus,} from '@entities/User/user.entity'
 
 import { PasswordService } from './password/password.service'
 import { TokenService } from './token/token.service'
@@ -31,6 +24,7 @@ export class AuthService {
     private readonly verificationService: VerificationService,
   ) {}
 
+  // Регистрация нового пользователя и запуск процесса подтверждения email
   async register(dto: RegisterDto) {
     if (dto.password !== dto.passwordConfirm) {
       throw new BadRequestException('Пароли не совпадают')
@@ -52,9 +46,11 @@ export class AuthService {
       status: UserStatus.PENDING,
     })
 
+    // Создаём verification-запись для подтверждения email
     return this.verificationService.create(user.id)
   }
 
+  // Логин пользователя и выдача access / refresh токенов
   async login(dto: LoginDto) {
     const user = await this.users.findOne({
       where: { email: dto.email },
@@ -68,9 +64,13 @@ export class AuthService {
       throw new UnauthorizedException('Email не подтверждён')
     }
 
+    // Проверка пароля
     await this.passwordService.compare(dto.password, user.password)
 
+    // Генерация токенов
     const tokens = await this.tokenService.issue(user)
+
+    // Сохранение refresh token
     await this.refreshTokenService.save(
       user.id,
       tokens.refreshToken,
@@ -79,14 +79,19 @@ export class AuthService {
     return tokens
   }
 
+  // Обновление access token по refresh token
   async refresh(userId: string, refreshToken: string) {
+    // Проверяем refresh token и получаем пользователя
     const user =
       await this.refreshTokenService.validate(
         userId,
         refreshToken,
       )
 
+    // Перевыпускаем токены
     const tokens = await this.tokenService.issue(user)
+
+    // Сохраняем новый refresh token
     await this.refreshTokenService.save(
       user.id,
       tokens.refreshToken,
@@ -95,6 +100,7 @@ export class AuthService {
     return tokens
   }
 
+  // Выход пользователя из системы (инвалидация refresh token)
   async logout(userId: string) {
     await this.refreshTokenService.revoke(userId)
   }
