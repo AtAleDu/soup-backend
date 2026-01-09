@@ -29,9 +29,6 @@ export class AuthController {
     private readonly verificationService: VerificationService,
   ) {}
 
-  // --------------------
-  // auth
-  // --------------------
   @Post('register')
   register(@Body() body: RegisterDto) {
     return this.authService.register(body)
@@ -46,6 +43,37 @@ export class AuthController {
       await this.authService.login(body)
 
     res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: false,
+      path: '/auth/refresh',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+
+    return { accessToken }
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('refresh')
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = req.cookies?.refreshToken
+    if (!refreshToken) {
+      throw new UnauthorizedException()
+    }
+
+    const user = req.user as { sub: string }
+
+    const { accessToken, refreshToken: newRefresh } =
+      await this.authService.refresh(
+        user.sub,
+        refreshToken,
+      )
+
+    res.cookie('refreshToken', newRefresh, {
       httpOnly: true,
       sameSite: 'strict',
       secure: false,
