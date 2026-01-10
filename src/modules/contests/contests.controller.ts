@@ -1,5 +1,5 @@
-import {Controller,Get,Post,Put,Delete,Param,Body,ParseIntPipe,} from '@nestjs/common'
-import {ApiTags,ApiOperation,ApiResponse,ApiParam,} from '@nestjs/swagger'
+import { Controller, Get, Post, Put, Delete, Param, Body, ParseIntPipe, } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, } from '@nestjs/swagger'
 import { ContestsService } from './contests.service'
 import { CreateContestDto } from './dto/create-contest.dto'
 import { UpdateContestDto } from './dto/update-contest.dto'
@@ -7,7 +7,7 @@ import { UpdateContestDto } from './dto/update-contest.dto'
 @ApiTags('Contests')
 @Controller()
 export class ContestsController {
-  constructor(private readonly contestsService: ContestsService) {}
+  constructor(private readonly contestsService: ContestsService) { }
 
   // PUBLIC: получить список опубликованных конкурсов
   @ApiOperation({ summary: 'Получить список опубликованных конкурсов' })

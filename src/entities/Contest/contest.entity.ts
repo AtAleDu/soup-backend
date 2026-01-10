@@ -14,6 +14,9 @@ export class Contest {
   title: string
 
   @Column({ type: 'text', nullable: true })
+  contestLink: string
+
+  @Column({ type: 'text', nullable: true })
   description?: string
 
   @Column({ type: 'date', nullable: true })
