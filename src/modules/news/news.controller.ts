@@ -10,6 +10,7 @@ import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard'
 export class NewsController {
   constructor(private readonly service: NewsService) {}
 
+  // ADMIN: создание новости
   @ApiOperation({ summary: 'Создание новости' })
   @ApiResponse({ status: 201, description: 'Новость успешно создана' })
   @ApiResponse({ status: 401, description: 'Не авторизован' })
@@ -20,6 +21,7 @@ export class NewsController {
     return this.service.create(body)
   }
 
+  // PUBLIC: получить список новостей
   @ApiOperation({ summary: 'Получить список новостей' })
   @ApiResponse({ status: 200, description: 'Список новостей' })
   @Get()
@@ -27,18 +29,20 @@ export class NewsController {
     return this.service.findAll()
   }
 
+  // PUBLIC: получить новость по UUID
   @ApiOperation({ summary: 'Получить новость по ID' })
-  @ApiParam({ name: 'id', example: 1 })
+  @ApiParam({ name: 'id', example: 'uuid' })
   @ApiResponse({ status: 200, description: 'Новость найдена' })
   @ApiResponse({ status: 404, description: 'Новость не найдена' })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.service.findOne(+id)
+    return this.service.findOne(id)
   }
 
+  // ADMIN: обновить новость
   @ApiOperation({ summary: 'Обновить новость' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'id', example: 1 })
+  @ApiParam({ name: 'id', example: 'uuid' })
   @ApiResponse({ status: 200, description: 'Новость обновлена' })
   @UseGuards(JwtAuthGuard)
   @Put(':id')
@@ -46,16 +50,17 @@ export class NewsController {
     @Param('id') id: string,
     @Body() body: UpdateNewsDto,
   ) {
-    return this.service.update(+id, body)
+    return this.service.update(id, body)
   }
 
+  // ADMIN: удалить новость
   @ApiOperation({ summary: 'Удалить новость' })
   @ApiBearerAuth()
-  @ApiParam({ name: 'id', example: 1 })
+  @ApiParam({ name: 'id', example: 'uuid' })
   @ApiResponse({ status: 200, description: 'Новость удалена' })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.service.remove(+id)
+    return this.service.remove(id)
   }
 }

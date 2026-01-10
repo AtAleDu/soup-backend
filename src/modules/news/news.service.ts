@@ -1,43 +1,43 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { News } from './news.model';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { NewsEntity } from '@entities/News/news.entity'
+import { CreateNewsDto } from './dto/create-news.dto'
+import { UpdateNewsDto } from './dto/update-news.dto'
 
 @Injectable()
 export class NewsService {
-  private news: News[] = [];
-  private id = 1;
+  constructor(
+    @InjectRepository(NewsEntity)
+    private readonly repo: Repository<NewsEntity>,
+  ) {}
 
-  create(data: Omit<News, 'id'>) {
-    const item: News = {
-      id: this.id++,
-      ...data,
-    };
-    this.news.push(item);
-    return item;
+  async create(dto: CreateNewsDto) {
+    const news = this.repo.create(dto)
+    return this.repo.save(news)
   }
 
-  findAll() {
-    return this.news;
+  async findAll() {
+    return this.repo.find({
+      order: { id: 'DESC' },
+    })
   }
 
-  findOne(id: number) {
-    const item = this.news.find((n) => n.id === id);
-    if (!item) {
-      throw new NotFoundException('News not found');
-    }
-    return item;
+  async findOne(id: string) {
+    const item = await this.repo.findOne({ where: { id } })
+    if (!item) throw new NotFoundException('News not found')
+    return item
   }
 
-  update(id: number, data: Partial<Omit<News, 'id'>>) {
-    const item = this.findOne(id);
-    Object.assign(item, data);
-    return item;
+  async update(id: string, dto: UpdateNewsDto) {
+    const item = await this.findOne(id)
+    Object.assign(item, dto)
+    return this.repo.save(item)
   }
 
-  remove(id: number) {
-    const index = this.news.findIndex((n) => n.id === id);
-    if (index === -1) {
-      throw new NotFoundException('News not found');
-    }
-    return this.news.splice(index, 1)[0];
+  async remove(id: string) {
+    const item = await this.findOne(id)
+    await this.repo.remove(item)
+    return { success: true }
   }
 }
