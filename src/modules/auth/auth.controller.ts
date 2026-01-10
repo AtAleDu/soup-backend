@@ -3,6 +3,7 @@ import {ApiTags,ApiBearerAuth,ApiOperation,ApiResponse,} from '@nestjs/swagger'
 import type { Request, Response } from 'express'
 
 import { AuthService } from './auth.service'
+import { TokenService } from './token/token.service'
 import { VerificationService } from './verification/verification.service'
 import { JwtAuthGuard } from './jwt/jwt-auth.guard'
 
@@ -17,6 +18,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly verificationService: VerificationService,
+    private readonly tokenService: TokenService,
   ) {}
 
   // Регистрация нового пользователя
@@ -62,7 +64,6 @@ export class AuthController {
     status: 401,
     description: 'Refresh token отсутствует или недействителен',
   })
-  @UseGuards(JwtAuthGuard)
   @Post('refresh')
   async refresh(
     @Req() req: Request,
@@ -73,10 +74,10 @@ export class AuthController {
       throw new UnauthorizedException()
     }
 
-    const user = req.user as { sub: string }
+    const payload = this.tokenService.verifyRefresh(refreshToken)
 
     const { accessToken, refreshToken: newRefresh } =
-      await this.authService.refresh(user.sub, refreshToken)
+      await this.authService.refresh(String(payload.sub), refreshToken)
 
     res.cookie('refreshToken', newRefresh, {
       httpOnly: true,
