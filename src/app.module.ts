@@ -6,6 +6,7 @@ import { EntitiesModule } from './entities/entities.module'
 import { NewsModule } from './modules/news/news.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { ContestsModule } from '@modules/contests/contests.module'
+import { CatalogFiltersModule } from './modules/catalog-filters/catalog-filters.module'
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ContestsModule } from '@modules/contests/contests.module'
     NewsModule,
     AuthModule,
     ContestsModule,
+    CatalogFiltersModule,
   ],
 })
 export class AppModule {}

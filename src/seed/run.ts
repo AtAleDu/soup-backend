@@ -2,8 +2,10 @@ import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { NewsEntity } from '../entities/News/news.entity';
 import { Contest } from '../entities/Contest/contest.entity';
+import { CatalogFilter } from '../entities/Catalog/catalogFilters/catalog-filter.entity';
 import { seedNews } from './news/news.seed';
 import { seedContest } from './contests/contest.seed';
+import { seedCatalogFilter } from './catalogFilters/catalog-filter.seed';
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -12,14 +14,15 @@ const dataSource = new DataSource({
   username: process.env.POSTGRESQL_USER,
   password: process.env.POSTGRESQL_PASSWORD,
   database: process.env.POSTGRESQL_DBNAME,
-  entities: [NewsEntity, Contest],
+  entities: [NewsEntity, Contest, CatalogFilter],
   synchronize: true,
 });
 
 async function run() {
   await dataSource.initialize();
   await seedNews(dataSource);
-  await seedContest(dataSource)
+  await seedContest(dataSource);
+  await seedCatalogFilter(dataSource);
   await dataSource.destroy();
   console.log('Seed completed');
 }
