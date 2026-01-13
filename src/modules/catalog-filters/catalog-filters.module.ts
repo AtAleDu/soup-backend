@@ -7,7 +7,7 @@ import { AdminCatalogFiltersController } from './admin/admin-catalog-filters.con
 import { AdminCatalogFiltersService } from './admin/admin-catalog-filters.service'
 @Module({
   imports: [TypeOrmModule.forFeature([CatalogFilter])],
-  controllers: [CatalogFiltersController, AdminCatalogFiltersController],
+  controllers: [CatalogFiltersController, AdminCatalogFiltersController],//AdminCatalogFiltersController и AdminCatalogFiltersService для Жени можешь делить
   providers: [CatalogFiltersService, AdminCatalogFiltersService],
 })
 export class CatalogFiltersModule {}
