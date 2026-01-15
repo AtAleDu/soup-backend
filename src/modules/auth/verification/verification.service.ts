@@ -1,23 +1,17 @@
-import {
-  Injectable,
-  BadRequestException,
-} from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { Injectable, BadRequestException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 
 import {
   VerificationSession,
   VerificationStatus,
-} from '@entities/VerificationSession/verification-session.entity'
-import {
-  User,
-  UserStatus,
-} from '@entities/User/user.entity'
+} from "@entities/VerificationSession/verification-session.entity";
+import { User, UserStatus } from "@entities/User/user.entity";
 
 import {
   generateVerificationCode,
   hashVerificationCode,
-} from './verification.util'
+} from "./verification.util";
 
 @Injectable()
 export class VerificationService {
@@ -33,7 +27,7 @@ export class VerificationService {
    * Создание новой verification-сессии (при регистрации)
    */
   async create(userId: string) {
-    const code = generateVerificationCode()
+    const code = generateVerificationCode();
 
     const session = await this.sessions.save({
       userId,
@@ -43,14 +37,14 @@ export class VerificationService {
       status: VerificationStatus.PENDING,
       resendCount: 0,
       lastSentAt: new Date(),
-    })
+    });
 
     // TODO: заменить на email / sms
-    console.log('VERIFICATION CODE:', code)
+    console.log("VERIFICATION CODE:", code);
 
     return {
       verificationId: session.id,
-    }
+    };
   }
 
   /**
@@ -59,50 +53,50 @@ export class VerificationService {
   async verify(verificationId: string, code: string) {
     const session = await this.sessions.findOne({
       where: { id: verificationId },
-    })
+    });
 
     if (!session) {
-      throw new BadRequestException('Сессия подтверждения не найдена')
+      throw new BadRequestException("Сессия подтверждения не найдена");
     }
 
     if (session.status !== VerificationStatus.PENDING) {
-      throw new BadRequestException('Сессия недействительна')
+      throw new BadRequestException("Сессия недействительна");
     }
 
     if (session.expiresAt.getTime() < Date.now()) {
-      session.status = VerificationStatus.LOCKED
-      await this.sessions.save(session)
-      throw new BadRequestException('Код истёк')
+      session.status = VerificationStatus.LOCKED;
+      await this.sessions.save(session);
+      throw new BadRequestException("Код истёк");
     }
 
-    const incomingHash = hashVerificationCode(code)
+    const incomingHash = hashVerificationCode(code);
 
     if (incomingHash !== session.codeHash) {
-      session.attemptsLeft -= 1
+      session.attemptsLeft -= 1;
 
       if (session.attemptsLeft <= 0) {
-        session.status = VerificationStatus.LOCKED
+        session.status = VerificationStatus.LOCKED;
       }
 
-      await this.sessions.save(session)
-      throw new BadRequestException('Неверный код')
+      await this.sessions.save(session);
+      throw new BadRequestException("Неверный код");
     }
 
     const user = await this.users.findOne({
       where: { id: session.userId },
-    })
+    });
 
     if (!user) {
-      throw new BadRequestException('Пользователь не найден')
+      throw new BadRequestException("Пользователь не найден");
     }
 
-    user.status = UserStatus.ACTIVE
-    session.status = VerificationStatus.USED
+    user.status = UserStatus.ACTIVE;
+    session.status = VerificationStatus.USED;
 
-    await this.users.save(user)
-    await this.sessions.save(session)
+    await this.users.save(user);
+    await this.sessions.save(session);
 
-    return { success: true }
+    return { success: true };
   }
 
   /**
@@ -111,33 +105,33 @@ export class VerificationService {
   async resend(verificationId: string) {
     const oldSession = await this.sessions.findOne({
       where: { id: verificationId },
-    })
+    });
 
     if (!oldSession) {
-      throw new BadRequestException('Сессия не найдена')
+      throw new BadRequestException("Сессия не найдена");
     }
 
     if (oldSession.status !== VerificationStatus.PENDING) {
-      throw new BadRequestException('Сессия недействительна')
+      throw new BadRequestException("Сессия недействительна");
     }
 
     if (oldSession.resendCount >= 3) {
-      throw new BadRequestException('Превышен лимит повторных отправок')
+      throw new BadRequestException("Превышен лимит повторных отправок");
     }
 
     if (
       oldSession.lastSentAt &&
       Date.now() - oldSession.lastSentAt.getTime() < 60_000
     ) {
-      throw new BadRequestException('Подождите перед повторной отправкой')
+      throw new BadRequestException("Подождите перед повторной отправкой");
     }
 
     // Закрываем старую сессию
-    oldSession.status = VerificationStatus.EXPIRED
-    await this.sessions.save(oldSession)
+    oldSession.status = VerificationStatus.EXPIRED;
+    await this.sessions.save(oldSession);
 
     // Создаём новую
-    const code = generateVerificationCode()
+    const code = generateVerificationCode();
 
     const newSession = await this.sessions.save({
       userId: oldSession.userId,
@@ -147,13 +141,13 @@ export class VerificationService {
       status: VerificationStatus.PENDING,
       resendCount: oldSession.resendCount + 1,
       lastSentAt: new Date(),
-    })
+    });
 
     // TODO: заменить на email / sms
-    console.log('RESEND VERIFICATION CODE:', code)
+    console.log("RESEND VERIFICATION CODE:", code);
 
     return {
       verificationId: newSession.id,
-    }
+    };
   }
 }

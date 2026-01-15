@@ -1,22 +1,22 @@
-import { Module } from '@nestjs/common'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { JwtModule } from '@nestjs/jwt'
-import { PassportModule } from '@nestjs/passport'
-import { ConfigModule, ConfigService } from '@nestjs/config'
-import type { StringValue } from 'ms'
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import type { StringValue } from "ms";
 
-import { AuthController } from './auth.controller'
-import { AuthService } from './auth.service'
+import { AuthController } from "./auth.controller";
+import { AuthService } from "./auth.service";
 
-import { User } from '@entities/User/user.entity'
-import { VerificationSession } from '@entities/VerificationSession/verification-session.entity'
+import { User } from "@entities/User/user.entity";
+import { VerificationSession } from "@entities/VerificationSession/verification-session.entity";
 
-import { PasswordService } from './password/password.service'
-import { TokenService } from './token/token.service'
-import { RefreshTokenService } from './refresh-token/refresh-token.service'
-import { VerificationService } from './verification/verification.service'
+import { PasswordService } from "./password/password.service";
+import { TokenService } from "./token/token.service";
+import { RefreshTokenService } from "./refresh-token/refresh-token.service";
+import { VerificationService } from "./verification/verification.service";
 
-import { JwtStrategy } from './jwt/jwt.strategy'
+import { JwtStrategy } from "./jwt/jwt.strategy";
 
 @Module({
   imports: [
@@ -24,22 +24,19 @@ import { JwtStrategy } from './jwt/jwt.strategy'
     ConfigModule,
 
     // entities
-    TypeOrmModule.forFeature([
-      User,
-      VerificationSession,
-    ]),
+    TypeOrmModule.forFeature([User, VerificationSession]),
 
     // auth infra
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule.register({ defaultStrategy: "jwt" }),
 
     // jwt
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_ACCESS_SECRET')!,
+        secret: config.get<string>("JWT_ACCESS_SECRET")!,
         signOptions: {
-          expiresIn: config.get<StringValue>('JWT_ACCESS_EXPIRES_IN'),
+          expiresIn: config.get<StringValue>("JWT_ACCESS_EXPIRES_IN"),
         },
       }),
     }),

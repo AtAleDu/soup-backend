@@ -1,18 +1,18 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty } from "@nestjs/swagger";
 
 export class MeResponseDto {
   @ApiProperty({ example: 1 })
-  id: number
+  id: number;
 
-  @ApiProperty({ example: 'user@mail.com' })
-  email: string
+  @ApiProperty({ example: "user@mail.com" })
+  email: string;
 
-  @ApiProperty({ example: 'Иван Иванов' })
-  name: string
+  @ApiProperty({ example: "Иван Иванов" })
+  name: string;
 
   @ApiProperty({
-    example: 'customer',
-    enum: ['customer', 'executor'],
+    example: "customer",
+    enum: ["customer", "executor"],
   })
-  role: 'customer' | 'executor'
+  role: "customer" | "executor";
 }

@@ -3,37 +3,37 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-} from 'typeorm'
+} from "typeorm";
 
-@Entity('contests')
+@Entity("contests")
 export class Contest {
   @PrimaryGeneratedColumn()
-  id: number
+  id: number;
 
   @Column()
-  title: string
+  title: string;
 
-  @Column({ type: 'text', nullable: true })
-  contestLink: string
+  @Column({ type: "text", nullable: true })
+  contestLink: string;
 
-  @Column({ type: 'text', nullable: true })
-  description?: string
+  @Column({ type: "text", nullable: true })
+  description?: string;
 
-  @Column({ type: 'date', nullable: true })
-  startDate?: string
+  @Column({ type: "date", nullable: true })
+  startDate?: string;
 
-  @Column({ type: 'date', nullable: true })
-  endDate?: string
+  @Column({ type: "date", nullable: true })
+  endDate?: string;
 
-  @Column({ type: 'text', nullable: true })
-  result?: string
+  @Column({ type: "text", nullable: true })
+  result?: string;
 
   @Column({ nullable: true })
-  imageUrl?: string
+  imageUrl?: string;
 
   @Column({ default: true })
-  isPublished: boolean
+  isPublished: boolean;
 
   @CreateDateColumn()
-  createdAt: Date
+  createdAt: Date;
 }

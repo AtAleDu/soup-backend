@@ -1,43 +1,43 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 export enum UserRole {
-  DOER = 'doer',
-  CLIENT = 'client',
+  DOER = "doer",
+  CLIENT = "client",
 }
 
 export enum UserStatus {
-  PENDING = 'pending',
-  ACTIVE = 'active',
+  PENDING = "pending",
+  ACTIVE = "active",
 }
 
-@Entity('users')
+@Entity("users")
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: UserRole,
     default: UserRole.DOER,
   })
-  role: UserRole
+  role: UserRole;
 
   @Column()
-  name: string
+  name: string;
 
   @Column({ unique: true })
-  email: string
+  email: string;
 
   @Column()
-  password: string
+  password: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: UserStatus,
     default: UserStatus.PENDING,
   })
-  status: UserStatus
+  status: UserStatus;
 
   @Column({ nullable: true })
-  refreshTokenHash: string | null
+  refreshTokenHash: string | null;
 }

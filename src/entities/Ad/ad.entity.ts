@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Company } from '../Company/company.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Company } from "../Company/company.entity";
 
-@Entity('ads')
+@Entity("ads")
 export class Ad {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,10 +18,10 @@ export class Ad {
   @Column({ nullable: true })
   link: string;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   start_date: string;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   end_date: string;
 
   @Column({ default: true })

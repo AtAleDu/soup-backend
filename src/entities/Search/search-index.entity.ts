@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
-@Entity('search_index')
+@Entity("search_index")
 export class SearchIndex {
   @PrimaryGeneratedColumn()
   id: number;
@@ -17,6 +17,6 @@ export class SearchIndex {
   @Column({ nullable: true })
   content: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   indexed_at: Date;
 }

@@ -1,13 +1,13 @@
-import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import { TypeOrmModule } from '@nestjs/typeorm'
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { EntitiesModule } from './entities/entities.module'
-import { NewsModule } from './modules/news/news.module'
-import { AuthModule } from './modules/auth/auth.module'
-import { ContestsModule } from '@modules/contests/contests.module'
-import { CatalogFiltersModule } from './modules/catalog-filters/catalog-filters.module'
-import { RevalidationModule } from '@infrastructure/revalidation/revalidation.module'
+import { EntitiesModule } from "./entities/entities.module";
+import { NewsModule } from "./modules/news/news.module";
+import { AuthModule } from "./modules/auth/auth.module";
+import { ContestsModule } from "@modules/contests/contests.module";
+import { CatalogFiltersModule } from "./modules/catalog-filters/catalog-filters.module";
+import { RevalidationModule } from "@infrastructure/revalidation/revalidation.module";
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { RevalidationModule } from '@infrastructure/revalidation/revalidation.mo
     }),
 
     TypeOrmModule.forRoot({
-      type: 'postgres',
+      type: "postgres",
       host: process.env.POSTGRESQL_HOST,
       port: Number(process.env.POSTGRESQL_PORT),
       username: process.env.POSTGRESQL_USER,
@@ -25,10 +25,10 @@ import { RevalidationModule } from '@infrastructure/revalidation/revalidation.mo
 
       autoLoadEntities: true,
 
-      synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: process.env.NODE_ENV !== "production",
 
       ssl:
-        process.env.NODE_ENV === 'production'
+        process.env.NODE_ENV === "production"
           ? { rejectUnauthorized: false }
           : false,
     }),

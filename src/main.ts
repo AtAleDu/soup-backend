@@ -1,18 +1,18 @@
-import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import { ValidationPipe } from '@nestjs/common'
-import cookieParser from 'cookie-parser'
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { ValidationPipe } from "@nestjs/common";
+import cookieParser from "cookie-parser";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule);
 
-  app.use(cookieParser())
+  app.use(cookieParser());
 
   app.enableCors({
     origin: true,
     credentials: true,
-  })
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,18 +20,18 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
     }),
-  )
+  );
 
   const config = new DocumentBuilder()
-    .setTitle('API документация')
-    .setDescription('Backend API')
-    .setVersion('1.0')
+    .setTitle("API документация")
+    .setDescription("Backend API")
+    .setVersion("1.0")
     .addBearerAuth()
-    .build()
+    .build();
 
-  const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('api', app, document)
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api", app, document);
 
-  await app.listen(3005)
+  await app.listen(3005);
 }
-bootstrap()
+bootstrap();

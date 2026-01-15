@@ -1,10 +1,10 @@
-import { IsUUID, IsString, Length } from 'class-validator'
+import { IsUUID, IsString, Length } from "class-validator";
 
 export class VerifyDto {
   @IsUUID()
-  verificationId: string
+  verificationId: string;
 
   @IsString()
   @Length(4, 4)
-  code: string
+  code: string;
 }

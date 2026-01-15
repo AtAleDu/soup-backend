@@ -1,19 +1,33 @@
-import {Controller,Post,Body,Get,Req,Res,UseGuards,UnauthorizedException,} from '@nestjs/common'
-import {ApiTags,ApiBearerAuth,ApiOperation,ApiResponse,} from '@nestjs/swagger'
-import type { Request, Response } from 'express'
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Req,
+  Res,
+  UseGuards,
+  UnauthorizedException,
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from "@nestjs/swagger";
+import type { Request, Response } from "express";
 
-import { AuthService } from './auth.service'
-import { TokenService } from './token/token.service'
-import { VerificationService } from './verification/verification.service'
-import { JwtAuthGuard } from './jwt/jwt-auth.guard'
+import { AuthService } from "./auth.service";
+import { TokenService } from "./token/token.service";
+import { VerificationService } from "./verification/verification.service";
+import { JwtAuthGuard } from "./jwt/jwt-auth.guard";
 
-import { RegisterDto } from './dto/register.dto'
-import { LoginDto } from './dto/login.dto'
-import { VerifyDto } from './dto/verify.dto'
-import { ResendDto } from './dto/resend.dto'
-import { MeResponseDto } from './dto/me-response.dto'
-@ApiTags('Auth')
-@Controller('auth')
+import { RegisterDto } from "./dto/register.dto";
+import { LoginDto } from "./dto/login.dto";
+import { VerifyDto } from "./dto/verify.dto";
+import { ResendDto } from "./dto/resend.dto";
+import { MeResponseDto } from "./dto/me-response.dto";
+@ApiTags("Auth")
+@Controller("auth")
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -22,129 +36,120 @@ export class AuthController {
   ) {}
 
   // Регистрация нового пользователя
-  @ApiOperation({ summary: 'Регистрация пользователя' })
-  @ApiResponse({ status: 201, description: 'Пользователь зарегистрирован' })
-  @ApiResponse({ status: 400, description: 'Ошибка валидации' })
-  @Post('register')
+  @ApiOperation({ summary: "Регистрация пользователя" })
+  @ApiResponse({ status: 201, description: "Пользователь зарегистрирован" })
+  @ApiResponse({ status: 400, description: "Ошибка валидации" })
+  @Post("register")
   register(@Body() body: RegisterDto) {
-    return this.authService.register(body)
+    return this.authService.register(body);
   }
 
   // Логин пользователя, выдаёт access token и кладёт refresh token в cookie
-  @ApiOperation({ summary: 'Логин пользователя' })
+  @ApiOperation({ summary: "Логин пользователя" })
   @ApiResponse({
     status: 200,
-    description: 'Access token выдан, refresh token установлен в cookie',
+    description: "Access token выдан, refresh token установлен в cookie",
   })
-  @ApiResponse({ status: 401, description: 'Неверные учетные данные' })
-  @Post('login')
+  @ApiResponse({ status: 401, description: "Неверные учетные данные" })
+  @Post("login")
   async login(
     @Body() body: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { accessToken, refreshToken } =
-      await this.authService.login(body)
+    const { accessToken, refreshToken } = await this.authService.login(body);
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: "strict",
       secure: false,
-      path: '/auth/refresh',
+      path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
+    });
 
-    return { accessToken }
+    return { accessToken };
   }
 
   // Обновление access token по refresh token (через cookie)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Обновить access token по refresh token' })
-  @ApiResponse({ status: 200, description: 'Access token обновлён' })
+  @ApiOperation({ summary: "Обновить access token по refresh token" })
+  @ApiResponse({ status: 200, description: "Access token обновлён" })
   @ApiResponse({
     status: 401,
-    description: 'Refresh token отсутствует или недействителен',
+    description: "Refresh token отсутствует или недействителен",
   })
-  @Post('refresh')
+  @Post("refresh")
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.refreshToken
+    const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
-      throw new UnauthorizedException()
+      throw new UnauthorizedException();
     }
 
-    const payload = this.tokenService.verifyRefresh(refreshToken)
+    const payload = this.tokenService.verifyRefresh(refreshToken);
 
     const { accessToken, refreshToken: newRefresh } =
-      await this.authService.refresh(String(payload.sub), refreshToken)
+      await this.authService.refresh(String(payload.sub), refreshToken);
 
-    res.cookie('refreshToken', newRefresh, {
+    res.cookie("refreshToken", newRefresh, {
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: "strict",
       secure: false,
-      path: '/auth/refresh',
+      path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
+    });
 
-    return { accessToken }
+    return { accessToken };
   }
 
   // Подтверждение регистрации по коду
-  @ApiOperation({ summary: 'Подтверждение регистрации по коду' })
-  @ApiResponse({ status: 200, description: 'Пользователь подтверждён' })
-  @ApiResponse({ status: 400, description: 'Неверный код подтверждения' })
-  @Post('verify')
+  @ApiOperation({ summary: "Подтверждение регистрации по коду" })
+  @ApiResponse({ status: 200, description: "Пользователь подтверждён" })
+  @ApiResponse({ status: 400, description: "Неверный код подтверждения" })
+  @Post("verify")
   verify(@Body() body: VerifyDto) {
-    return this.verificationService.verify(
-      body.verificationId,
-      body.code,
-    )
+    return this.verificationService.verify(body.verificationId, body.code);
   }
 
   // Повторная отправка кода подтверждения
-  @ApiOperation({ summary: 'Повторная отправка кода подтверждения' })
-  @ApiResponse({ status: 200, description: 'Код отправлен повторно' })
-  @Post('resend')
+  @ApiOperation({ summary: "Повторная отправка кода подтверждения" })
+  @ApiResponse({ status: 200, description: "Код отправлен повторно" })
+  @Post("resend")
   resend(@Body() body: ResendDto) {
-    return this.verificationService.resend(
-      body.verificationId,
-    )
+    return this.verificationService.resend(body.verificationId);
   }
 
   // Получение данных текущего авторизованного пользователя
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Получить данные текущего пользователя' })
+  @ApiOperation({ summary: "Получить данные текущего пользователя" })
   @ApiResponse({
     status: 200,
-    description: 'Данные пользователя',
+    description: "Данные пользователя",
     type: MeResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Не авторизован' })
+  @ApiResponse({ status: 401, description: "Не авторизован" })
   @UseGuards(JwtAuthGuard)
-  @Get('me')
+  @Get("me")
   me(@Req() req: Request): MeResponseDto {
-    return req.user as MeResponseDto
+    return req.user as MeResponseDto;
   }
 
   // Выход пользователя из системы (инвалидация refresh token)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Выход из системы' })
-  @ApiResponse({ status: 200, description: 'Пользователь разлогинен' })
+  @ApiOperation({ summary: "Выход из системы" })
+  @ApiResponse({ status: 200, description: "Пользователь разлогинен" })
   @UseGuards(JwtAuthGuard)
-  @Post('logout')
-  async logout(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const user = req.user as { sub: string }
+  @Post("logout")
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const user = req.user as { sub: string };
 
-    await this.authService.logout(user.sub)
+    await this.authService.logout(user.sub);
 
-    res.clearCookie('refreshToken', {
-      path: '/auth/refresh',
-    })
+    res.clearCookie("refreshToken", {
+      path: "/auth/refresh",
+    });
 
-    return { success: true }
+    return { success: true };
   }
 }

@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
-@Entity('catalog_filter')
+@Entity("catalog_filter")
 export class CatalogFilter {
   @PrimaryGeneratedColumn()
   id: number;

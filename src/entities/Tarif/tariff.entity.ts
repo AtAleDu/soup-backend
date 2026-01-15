@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Company } from '../Company/company.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { Company } from "../Company/company.entity";
 
-@Entity('tariffs')
+@Entity("tariffs")
 export class Tariff {
   @PrimaryGeneratedColumn()
   id: number;
@@ -9,13 +9,13 @@ export class Tariff {
   @Column()
   name: string;
 
-  @Column('numeric')
+  @Column("numeric")
   price: number;
 
   @Column()
   duration_days: number;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   features: any;
 
   @Column({ default: true })

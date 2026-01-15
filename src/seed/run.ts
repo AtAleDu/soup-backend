@@ -1,14 +1,14 @@
-import 'dotenv/config';
-import { DataSource } from 'typeorm';
-import { NewsEntity } from '../entities/News/news.entity';
-import { Contest } from '../entities/Contest/contest.entity';
-import { CatalogFilter } from '../entities/Catalog/catalogFilters/catalog-filter.entity';
-import { seedNews } from './news/news.seed';
-import { seedContest } from './contests/contest.seed';
-import { seedCatalogFilter } from './catalogFilters/catalog-filter.seed';
+import "dotenv/config";
+import { DataSource } from "typeorm";
+import { NewsEntity } from "../entities/News/news.entity";
+import { Contest } from "../entities/Contest/contest.entity";
+import { CatalogFilter } from "../entities/Catalog/catalogFilters/catalog-filter.entity";
+import { seedNews } from "./news/news.seed";
+import { seedContest } from "./contests/contest.seed";
+import { seedCatalogFilter } from "./catalogFilters/catalog-filter.seed";
 
 const dataSource = new DataSource({
-  type: 'postgres',
+  type: "postgres",
   host: process.env.POSTGRESQL_HOST,
   port: Number(process.env.POSTGRESQL_PORT),
   username: process.env.POSTGRESQL_USER,
@@ -24,10 +24,10 @@ async function run() {
   await seedContest(dataSource);
   await seedCatalogFilter(dataSource);
   await dataSource.destroy();
-  console.log('Seed completed');
+  console.log("Seed completed");
 }
 
 run().catch((err) => {
-  console.error('Seed failed', err);
+  console.error("Seed failed", err);
   process.exit(1);
 });

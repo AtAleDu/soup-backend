@@ -1,73 +1,79 @@
-import {ApiProperty,ApiPropertyOptional,} from '@nestjs/swagger'
-import {IsString,IsOptional,IsBoolean,IsArray,IsDateString,} from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  IsDateString,
+} from "class-validator";
 
 export class CreateNewsDto {
   @ApiProperty({
-    example: 'https://cdn.site/news/cover.jpg',
-    description: 'Ссылка на изображение новости',
+    example: "https://cdn.site/news/cover.jpg",
+    description: "Ссылка на изображение новости",
   })
   @IsString()
-  image: string
+  image: string;
 
   @ApiProperty({
-    example: 'Обложка новости',
-    description: 'alt-текст изображения',
+    example: "Обложка новости",
+    description: "alt-текст изображения",
   })
   @IsString()
-  imageAlt: string
+  imageAlt: string;
 
   @ApiProperty({
-    example: 'Политика',
-    description: 'Категория новости',
+    example: "Политика",
+    description: "Категория новости",
   })
   @IsString()
-  category: string
+  category: string;
 
   @ApiProperty({
-    example: 'Заголовок новости',
-    description: 'Основной заголовок',
+    example: "Заголовок новости",
+    description: "Основной заголовок",
   })
   @IsString()
-  title: string
+  title: string;
 
   @ApiPropertyOptional({
-    example: 'Краткое описание новости',
+    example: "Краткое описание новости",
   })
   @IsOptional()
   @IsString()
-  description?: string
+  description?: string;
 
   @ApiPropertyOptional({
-    example: '2026-01-04',
-    description: 'Дата публикации',
+    example: "2026-01-04",
+    description: "Дата публикации",
   })
   @IsOptional()
   @IsDateString()
-  date?: string
+  date?: string;
 
   @ApiPropertyOptional({
-    example: ['Первый абзац', 'Второй абзац'],
-    description: 'Контент новости по блокам',
+    example: ["Первый абзац", "Второй абзац"],
+    description: "Контент новости по блокам",
     type: [String],
   })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  content?: string[]
+  content?: string[];
 
   @ApiPropertyOptional({
     example: false,
-    description: 'Является ли новость рекламной',
+    description: "Является ли новость рекламной",
   })
   @IsOptional()
   @IsBoolean()
-  isAds?: boolean
+  isAds?: boolean;
 
   @ApiPropertyOptional({
     example: true,
-    description: 'Отметка важной новости',
+    description: "Отметка важной новости",
   })
   @IsOptional()
   @IsBoolean()
-  isImportantNew?: boolean
+  isImportantNew?: boolean;
 }

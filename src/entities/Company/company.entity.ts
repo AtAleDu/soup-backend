@@ -6,12 +6,12 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
-} from 'typeorm';
-import { Article } from '../Article/article.entity';
-import { Ad } from '../Ad/ad.entity';
-import { Tariff } from '../Tarif/tariff.entity';
+} from "typeorm";
+import { Article } from "../Article/article.entity";
+import { Ad } from "../Ad/ad.entity";
+import { Tariff } from "../Tarif/tariff.entity";
 
-@Entity('companies')
+@Entity("companies")
 export class Company {
   @PrimaryGeneratedColumn()
   id: number;
@@ -22,7 +22,7 @@ export class Company {
   @Column()
   password: string;
 
-  @Column({ name: 'is_email_confirmed', default: false })
+  @Column({ name: "is_email_confirmed", default: false })
   isEmailConfirmed: boolean;
 
   @Column({ nullable: true })
@@ -46,7 +46,7 @@ export class Company {
   @Column({ nullable: true })
   logo_url: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   social_links: any;
 
   @Column({ default: false })
@@ -61,9 +61,9 @@ export class Company {
   @OneToMany(() => Ad, (ad) => ad.company)
   ads: Ad[];
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
 }
