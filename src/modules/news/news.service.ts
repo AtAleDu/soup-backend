@@ -4,17 +4,24 @@ import { Repository } from 'typeorm'
 import { NewsEntity } from '@entities/News/news.entity'
 import { CreateNewsDto } from './dto/create-news.dto'
 import { UpdateNewsDto } from './dto/update-news.dto'
+import { RevalidationService } from '@infrastructure/revalidation/revalidation.service'
 
 @Injectable()
 export class NewsService {
   constructor(
     @InjectRepository(NewsEntity)
     private readonly repo: Repository<NewsEntity>,
+    private readonly revalidationService: RevalidationService,
   ) {}
 
   async create(dto: CreateNewsDto) {
     const news = this.repo.create(dto)
-    return this.repo.save(news)
+    const saved = await this.repo.save(news)
+
+    // уведомляем фронт после успешного создания
+    await this.revalidationService.revalidate('/news')
+
+    return saved
   }
 
   async findAll() {
@@ -32,12 +39,21 @@ export class NewsService {
   async update(id: string, dto: UpdateNewsDto) {
     const item = await this.findOne(id)
     Object.assign(item, dto)
-    return this.repo.save(item)
+    const saved = await this.repo.save(item)
+
+    // уведомляем фронт после успешного обновления
+    await this.revalidationService.revalidate('/news')
+
+    return saved
   }
 
   async remove(id: string) {
     const item = await this.findOne(id)
     await this.repo.remove(item)
+
+    // уведомляем фронт после удаления
+    await this.revalidationService.revalidate('/news')
+
     return { success: true }
   }
 }

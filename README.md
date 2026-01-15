@@ -37,4 +37,7 @@ JWT_REFRESH_EXPIRES_IN=7d
 
 5) Если все работает, то заполните бд сид-данными, которые автоматически подставят нужные данные в бд: `npm run seed`
 
-test
+Их нужно записать в env
+
+FRONTEND_URL — адрес фронта для revalidate.
+REVALIDATE_SECRET — секрет для защиты /api/revalidate.

@@ -7,6 +7,7 @@ import { NewsModule } from './modules/news/news.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { ContestsModule } from '@modules/contests/contests.module'
 import { CatalogFiltersModule } from './modules/catalog-filters/catalog-filters.module'
+import { RevalidationModule } from '@infrastructure/revalidation/revalidation.module'
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CatalogFiltersModule } from './modules/catalog-filters/catalog-filters.
     AuthModule,
     ContestsModule,
     CatalogFiltersModule,
+    RevalidationModule,
   ],
 })
 export class AppModule {}

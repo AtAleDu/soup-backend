@@ -16,7 +16,8 @@
     "baseUrl": "./",
     "paths": {
       "@entities/*": ["src/entities/*"],
-      "@modules/*": ["src/modules/*"]
+      "@modules/*": ["src/modules/*"],
+      "@infrastructure/*": ["src/infrastructure/*"]
     },
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
