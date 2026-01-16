@@ -31,13 +31,16 @@ JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 
 
+// Frontend & Revalidation
+
+FRONTEND_URL=http://localhost:3000
+
+REVALIDATE_SECRET=your_secret_key
+
+
 3) `npm start`
 
 4) Для получения документации по API используйте: `http://localhost:3005/api`
 
 5) Если все работает, то заполните бд сид-данными, которые автоматически подставят нужные данные в бд: `npm run seed`
 
-Их нужно записать в env
-
-FRONTEND_URL — адрес фронта для revalidate.
-REVALIDATE_SECRET — секрет для защиты /api/revalidate.

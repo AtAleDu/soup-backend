@@ -4,7 +4,7 @@ import { UserRole } from "@entities/User/user.entity";
 
 export class RegisterDto {
   @ApiProperty({
-    example: "doer",
+    example: "company",
     enum: UserRole,
   })
   @IsEnum(UserRole)
