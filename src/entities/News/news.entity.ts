@@ -16,6 +16,9 @@ export class NewsEntity {
 
   @Column()
   title: string;
+  
+  @Column()
+  author: string;
 
   @Column({ nullable: true })
   description?: string;

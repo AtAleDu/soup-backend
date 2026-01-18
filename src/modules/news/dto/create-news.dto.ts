@@ -36,6 +36,13 @@ export class CreateNewsDto {
   @IsString()
   title: string;
 
+  @ApiProperty({
+    example: "Редактор Иван Иванов",
+    description: "Автор новости",
+  })
+  @IsString()
+  author: string;
+
   @ApiPropertyOptional({
     example: "Краткое описание новости",
   })
