@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common'
+import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { ContractorService } from './contractor.service'
 import { ContractorTypeDto } from './dto/contractor.dto'
@@ -18,7 +18,8 @@ export class ContractorController {
   @ApiOperation({ summary: 'Получить подрядчика по id' })
   @ApiResponse({ status: 200, type: ContractorTypeDto })
   @Get(':id')
-  getOne(@Param('id') id: string): Promise<ContractorTypeDto> {
+  @Get(':id')
+  getOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.getOne(id)
   }
 }
