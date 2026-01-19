@@ -8,6 +8,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { ContestsModule } from "@modules/contests/contests.module";
 import { CatalogFiltersModule } from "./modules/catalog-filters/catalog-filters.module";
 import { RevalidationModule } from "@infrastructure/revalidation/revalidation.module";
+import { ContractorModule } from './modules/contractor/contractor.module'
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { RevalidationModule } from "@infrastructure/revalidation/revalidation.mo
     ContestsModule,
     CatalogFiltersModule,
     RevalidationModule,
+    ContractorModule,
   ],
 })
 export class AppModule {}
