@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm'
-import { ContractorTypeEntity } from '@entities/Contractor/contractor-type.entity'
+import { ContractorTypeEntity } from '@entities/Contractor/contractor.entity'
 import { CONTRACTOR_DATA } from './contractor.data'
 
 export const seedContractor = async (dataSource: DataSource) => {

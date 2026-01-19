@@ -3,7 +3,7 @@ import { DataSource } from "typeorm";
 import { NewsEntity } from "../entities/News/news.entity";
 import { Contest } from "../entities/Contest/contest.entity";
 import { CatalogFilter } from "../entities/Catalog/catalogFilters/catalog-filter.entity";
-import { ContractorTypeEntity } from "../entities/Contractor/contractor-type.entity";
+import { ContractorTypeEntity } from "../entities/Contractor/contractor.entity";
 
 import { seedNews } from "./news/news.seed";
 import { seedContest } from "./contests/contest.seed";

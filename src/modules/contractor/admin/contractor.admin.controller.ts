@@ -7,10 +7,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger'
 import { ContractorService } from '../contractor.service'
-import { CreateContractorTypeDto } from '../dto/create-contractor-type.dto'
-import { UpdateContractorTypeDto } from '../dto/update-contractor-type.dto'
-import { AdminContractorTypeDto } from '../dto/admin-contractor-type.dto'
-import { ContractorTypeDto } from '../dto/contractor-type.dto'
+import { CreateContractorTypeDto } from '../dto/create-contractor.dto'
+import { UpdateContractorTypeDto } from '../dto/update-contractor.dto'
+import { AdminContractorTypeDto } from '../dto/admin-contractor.dto'
+import { ContractorTypeDto } from '../dto/contractor.dto'
 
 @ApiTags('Contractors')
 @ApiBearerAuth()
@@ -18,20 +18,8 @@ import { ContractorTypeDto } from '../dto/contractor-type.dto'
 export class ContractorAdminController {
   constructor(private readonly service: ContractorService) {}
 
-  // GET ALL (admin)
-  @ApiOperation({ summary: 'Получить все типы подрядчиков (admin)' })
-  @ApiResponse({
-    status: 200,
-    type: AdminContractorTypeDto,
-    isArray: true,
-  })
-  @Get()
-  getAll(): Promise<AdminContractorTypeDto[]> {
-    return this.service.getAllForAdmin()
-  }
-
   // CREATE
-  @ApiOperation({ summary: 'Создать тип подрядчика (admin)' })
+  @ApiOperation({ summary: 'Создать подрядчика (admin)' })
   @ApiResponse({ status: 201, type: ContractorTypeDto })
   @Post()
   create(@Body() dto: CreateContractorTypeDto): Promise<ContractorTypeDto> {
@@ -39,7 +27,7 @@ export class ContractorAdminController {
   }
 
   // UPDATE
-  @ApiOperation({ summary: 'Обновить тип подрядчика (admin)' })
+  @ApiOperation({ summary: 'Обновить подрядчика (admin)' })
   @ApiParam({ name: 'id', description: 'UUID' })
   @ApiResponse({ status: 200, type: ContractorTypeDto })
   @Put(':id')
@@ -51,7 +39,7 @@ export class ContractorAdminController {
   }
 
   // DELETE
-  @ApiOperation({ summary: 'Удалить тип подрядчика (admin)' })
+  @ApiOperation({ summary: 'Удалить подрядчика (admin)' })
   @ApiParam({ name: 'id', description: 'UUID' })
   @ApiResponse({ status: 200 })
   @Delete(':id')

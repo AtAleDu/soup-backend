@@ -9,7 +9,7 @@ import { SearchIndex } from "./Search/search-index.entity";
 import { Tariff } from "./Tarif/tariff.entity";
 import { NewsEntity } from "./News/news.entity";
 import { User } from "./User/user.entity";
-import { ContractorTypeEntity } from './Contractor/contractor-type.entity'
+import { ContractorTypeEntity } from './Contractor/contractor.entity'
 
 @Module({
   imports: [
