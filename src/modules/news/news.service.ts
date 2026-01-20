@@ -27,7 +27,7 @@ export class NewsService {
   async findAll() {
     return this.repo.find({
       order: {
-        date: "DESC", // новые сверху
+        createdAt: "DESC", // новые сверху
       },
     });
   }

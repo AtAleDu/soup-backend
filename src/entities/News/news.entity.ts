@@ -23,7 +23,7 @@ export class NewsEntity {
   description?: string;
 
   @CreateDateColumn({ type: "timestamptz" })
-  date: Date;
+  createdAt: Date;
 
   // PostgreSQL only
   @Column({ type: "text", array: true, nullable: true })
