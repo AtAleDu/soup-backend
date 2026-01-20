@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsBoolean,
   IsArray,
-  IsDateString,
 } from "class-validator";
 
 export class CreateNewsDto {
@@ -49,14 +48,6 @@ export class CreateNewsDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @ApiPropertyOptional({
-    example: "2026-01-04",
-    description: "Дата публикации",
-  })
-  @IsOptional()
-  @IsDateString()
-  date?: string;
 
   @ApiPropertyOptional({
     example: ["Первый абзац", "Второй абзац"],

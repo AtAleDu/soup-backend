@@ -15,10 +15,13 @@ export class NewsService {
   ) {}
 
   async create(dto: CreateNewsDto) {
-    const news = this.repo.create(dto);
+    const news = this.repo.create({
+      ...dto,
+      date: new Date().toISOString(), // дата теперь ТОЛЬКО с бэка
+    });
+
     const saved = await this.repo.save(news);
 
-    // уведомляем фронт после успешного создания
     await this.revalidationService.revalidate("/news");
 
     return saved;
@@ -26,7 +29,9 @@ export class NewsService {
 
   async findAll() {
     return this.repo.find({
-      order: { id: "DESC" },
+      order: {
+        date: "DESC", 
+      },
     });
   }
 
@@ -38,10 +43,11 @@ export class NewsService {
 
   async update(id: string, dto: UpdateNewsDto) {
     const item = await this.findOne(id);
+
     Object.assign(item, dto);
+
     const saved = await this.repo.save(item);
 
-    // уведомляем фронт после успешного обновления
     await this.revalidationService.revalidate("/news");
 
     return saved;
@@ -49,9 +55,9 @@ export class NewsService {
 
   async remove(id: string) {
     const item = await this.findOne(id);
+
     await this.repo.remove(item);
 
-    // уведомляем фронт после удаления
     await this.revalidationService.revalidate("/news");
 
     return { success: true };

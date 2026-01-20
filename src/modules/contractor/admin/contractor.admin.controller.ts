@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common'
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -9,11 +9,12 @@ import {
 import { ContractorService } from '../contractor.service'
 import { CreateContractorTypeDto } from '../dto/create-contractor.dto'
 import { UpdateContractorTypeDto } from '../dto/update-contractor.dto'
-import { AdminContractorTypeDto } from '../dto/admin-contractor.dto'
 import { ContractorTypeDto } from '../dto/contractor.dto'
+import { JwtAuthGuard } from "../../auth/jwt/jwt-auth.guard";
 
 @ApiTags('Contractors')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('admin/contractors')
 export class ContractorAdminController {
   constructor(private readonly service: ContractorService) {}
