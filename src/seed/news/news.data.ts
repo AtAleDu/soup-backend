@@ -1,8 +1,5 @@
 import { NewsEntity } from "@entities/News/news.entity";
 
-const daysAgo = (days: number) =>
-  new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-
 export const NEWS_DATA: Partial<NewsEntity>[] = [
   {
     image:
@@ -13,7 +10,6 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
     author: "Редакция Soup",
     description:
       "Дубы — основные деревья этого парка и часть его идентичности.",
-    date: daysAgo(1),
     content: [
       "Дубы — основные деревья этого парка и часть его идентичности.",
       "Авторские фонарики и малые формы создают уютную среду.",
@@ -30,7 +26,6 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
     author: "Редакция Soup",
     description:
       "Команда “Брусники” переосмысляет пространство под эстакадой.",
-    date: daysAgo(2),
     content: [
       "Добавлены спорт и прогулочные маршруты.",
       "Проект сохраняет индустриальный характер.",
@@ -46,7 +41,6 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
     author: "Редакция Soup",
     description:
       "Подберём материалы, подрядчиков и готовые решения.",
-    date: daysAgo(3),
     isAds: true,
   },
 
@@ -60,7 +54,6 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
     author: "Редакция Soup",
     description:
       "Футбольное поле превратили в уютный дворик.",
-    date: daysAgo(4),
     content: [
       "Безопасное покрытие и подсветка.",
       "Пространство активно используется вечером.",
@@ -76,7 +69,6 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
     author: "Редакция Soup",
     description:
       "Жилой квартал дополнили тропами и настилами.",
-    date: daysAgo(5),
     content: [
       "Прогулки стали безопаснее.",
       "Появились общественные зоны.",
@@ -93,7 +85,6 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
     author: "Редакция Soup",
     description:
       "Двор объединяет жильцов вокруг зелёного ядра.",
-    date: daysAgo(6),
     content: [
       "Террасы, вода и детская зона.",
       "Комфортная среда для всех возрастов.",

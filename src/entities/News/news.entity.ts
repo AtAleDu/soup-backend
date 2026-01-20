@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
-
+import {Entity,PrimaryGeneratedColumn,Column,CreateDateColumn,} from "typeorm";
 @Entity("news")
 export class NewsEntity {
   @PrimaryGeneratedColumn("uuid")
@@ -16,17 +15,17 @@ export class NewsEntity {
 
   @Column()
   title: string;
-  
+
   @Column()
   author: string;
 
   @Column({ nullable: true })
   description?: string;
 
-  @Column({ nullable: true })
-  date?: string;
+  @CreateDateColumn({ type: "timestamptz" })
+  date: Date;
 
-  // MySQL не поддерживает array — работает только в Postgres
+  // PostgreSQL only
   @Column({ type: "text", array: true, nullable: true })
   content?: string[];
 

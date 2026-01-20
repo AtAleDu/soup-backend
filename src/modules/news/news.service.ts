@@ -15,10 +15,7 @@ export class NewsService {
   ) {}
 
   async create(dto: CreateNewsDto) {
-    const news = this.repo.create({
-      ...dto,
-      date: new Date().toISOString(), // дата теперь ТОЛЬКО с бэка
-    });
+    const news = this.repo.create(dto);
 
     const saved = await this.repo.save(news);
 
@@ -30,7 +27,7 @@ export class NewsService {
   async findAll() {
     return this.repo.find({
       order: {
-        date: "DESC", 
+        date: "DESC", // новые сверху
       },
     });
   }
@@ -44,6 +41,7 @@ export class NewsService {
   async update(id: string, dto: UpdateNewsDto) {
     const item = await this.findOne(id);
 
+    // 🔒 дату не трогаем принципиально
     Object.assign(item, dto);
 
     const saved = await this.repo.save(item);
