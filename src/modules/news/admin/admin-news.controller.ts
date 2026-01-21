@@ -1,4 +1,4 @@
-import {Controller,Post,Put,Delete,Body,Param,UseGuards,} from "@nestjs/common";
+import {Controller,Post,Put,Delete,Body,Param,UseGuards,Patch,} from "@nestjs/common";
 import {ApiTags,ApiOperation,ApiResponse,ApiParam,ApiBearerAuth,} from "@nestjs/swagger";
 import { NewsService } from "../news.service";
 import { CreateNewsDto } from "../dto/create-news.dto";
@@ -36,5 +36,23 @@ export class AdminNewsController {
   @Delete(":id")
   remove(@Param("id") id: string) {
     return this.service.remove(id);
+  }
+
+  // ADMIN: закрепить новость
+  @ApiOperation({ summary: "Закрепить новость" })
+  @ApiParam({ name: "id", example: "uuid" })
+  @ApiResponse({ status: 200, description: "Новость закреплена" })
+  @Patch(":id/pin")
+  pin(@Param("id") id: string) {
+    return this.service.pin(id);
+  }
+
+  // ADMIN: открепить новость
+  @ApiOperation({ summary: "Открепить новость" })
+  @ApiParam({ name: "id", example: "uuid" })
+  @ApiResponse({ status: 200, description: "Новость откреплена" })
+  @Patch(":id/unpin")
+  unpin(@Param("id") id: string) {
+    return this.service.unpin(id);
   }
 }
