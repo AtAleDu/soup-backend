@@ -9,6 +9,7 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 
 import { User } from "@entities/User/user.entity";
+import { Company } from "@entities/Company/company.entity";
 import { VerificationSession } from "@entities/VerificationSession/verification-session.entity";
 
 import { PasswordService } from "./password/password.service";
@@ -24,7 +25,7 @@ import { JwtStrategy } from "./jwt/jwt.strategy";
     ConfigModule,
 
     // entities
-    TypeOrmModule.forFeature([User, VerificationSession]),
+    TypeOrmModule.forFeature([User, Company, VerificationSession]),
 
     // auth infra
     PassportModule.register({ defaultStrategy: "jwt" }),

@@ -3,6 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToOne,
+  JoinColumn,
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
@@ -10,6 +12,7 @@ import {
 import { Article } from "../Article/article.entity";
 import { Ad } from "../Ad/ad.entity";
 import { Tariff } from "../Tarif/tariff.entity";
+import { User } from "../User/user.entity";
 
 @Entity("companies")
 export class Company {
@@ -30,6 +33,13 @@ export class Company {
 
   @Column()
   name: string;
+
+  @Column({ name: "user_id", type: "uuid", unique: true, nullable: true })
+  userId: string | null;
+
+  @OneToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
+  user: User | null;
 
   @Column({ nullable: true })
   description: string;

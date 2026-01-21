@@ -9,7 +9,8 @@ import { Repository } from "typeorm";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 
-import { User, UserStatus } from "@entities/User/user.entity";
+import { User, UserRole, UserStatus } from "@entities/User/user.entity";
+import { Company } from "@entities/Company/company.entity";
 
 import { PasswordService } from "./password/password.service";
 import { TokenService } from "./token/token.service";
@@ -21,6 +22,9 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly users: Repository<User>,
+
+    @InjectRepository(Company)
+    private readonly companies: Repository<Company>,
 
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
@@ -49,6 +53,15 @@ export class AuthService {
       password: await this.passwordService.hash(dto.password),
       status: UserStatus.PENDING,
     });
+
+    if (user.role === UserRole.СOMPANY) {
+      await this.companies.save({
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        userId: user.id,
+      });
+    }
 
     // Создаём verification-запись для подтверждения email
     return this.verificationService.create(user.id);
