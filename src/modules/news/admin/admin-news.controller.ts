@@ -13,7 +13,7 @@ export class AdminNewsController {
   constructor(private readonly service: NewsService) {}
 
   // ADMIN: создать новость
-  @ApiOperation({ summary: "Создать новость" })
+  @ApiOperation({ summary: "Создать новость (admin)" })
   @ApiResponse({ status: 201, description: "Новость успешно создана" })
   @Post()
   create(@Body() body: CreateNewsDto) {
@@ -21,7 +21,7 @@ export class AdminNewsController {
   }
 
   // ADMIN: обновить новость
-  @ApiOperation({ summary: "Обновить новость" })
+  @ApiOperation({ summary: "Обновить новость (admin)" })
   @ApiParam({ name: "id", example: "uuid" })
   @ApiResponse({ status: 200, description: "Новость обновлена" })
   @Put(":id")
@@ -30,7 +30,7 @@ export class AdminNewsController {
   }
 
   // ADMIN: удалить новость
-  @ApiOperation({ summary: "Удалить новость" })
+  @ApiOperation({ summary: "Удалить новость (admin)" })
   @ApiParam({ name: "id", example: "uuid" })
   @ApiResponse({ status: 200, description: "Новость удалена" })
   @Delete(":id")
@@ -39,7 +39,7 @@ export class AdminNewsController {
   }
 
   // ADMIN: закрепить новость
-  @ApiOperation({ summary: "Закрепить новость" })
+  @ApiOperation({ summary: "Закрепить новость (admin)" })
   @ApiParam({ name: "id", example: "uuid" })
   @ApiResponse({ status: 200, description: "Новость закреплена" })
   @Patch(":id/pin")
@@ -48,7 +48,7 @@ export class AdminNewsController {
   }
 
   // ADMIN: открепить новость
-  @ApiOperation({ summary: "Открепить новость" })
+  @ApiOperation({ summary: "Открепить новость (admin)" })
   @ApiParam({ name: "id", example: "uuid" })
   @ApiResponse({ status: 200, description: "Новость откреплена" })
   @Patch(":id/unpin")

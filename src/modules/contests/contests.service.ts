@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { LessThan, MoreThanOrEqual, Repository } from "typeorm";
 import { Contest } from "@entities/Contest/contest.entity";
 import { CreateContestDto } from "./dto/create-contest.dto";
 import { UpdateContestDto } from "./dto/update-contest.dto";
@@ -12,17 +12,26 @@ export class ContestsService {
     private readonly repo: Repository<Contest>,
   ) {}
 
-  // PUBLIC: получить все опубликованные конкурсы
-  findAllPublished() {
+  // PUBLIC: получить текущие конкурсы
+  findCurrentPublished() {
+    const today = new Date().toISOString().slice(0, 10);
     return this.repo.find({
-      where: { isPublished: true },
-      order: { createdAt: "DESC" },
+      where: {
+        endDate: MoreThanOrEqual(today),
+      },
+      order: { startDate: "DESC" },
     });
   }
 
-  // PUBLIC: получить конкурс по id
-  findOne(id: number) {
-    return this.repo.findOne({ where: { id } });
+  // PUBLIC: получить прошедшие конкурсы
+  findPastPublished() {
+    const today = new Date().toISOString().slice(0, 10);
+    return this.repo.find({
+      where: {
+        endDate: LessThan(today),
+      },
+      order: { startDate: "DESC" },
+    });
   }
 
   // ADMIN: создать новый конкурс

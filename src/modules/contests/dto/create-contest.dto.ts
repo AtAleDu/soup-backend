@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsDateString } from "class-validator";
+import { IsDateString, IsOptional, IsString } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateContestDto {
@@ -9,29 +9,26 @@ export class CreateContestDto {
   @IsString()
   title: string;
 
-  @ApiPropertyOptional({
-    example: "Описание тестового конкурса",
-    description: "Краткое описание конкурса",
+  @ApiProperty({
+    example: "https://example.com",
+    description: "Ссылка на конкурс",
   })
-  @IsOptional()
   @IsString()
-  description?: string;
+  contestLink: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: "2026-01-10",
     description: "Дата начала конкурса (ISO)",
   })
-  @IsOptional()
   @IsDateString()
-  startDate?: string;
+  startDate: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: "2026-01-20",
     description: "Дата окончания конкурса (ISO)",
   })
-  @IsOptional()
   @IsDateString()
-  endDate?: string;
+  endDate: string;
 
   @ApiPropertyOptional({
     example: "https://example.com/image.jpg",

@@ -1,9 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 @Entity("contests")
 export class Contest {
@@ -13,27 +8,15 @@ export class Contest {
   @Column()
   title: string;
 
-  @Column({ type: "text", nullable: true })
+  @Column({ type: "text" })
   contestLink: string;
 
-  @Column({ type: "text", nullable: true })
-  description?: string;
+  @Column({ type: "date" })
+  startDate: string;
 
-  @Column({ type: "date", nullable: true })
-  startDate?: string;
-
-  @Column({ type: "date", nullable: true })
-  endDate?: string;
-
-  @Column({ type: "text", nullable: true })
-  result?: string;
+  @Column({ type: "date" })
+  endDate: string;
 
   @Column({ nullable: true })
   imageUrl?: string;
-
-  @Column({ default: true })
-  isPublished: boolean;
-
-  @CreateDateColumn()
-  createdAt: Date;
 }
