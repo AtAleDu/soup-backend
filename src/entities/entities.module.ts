@@ -10,6 +10,8 @@ import { Tariff } from "./Tarif/tariff.entity";
 import { NewsEntity } from "./News/news.entity";
 import { User } from "./User/user.entity";
 import { ContractorTypeEntity } from './Contractor/contractor.entity'
+import { CompanyReview } from "./CompanyReview/company-review.entity";
+import { CompanyReviewReply } from "./CompanyReviewReply/company-review-reply.entity";
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { ContractorTypeEntity } from './Contractor/contractor.entity'
       NewsEntity,
       User,
       ContractorTypeEntity,
+      CompanyReview,
+      CompanyReviewReply,
     ]),
   ],
   exports: [TypeOrmModule],

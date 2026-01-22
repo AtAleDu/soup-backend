@@ -2,11 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Company } from '@entities/Company/company.entity'
-import { UpdateCompanyAccountDto } from './dto/update-company-account.dto'
+import { UpdateCompanyAccountDto } from '../dto/update-company-account.dto'
 import { User } from '@entities/User/user.entity'
 
 @Injectable()
-export class CompanyAccountService {
+export class EditCompanyAccountService {
   constructor(
     @InjectRepository(Company)
     private readonly repo: Repository<Company>,
