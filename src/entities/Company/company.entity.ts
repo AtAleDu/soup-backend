@@ -17,22 +17,7 @@ import { User } from "../User/user.entity";
 @Entity("companies")
 export class Company {
   @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ unique: true })
-  email: string;
-
-  @Column()
-  password: string;
-
-  @Column({ name: "is_email_confirmed", default: false })
-  isEmailConfirmed: boolean;
-
-  @Column({ nullable: true })
-  currentHashedRefreshToken: string | null;
-
-  @Column()
-  name: string;
+  companyId: number;
 
   @Column({ name: "user_id", type: "uuid", unique: true, nullable: true })
   userId: string | null;
@@ -42,25 +27,28 @@ export class Company {
   user: User | null;
 
   @Column({ nullable: true })
+  logo_url: string;
+
+  @Column()
+  name: string;
+
+  @Column({ nullable: true })
   description: string;
 
-  @Column({ nullable: true })
-  region: string;
-
-  @Column({ nullable: true })
-  activity_type: string;
-
-  @Column({ nullable: true })
-  website: string;
-
-  @Column({ nullable: true })
-  logo_url: string;
+  @Column({ type: "jsonb", nullable: true })
+  regions: string[] | null;
 
   @Column({ type: "jsonb", nullable: true })
   social_links: any;
 
-  @Column({ default: false })
-  is_verified: boolean;
+  @Column({ nullable: true })
+  address: string;
+
+  @Column({ type: "jsonb", nullable: true })
+  phones: { phone: string; representativeName?: string | null }[] | null;
+
+  @Column({ nullable: true })
+  email: string;
 
   @ManyToOne(() => Tariff, (tariff) => tariff.companies)
   tariff: Tariff;
