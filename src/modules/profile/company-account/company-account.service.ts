@@ -62,7 +62,7 @@ export class CompanyAccountService {
     // Сливаем legacy-поля соцсетей в новую структуру.
     if (dto.website !== undefined) legacySocialLinks.website = dto.website
     if (dto.socials?.yandexDzen)
-      legacySocialLinks.yandex_dzen = dto.socials.yandexDzen
+      legacySocialLinks.yandexDzen = dto.socials.yandexDzen
 
     if (dto.socials || Object.keys(legacySocialLinks).length > 0) {
       updateData.social_links = {
