@@ -10,6 +10,8 @@ import { CatalogFiltersModule } from "./modules/catalog-filters/catalog-filters.
 import { RevalidationModule } from "@infrastructure/revalidation/revalidation.module";
 import { ContractorModule } from './modules/contractor/contractor.module'
 import { RegionsModule } from "./modules/regions/regions.module";
+import { CompanyAccountModule } from './modules/profile/company-account/company-account.module'
+
 
 @Module({
   imports: [
@@ -44,6 +46,7 @@ import { RegionsModule } from "./modules/regions/regions.module";
     RevalidationModule,
     ContractorModule,
     RegionsModule,
+    CompanyAccountModule,
   ],
 })
 export class AppModule {}
