@@ -57,8 +57,6 @@ export class AuthService {
     if (user.role === UserRole.СOMPANY) {
       await this.companies.save({
         name: user.name,
-        email: user.email,
-        password: user.password,
         userId: user.id,
       });
     }

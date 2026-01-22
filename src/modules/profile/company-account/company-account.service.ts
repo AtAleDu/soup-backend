@@ -24,9 +24,11 @@ export class CompanyAccountService {
 
   async updateProfile(userId: string, dto: UpdateCompanyAccountDto) {
     const company = await this.getProfile(userId)
+    // Собираем только переданные поля, чтобы не затирать существующие данные.
     const updateData: Partial<Company> = {}
 
     if (dto.profile) {
+      // Блок профиля маппит вложенные поля DTO на колонки компании.
       if (dto.profile.logo !== undefined) updateData.logo_url = dto.profile.logo
       if (dto.profile.name !== undefined) updateData.name = dto.profile.name
       if (dto.profile.description !== undefined)
@@ -38,12 +40,26 @@ export class CompanyAccountService {
     }
 
     if (dto.contacts) {
-      if (dto.contacts.phones !== undefined)
-        updateData.phones = dto.contacts.phones
+      if (dto.contacts.phones !== undefined) {
+        // Нормализуем телефоны под формат хранения и отбрасываем пустые.
+        const phones = dto.contacts.phones
+          .filter(
+            (
+              item,
+            ): item is { phone: string; representativeName?: string } =>
+              typeof item?.phone === 'string' && item.phone.trim() !== '',
+          )
+          .map((item) => ({
+            phone: item.phone,
+            representativeName: item.representativeName,
+          }))
+        updateData.phones = phones
+      }
       if (dto.contacts.email !== undefined) updateData.email = dto.contacts.email
     }
 
     const legacySocialLinks = dto.social_links ?? {}
+    // Сливаем legacy-поля соцсетей в новую структуру.
     if (dto.website !== undefined) legacySocialLinks.website = dto.website
     if (dto.socials?.yandexDzen)
       legacySocialLinks.yandex_dzen = dto.socials.yandexDzen
@@ -67,6 +83,7 @@ export class CompanyAccountService {
 
     const nextUserName = dto.profile?.name ?? dto.name
     if (nextUserName !== undefined) {
+      // Синхронизируем имя пользователя с именем компании, если оно пришло.
       await this.users.update({ id: userId }, { name: nextUserName })
     }
     return this.getProfile(userId)
