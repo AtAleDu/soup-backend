@@ -8,6 +8,8 @@
 2) Ставите зависимости:
 Создайте файл `.env` в `soup-backend` и добавьте:
 
+NODE_ENV='development'
+
 // База данных
 
 POSTGRESQL_HOST=localhost
