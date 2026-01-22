@@ -55,7 +55,22 @@ export class CompanyAccountService {
           }))
         updateData.phones = phones
       }
-      if (dto.contacts.email !== undefined) updateData.email = dto.contacts.email
+      if (dto.contacts.emails !== undefined) {
+        const emails = dto.contacts.emails
+          .filter(
+            (value): value is string =>
+              typeof value === 'string' && value.trim() !== '',
+          )
+          .slice(0, 2)
+        updateData.emails = emails
+        updateData.email = emails[0] ?? null
+      } else if (dto.contacts.email !== undefined) {
+        updateData.email = dto.contacts.email
+        updateData.emails =
+          dto.contacts.email && dto.contacts.email.trim() !== ''
+            ? [dto.contacts.email]
+            : []
+      }
     }
 
     const legacySocialLinks = dto.social_links ?? {}

@@ -47,6 +47,9 @@ export class Company {
   @Column({ type: "jsonb", nullable: true })
   phones: { phone: string; representativeName?: string | null }[] | null;
 
+  @Column({ type: "jsonb", nullable: true })
+  emails: string[] | null;
+
   @Column({ nullable: true })
   email: string;
 
