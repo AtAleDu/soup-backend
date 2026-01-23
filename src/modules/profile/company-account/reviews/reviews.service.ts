@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Company } from '@entities/Company/company.entity'
 import { CompanyReview } from '@entities/CompanyReview/company-review.entity'
+import { CompanyReviewReply } from '@entities/CompanyReviewReply/company-review-reply.entity'
+import { ReplyCompanyReviewDto } from './dto/reply-company-review.dto'
 
 @Injectable()
 export class CompanyReviewsService {
@@ -11,8 +13,11 @@ export class CompanyReviewsService {
     private readonly companies: Repository<Company>,
     @InjectRepository(CompanyReview)
     private readonly reviews: Repository<CompanyReview>,
+    @InjectRepository(CompanyReviewReply)
+    private readonly reviewReplies: Repository<CompanyReviewReply>,
   ) {}
 
+  // Получить компанию по ID пользователя
   private async getCompanyByUser(userId: string) {
     const company = await this.companies.findOne({
       where: { userId },
@@ -21,6 +26,7 @@ export class CompanyReviewsService {
     return company
   }
 
+  // Получить отзывы компании
   async getReviews(userId: string) {
     const company = await this.getCompanyByUser(userId)
     const reviews = await this.reviews.find({
@@ -54,6 +60,69 @@ export class CompanyReviewsService {
     return {
       total: mapped.length,
       reviews: mapped,
+    }
+  }
+
+  // Ответ компании на отзыв
+  async replyToReview(userId: string, dto: ReplyCompanyReviewDto) {
+    const company = await this.getCompanyByUser(userId)
+    const review = await this.reviews.findOne({
+      where: { id: dto.reviewId, companyId: company.companyId },
+      relations: { reply: true },
+    })
+
+    if (!review) throw new NotFoundException('Отзыв не найден')
+
+    if (review.reply) {
+      review.reply.replyText = dto.replyText
+      const saved = await this.reviewReplies.save(review.reply)
+      return {
+        id: saved.id,
+        reviewId: saved.reviewId,
+        companyId: saved.companyId,
+        authorId: saved.authorId,
+        replyText: saved.replyText,
+        createdAt: saved.createdAt,
+      }
+    }
+
+    const reply = this.reviewReplies.create({
+      reviewId: review.id,
+      companyId: company.companyId,
+      authorId: userId,
+      replyText: dto.replyText,
+    })
+
+    const saved = await this.reviewReplies.save(reply)
+    return {
+      id: saved.id,
+      reviewId: saved.reviewId,
+      companyId: saved.companyId,
+      authorId: saved.authorId,
+      replyText: saved.replyText,
+      createdAt: saved.createdAt,
+    }
+  }
+
+  // Получить ответ компании на отзыв
+  async getReply(userId: string, reviewId: number) {
+    const company = await this.getCompanyByUser(userId)
+    const review = await this.reviews.findOne({
+      where: { id: reviewId, companyId: company.companyId },
+      relations: { reply: true },
+    })
+
+    if (!review) throw new NotFoundException('Отзыв не найден')
+
+    if (!review.reply) return null
+
+    return {
+      id: review.reply.id,
+      reviewId: review.reply.reviewId,
+      companyId: review.reply.companyId,
+      authorId: review.reply.authorId,
+      replyText: review.reply.replyText,
+      createdAt: review.reply.createdAt,
     }
   }
 }
