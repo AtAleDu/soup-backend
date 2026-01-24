@@ -7,8 +7,9 @@ import { Order } from '@entities/Order/order.entity'
 type GetOrdersArgs = {
   status?: string
   page?: string
-  pageSize?: string
 }
+
+const PAGE_SIZE = 7
 
 @Injectable()
 export class CompanyOrdersService {
@@ -29,8 +30,8 @@ export class CompanyOrdersService {
 
   async getOrders(userId: string, args: GetOrdersArgs) {
     const company = await this.getCompanyByUser(userId)
-    const pageSize = this.normalizePageSize(args.pageSize)
     const page = this.normalizePage(args.page)
+    const pageSize = PAGE_SIZE
 
     const [items, total] = await this.orders.findAndCount({
       where: {
@@ -55,7 +56,7 @@ export class CompanyOrdersService {
         category: order.category,
         status: order.status,
         createdAt: order.createdAt,
-        companyLogoUrl: order.company?.logo_url ?? null,
+        orderLogoUrl: order.orderLogoUrl,
       })),
     }
   }
@@ -66,9 +67,4 @@ export class CompanyOrdersService {
     return Math.floor(parsed)
   }
 
-  private normalizePageSize(value?: string) {
-    const parsed = Number(value)
-    if (!Number.isFinite(parsed) || parsed < 1) return 7
-    return Math.min(Math.floor(parsed), 100)
-  }
 }

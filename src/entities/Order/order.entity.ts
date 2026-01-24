@@ -26,14 +26,17 @@ export class Order {
   @Column({ type: "varchar" })
   title: string;
 
+  @Column({ name: "orderLogoUrl", type: "varchar" })
+  orderLogoUrl: string;
+
   @Column({ name: "region", type: "varchar" })
   region: string;
 
   @Column({ type: "int" })
   price: number;
 
-  @Column({ type: "varchar", nullable: true })
-  category: string | null;
+  @Column({ type: "varchar" })
+  category: string;
 
   @Column({ type: "varchar" })
   status: string;

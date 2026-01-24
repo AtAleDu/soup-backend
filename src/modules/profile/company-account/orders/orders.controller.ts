@@ -16,8 +16,7 @@ export class CompanyOrdersController {
     @Req() req,
     @Query('status') status?: string,
     @Query('page') page?: string,
-    @Query('pageSize') pageSize?: string,
   ) {
-    return this.service.getOrders(req.user.sub, { status, page, pageSize })
+    return this.service.getOrders(req.user.sub, { status, page })
   }
 }
