@@ -39,6 +39,14 @@ FRONTEND_URL=http://localhost:3000
 
 REVALIDATE_SECRET=your_secret_key
 
+// Email (Resend)
+
+RESEND_API_KEY=re_your_api_key_here
+
+EMAIL_FROM=onboarding@yourdomain.com
+
+APP_NAME=Soup
+
 
 3) `npm start`
 

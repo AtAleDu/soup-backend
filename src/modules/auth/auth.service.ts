@@ -3,19 +3,31 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import * as crypto from "crypto";
 
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 
 import { User, UserRole, UserStatus } from "@entities/User/user.entity";
 import { Company } from "@entities/Company/company.entity";
+import { PasswordResetToken } from "@entities/PasswordResetToken/password-reset-token.entity";
+import {
+  VerificationSession,
+  VerificationStatus,
+} from "@entities/VerificationSession/verification-session.entity";
 
 import { PasswordService } from "./password/password.service";
 import { TokenService } from "./token/token.service";
 import { RefreshTokenService } from "./refresh-token/refresh-token.service";
 import { VerificationService } from "./verification/verification.service";
+import { EmailService } from "@infrastructure/email/email.service";
+import {
+  generateVerificationCode,
+  hashVerificationCode,
+} from "./verification/verification.util";
 
 @Injectable()
 export class AuthService {
@@ -26,10 +38,18 @@ export class AuthService {
     @InjectRepository(Company)
     private readonly companies: Repository<Company>,
 
+    @InjectRepository(VerificationSession)
+    private readonly sessions: Repository<VerificationSession>,
+
+    @InjectRepository(PasswordResetToken)
+    private readonly resetTokens: Repository<PasswordResetToken>,
+
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly refreshTokenService: RefreshTokenService,
     private readonly verificationService: VerificationService,
+    private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
   ) {}
 
   // Регистрация нового пользователя и запуск процесса подтверждения email
@@ -62,7 +82,55 @@ export class AuthService {
     }
 
     // Создаём verification-запись для подтверждения email
-    return this.verificationService.create(user.id);
+    try {
+      return await this.verificationService.create(user.id, user.email);
+    } catch (error) {
+      await this.companies.delete({ userId: user.id });
+      await this.users.delete(user.id);
+      throw error;
+    }
+  }
+
+  // Подтверждение регистрации по коду
+  async verify(verificationId: string, code: string) {
+    const { userId } = await this.verificationService.verify(
+      verificationId,
+      code,
+    );
+
+    const user = await this.users.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException("Пользователь не найден");
+    }
+
+    user.status = UserStatus.ACTIVE;
+    await this.users.save(user);
+
+    return { success: true };
+  }
+
+  // Повторная отправка кода подтверждения
+  async resend(verificationId: string) {
+    const session = await this.sessions.findOne({
+      where: { id: verificationId },
+    });
+
+    if (!session) {
+      throw new BadRequestException("Сессия не найдена");
+    }
+
+    const user = await this.users.findOne({
+      where: { id: session.userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException("Пользователь не найден");
+    }
+
+    return this.verificationService.resend(session, user.email);
   }
 
   // Логин пользователя и выдача access / refresh токенов
@@ -108,5 +176,172 @@ export class AuthService {
   // Выход пользователя из системы (инвалидация refresh token)
   async logout(userId: string) {
     await this.refreshTokenService.revoke(userId);
+  }
+
+  // Запрос на восстановление пароля
+  async requestPasswordReset(email: string) {
+    const user = await this.users.findOne({ where: { email } });
+
+    if (!user) {
+      return { success: true };
+    }
+
+    if (user.status !== UserStatus.ACTIVE) {
+      return { success: true };
+    }
+
+    const lastToken = await this.resetTokens.findOne({
+      where: { userId: user.id },
+      order: { createdAt: "DESC" },
+    });
+
+    if (
+      lastToken &&
+      Date.now() - lastToken.createdAt.getTime() < 60_000
+    ) {
+      throw new BadRequestException("Подождите перед повторным запросом");
+    }
+
+    await this.resetTokens.delete({ userId: user.id });
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+    await this.resetTokens.save({
+      userId: user.id,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      usedAt: null,
+    });
+
+    const frontendUrl =
+      this.configService.get<string>("FRONTEND_URL") || "http://localhost:3000";
+
+    const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
+    try {
+      await this.emailService.sendPasswordResetLink(user.email, resetLink);
+    } catch (error) {
+      await this.resetTokens.delete({ userId: user.id });
+      throw error;
+    }
+
+    return { success: true };
+  }
+
+  // Сброс пароля по токену
+  async resetPassword(token: string, password: string, passwordConfirm: string) {
+    if (password !== passwordConfirm) {
+      throw new BadRequestException("Пароли не совпадают");
+    }
+
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    const record = await this.resetTokens.findOne({
+      where: { tokenHash },
+    });
+
+    if (!record) {
+      throw new BadRequestException("Ссылка недействительна");
+    }
+
+    if (record.usedAt) {
+      throw new BadRequestException("Ссылка уже использована");
+    }
+
+    if (record.expiresAt.getTime() < Date.now()) {
+      throw new BadRequestException("Ссылка истекла");
+    }
+
+    const user = await this.users.findOne({ where: { id: record.userId } });
+    if (!user) {
+      throw new BadRequestException("Пользователь не найден");
+    }
+
+    user.password = await this.passwordService.hash(password);
+    await this.users.save(user);
+
+    await this.refreshTokenService.revoke(user.id);
+
+    record.usedAt = new Date();
+    await this.resetTokens.save(record);
+
+    await this.resetTokens.delete({ userId: user.id });
+
+    return { success: true };
+  }
+
+  // Изменение email в процессе верификации
+  async updateVerificationEmail(verificationId: string, newEmail: string) {
+    const session = await this.sessions.findOne({
+      where: { id: verificationId },
+    });
+
+    if (!session) {
+      throw new BadRequestException("Сессия не найдена");
+    }
+
+    if (session.status !== VerificationStatus.PENDING) {
+      throw new BadRequestException("Сессия недействительна");
+    }
+
+    if (session.expiresAt.getTime() < Date.now()) {
+      session.status = VerificationStatus.LOCKED;
+      await this.sessions.save(session);
+      throw new BadRequestException("Код истёк");
+    }
+
+    if (session.resendCount >= 3) {
+      throw new BadRequestException("Превышен лимит повторных отправок");
+    }
+
+    const user = await this.users.findOne({
+      where: { id: session.userId },
+    });
+
+    if (!user) {
+      throw new BadRequestException("Пользователь не найден");
+    }
+
+    if (user.status !== UserStatus.PENDING) {
+      throw new BadRequestException("Email уже подтверждён");
+    }
+
+    const exists = await this.users.findOne({
+      where: { email: newEmail },
+    });
+
+    if (exists && exists.id !== user.id) {
+      throw new BadRequestException("Email уже используется");
+    }
+
+    const previousEmail = user.email;
+    user.email = newEmail;
+    await this.users.save(user);
+
+    const code = generateVerificationCode();
+    const newSession = await this.sessions.save({
+      userId: session.userId,
+      codeHash: hashVerificationCode(code),
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      attemptsLeft: 5,
+      status: VerificationStatus.PENDING,
+      resendCount: session.resendCount + 1,
+      lastSentAt: new Date(),
+    });
+
+    try {
+      await this.emailService.sendVerificationCode(newEmail, code);
+    } catch (error) {
+      await this.sessions.delete(newSession.id);
+      user.email = previousEmail;
+      await this.users.save(user);
+      throw error;
+    }
+
+    session.status = VerificationStatus.EXPIRED;
+    await this.sessions.save(session);
+
+    return {
+      verificationId: newSession.id,
+    };
   }
 }

@@ -18,20 +18,21 @@ import type { Request, Response } from "express";
 
 import { AuthService } from "./auth.service";
 import { TokenService } from "./token/token.service";
-import { VerificationService } from "./verification/verification.service";
 import { JwtAuthGuard } from "./jwt/jwt-auth.guard";
 
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { VerifyDto } from "./dto/verify.dto";
 import { ResendDto } from "./dto/resend.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { UpdateVerificationEmailDto } from "./dto/update-verification-email.dto";
 import { MeResponseDto } from "./dto/me-response.dto";
 @ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly verificationService: VerificationService,
     private readonly tokenService: TokenService,
   ) {}
 
@@ -109,7 +110,7 @@ export class AuthController {
   @ApiResponse({ status: 400, description: "Неверный код подтверждения" })
   @Post("verify")
   verify(@Body() body: VerifyDto) {
-    return this.verificationService.verify(body.verificationId, body.code);
+    return this.authService.verify(body.verificationId, body.code);
   }
 
   // Повторная отправка кода подтверждения
@@ -117,7 +118,40 @@ export class AuthController {
   @ApiResponse({ status: 200, description: "Код отправлен повторно" })
   @Post("resend")
   resend(@Body() body: ResendDto) {
-    return this.verificationService.resend(body.verificationId);
+    return this.authService.resend(body.verificationId);
+  }
+
+  // Изменение email в процессе верификации
+  @ApiOperation({ summary: "Изменить email в сессии верификации" })
+  @ApiResponse({ status: 200, description: "Email обновлен, новый код отправлен" })
+  @ApiResponse({ status: 400, description: "Ошибка валидации или email занят" })
+  @Post("update-verification-email")
+  updateVerificationEmail(@Body() body: UpdateVerificationEmailDto) {
+    return this.authService.updateVerificationEmail(
+      body.verificationId,
+      body.newEmail,
+    );
+  }
+
+  // Запрос на восстановление пароля
+  @ApiOperation({ summary: "Запрос на восстановление пароля" })
+  @ApiResponse({ status: 200, description: "Ссылка отправлена" })
+  @Post("forgot-password")
+  forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.authService.requestPasswordReset(body.email);
+  }
+
+  // Сброс пароля по токену
+  @ApiOperation({ summary: "Сброс пароля по токену" })
+  @ApiResponse({ status: 200, description: "Пароль обновлён" })
+  @ApiResponse({ status: 400, description: "Ошибка валидации или токен" })
+  @Post("reset-password")
+  resetPassword(@Body() body: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      body.token,
+      body.password,
+      body.passwordConfirm,
+    );
   }
 
   // Получение данных текущего авторизованного пользователя

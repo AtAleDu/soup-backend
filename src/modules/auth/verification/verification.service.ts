@@ -6,12 +6,11 @@ import {
   VerificationSession,
   VerificationStatus,
 } from "@entities/VerificationSession/verification-session.entity";
-import { User, UserStatus } from "@entities/User/user.entity";
-
 import {
   generateVerificationCode,
   hashVerificationCode,
 } from "./verification.util";
+import { EmailService } from "@infrastructure/email/email.service";
 
 @Injectable()
 export class VerificationService {
@@ -19,28 +18,31 @@ export class VerificationService {
     @InjectRepository(VerificationSession)
     private readonly sessions: Repository<VerificationSession>,
 
-    @InjectRepository(User)
-    private readonly users: Repository<User>,
+    private readonly emailService: EmailService,
   ) {}
 
   /**
    * Создание новой verification-сессии (при регистрации)
    */
-  async create(userId: string) {
+  async create(userId: string, email: string) {
     const code = generateVerificationCode();
 
     const session = await this.sessions.save({
       userId,
       codeHash: hashVerificationCode(code),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       attemptsLeft: 5,
       status: VerificationStatus.PENDING,
       resendCount: 0,
       lastSentAt: new Date(),
     });
 
-    // TODO: заменить на email / sms
-    console.log("VERIFICATION CODE:", code);
+    try {
+      await this.emailService.sendVerificationCode(email, code);
+    } catch (error) {
+      await this.sessions.delete(session.id);
+      throw error;
+    }
 
     return {
       verificationId: session.id,
@@ -82,53 +84,30 @@ export class VerificationService {
       throw new BadRequestException("Неверный код");
     }
 
-    const user = await this.users.findOne({
-      where: { id: session.userId },
-    });
-
-    if (!user) {
-      throw new BadRequestException("Пользователь не найден");
-    }
-
-    user.status = UserStatus.ACTIVE;
     session.status = VerificationStatus.USED;
 
-    await this.users.save(user);
     await this.sessions.save(session);
 
-    return { success: true };
+    return { userId: session.userId };
   }
 
   /**
    * Повторная отправка кода
    */
-  async resend(verificationId: string) {
-    const oldSession = await this.sessions.findOne({
-      where: { id: verificationId },
-    });
-
-    if (!oldSession) {
-      throw new BadRequestException("Сессия не найдена");
-    }
-
+  async resend(oldSession: VerificationSession, email: string) {
     if (oldSession.status !== VerificationStatus.PENDING) {
       throw new BadRequestException("Сессия недействительна");
+    }
+
+    if (oldSession.expiresAt.getTime() < Date.now()) {
+      oldSession.status = VerificationStatus.LOCKED;
+      await this.sessions.save(oldSession);
+      throw new BadRequestException("Код истёк");
     }
 
     if (oldSession.resendCount >= 3) {
       throw new BadRequestException("Превышен лимит повторных отправок");
     }
-
-    if (
-      oldSession.lastSentAt &&
-      Date.now() - oldSession.lastSentAt.getTime() < 60_000
-    ) {
-      throw new BadRequestException("Подождите перед повторной отправкой");
-    }
-
-    // Закрываем старую сессию
-    oldSession.status = VerificationStatus.EXPIRED;
-    await this.sessions.save(oldSession);
 
     // Создаём новую
     const code = generateVerificationCode();
@@ -136,18 +115,27 @@ export class VerificationService {
     const newSession = await this.sessions.save({
       userId: oldSession.userId,
       codeHash: hashVerificationCode(code),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       attemptsLeft: 5,
       status: VerificationStatus.PENDING,
       resendCount: oldSession.resendCount + 1,
       lastSentAt: new Date(),
     });
 
-    // TODO: заменить на email / sms
-    console.log("RESEND VERIFICATION CODE:", code);
+    try {
+      await this.emailService.sendVerificationCode(email, code);
+    } catch (error) {
+      await this.sessions.delete(newSession.id);
+      throw error;
+    }
+
+    // Закрываем старую сессию
+    oldSession.status = VerificationStatus.EXPIRED;
+    await this.sessions.save(oldSession);
 
     return {
       verificationId: newSession.id,
     };
   }
+
 }

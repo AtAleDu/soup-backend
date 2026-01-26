@@ -11,6 +11,7 @@ import { AuthService } from "./auth.service";
 import { User } from "@entities/User/user.entity";
 import { Company } from "@entities/Company/company.entity";
 import { VerificationSession } from "@entities/VerificationSession/verification-session.entity";
+import { PasswordResetToken } from "@entities/PasswordResetToken/password-reset-token.entity";
 
 import { PasswordService } from "./password/password.service";
 import { TokenService } from "./token/token.service";
@@ -18,6 +19,7 @@ import { RefreshTokenService } from "./refresh-token/refresh-token.service";
 import { VerificationService } from "./verification/verification.service";
 
 import { JwtStrategy } from "./jwt/jwt.strategy";
+import { EmailModule } from "@infrastructure/email/email.module";
 
 @Module({
   imports: [
@@ -25,7 +27,12 @@ import { JwtStrategy } from "./jwt/jwt.strategy";
     ConfigModule,
 
     // entities
-    TypeOrmModule.forFeature([User, Company, VerificationSession]),
+    TypeOrmModule.forFeature([
+      User,
+      Company,
+      VerificationSession,
+      PasswordResetToken,
+    ]),
 
     // auth infra
     PassportModule.register({ defaultStrategy: "jwt" }),
@@ -41,6 +48,9 @@ import { JwtStrategy } from "./jwt/jwt.strategy";
         },
       }),
     }),
+
+    // email
+    EmailModule,
   ],
 
   controllers: [AuthController],
