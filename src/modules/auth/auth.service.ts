@@ -91,7 +91,7 @@ export class AuthService {
     }
   }
 
-  // Подтверждение регистрации по коду
+  // Подтверждение регистрации по коду и автоматический логин пользователя
   async verify(verificationId: string, code: string) {
     const { userId } = await this.verificationService.verify(
       verificationId,
@@ -109,7 +109,11 @@ export class AuthService {
     user.status = UserStatus.ACTIVE;
     await this.users.save(user);
 
-    return { success: true };
+    // После успешной активации сразу логиним пользователя
+    const tokens = await this.tokenService.issue(user);
+    await this.refreshTokenService.save(user.id, tokens.refreshToken);
+
+    return { success: true, tokens };
   }
 
   // Повторная отправка кода подтверждения
@@ -228,8 +232,12 @@ export class AuthService {
     return { success: true };
   }
 
-  // Сброс пароля по токену
-  async resetPassword(token: string, password: string, passwordConfirm: string) {
+  // Сброс пароля по токену и автоматический логин пользователя
+  async resetPassword(
+    token: string,
+    password: string,
+    passwordConfirm: string,
+  ) {
     if (password !== passwordConfirm) {
       throw new BadRequestException("Пароли не совпадают");
     }
@@ -256,17 +264,24 @@ export class AuthService {
       throw new BadRequestException("Пользователь не найден");
     }
 
+    // Обновляем пароль
     user.password = await this.passwordService.hash(password);
     await this.users.save(user);
 
+    // Инвалидируем все старые refresh-токены
     await this.refreshTokenService.revoke(user.id);
 
+    // Выпускаем новый набор токенов после успешного сброса пароля
+    const tokens = await this.tokenService.issue(user);
+    await this.refreshTokenService.save(user.id, tokens.refreshToken);
+
+    // Помечаем токен сброса использованным и очищаем остальные токены сброса
     record.usedAt = new Date();
     await this.resetTokens.save(record);
-
     await this.resetTokens.delete({ userId: user.id });
 
-    return { success: true };
+    // Возвращаем success для фронта и токены для контроллера
+    return { success: true, tokens };
   }
 
   // Изменение email в процессе верификации

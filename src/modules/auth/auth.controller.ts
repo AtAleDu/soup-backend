@@ -109,8 +109,26 @@ export class AuthController {
   @ApiResponse({ status: 200, description: "Пользователь подтверждён" })
   @ApiResponse({ status: 400, description: "Неверный код подтверждения" })
   @Post("verify")
-  verify(@Body() body: VerifyDto) {
-    return this.authService.verify(body.verificationId, body.code);
+  async verify(
+    @Body() body: VerifyDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { success, tokens } = await this.authService.verify(
+      body.verificationId,
+      body.code,
+    );
+
+    // Устанавливаем refresh token так же, как при логине / reset-password
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: false,
+      path: "/auth/refresh",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // Для фронта сохраняем прежний контракт
+    return { success };
   }
 
   // Повторная отправка кода подтверждения
@@ -141,17 +159,32 @@ export class AuthController {
     return this.authService.requestPasswordReset(body.email);
   }
 
-  // Сброс пароля по токену
+  // Сброс пароля по токену c автоматическим входом пользователя
   @ApiOperation({ summary: "Сброс пароля по токену" })
-  @ApiResponse({ status: 200, description: "Пароль обновлён" })
+  @ApiResponse({ status: 200, description: "Пароль обновлён, пользователь залогинен" })
   @ApiResponse({ status: 400, description: "Ошибка валидации или токен" })
   @Post("reset-password")
-  resetPassword(@Body() body: ResetPasswordDto) {
-    return this.authService.resetPassword(
+  async resetPassword(
+    @Body() body: ResetPasswordDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { success, tokens } = await this.authService.resetPassword(
       body.token,
       body.password,
       body.passwordConfirm,
     );
+
+    // Устанавливаем refresh token так же, как при логине / обновлении
+    res.cookie("refreshToken", tokens.refreshToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: false,
+      path: "/auth/refresh",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // Для фронта оставляем прежний контракт
+    return { success };
   }
 
   // Получение данных текущего авторизованного пользователя
