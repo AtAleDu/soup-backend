@@ -11,6 +11,7 @@ import { RevalidationModule } from "@infrastructure/revalidation/revalidation.mo
 import { ContractorModule } from './modules/contractor/contractor.module'
 import { RegionsModule } from "./modules/regions/regions.module";
 import { CompanyAccountModule } from './modules/profile/company-account/company-account.module'
+import { CompaniesModule } from "./modules/companies/companies.module";
 
 
 @Module({
@@ -47,6 +48,7 @@ import { CompanyAccountModule } from './modules/profile/company-account/company-
     ContractorModule,
     RegionsModule,
     CompanyAccountModule,
+    CompaniesModule,
   ],
 })
 export class AppModule {}
