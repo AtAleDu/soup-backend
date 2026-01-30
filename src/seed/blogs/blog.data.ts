@@ -5,6 +5,7 @@ type BlogSeedItem = {
   description: string;
   imageUrl: string;
   status: BlogStatus;
+  isPinned?: boolean;
   contentBlocks?: unknown[] | null;
 };
 
@@ -15,6 +16,7 @@ export const BLOG_DATA: BlogSeedItem[] = [
       "Агентство по привлечению инвестиций Свердловской области взяло на сопровождение футуристический проект по созданию глэмпинг-обсерватории. Реализация проекта намечена на 2027 год, объем инвестиций – 56 млн руб.",
     imageUrl: "https://s3.twcstorage.ru/4b615622-soup/blogs/Frame%202136138513.svg",
     status: BlogStatus.PUBLISHED,
+    isPinned: true,
     contentBlocks: [
       { type: "subtitle2", text: "О проекте" },
       {

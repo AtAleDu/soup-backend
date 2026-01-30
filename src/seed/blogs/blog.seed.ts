@@ -23,6 +23,7 @@ export async function seedBlog(dataSource: DataSource) {
       imageUrl: item.imageUrl,
       contentBlocks: item.contentBlocks ?? null,
       status: item.status,
+      isPinned: item.isPinned ?? false,
     }),
   );
 

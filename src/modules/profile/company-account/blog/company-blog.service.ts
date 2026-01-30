@@ -46,6 +46,7 @@ export class CompanyBlogService {
       imageUrl: item.imageUrl,
       contentBlocks: item.contentBlocks,
       createdAt: item.createdAt,
+      isPinned: item.isPinned,
       companyName: item.company?.name ?? company.name,
       companyLogoUrl: item.company?.logo_url ?? company.logo_url ?? null,
     };

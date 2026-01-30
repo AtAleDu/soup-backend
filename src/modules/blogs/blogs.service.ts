@@ -1,20 +1,23 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
+import { RevalidationService } from "@infrastructure/revalidation/revalidation.service";
+import { resetPinnedBlog } from "./blogs.utils";
 
 @Injectable()
 export class BlogsService {
   constructor(
     @InjectRepository(Blog)
     private readonly repo: Repository<Blog>,
+    private readonly revalidationService: RevalidationService,
   ) {}
 
   async findAll() {
     return this.repo.find({
       where: { status: BlogStatus.PUBLISHED },
       relations: { company: true },
-      order: { createdAt: "DESC" },
+      order: { isPinned: "DESC", createdAt: "DESC" },
     });
   }
 
@@ -25,5 +28,33 @@ export class BlogsService {
     });
     if (!item) throw new NotFoundException("Blog not found");
     return item;
+  }
+
+  async pin(id: string) {
+    const blog = await this.repo.findOne({ where: { id }, relations: { company: true } });
+    if (!blog) throw new NotFoundException("Blog not found");
+    if (blog.status !== BlogStatus.PUBLISHED) {
+      throw new BadRequestException("Закрепить можно только опубликованный блог");
+    }
+    const saved = await this.repo.manager.transaction(async (manager) => {
+      await resetPinnedBlog(id, manager);
+      blog.isPinned = true;
+      return manager.save(blog);
+    });
+    await this.revalidationService.revalidate("/blogs");
+    await this.revalidationService.revalidate("/");
+    await this.revalidationService.revalidate(`/blogs/${id}`);
+    return saved;
+  }
+
+  async unpin(id: string) {
+    const blog = await this.repo.findOne({ where: { id }, relations: { company: true } });
+    if (!blog) throw new NotFoundException("Blog not found");
+    blog.isPinned = false;
+    const saved = await this.repo.save(blog);
+    await this.revalidationService.revalidate("/blogs");
+    await this.revalidationService.revalidate("/");
+    await this.revalidationService.revalidate(`/blogs/${id}`);
+    return saved;
   }
 }

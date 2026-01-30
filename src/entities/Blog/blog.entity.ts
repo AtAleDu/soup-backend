@@ -44,6 +44,9 @@ export class Blog {
   })
   status: BlogStatus;
 
+  @Column({ name: "is_pinned", type: "boolean", default: false })
+  isPinned: boolean;
+
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
 }
