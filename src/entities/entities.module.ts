@@ -13,12 +13,14 @@ import { ContractorTypeEntity } from './Contractor/contractor.entity'
 import { CompanyReview } from "./CompanyReview/company-review.entity";
 import { CompanyReviewReply } from "./CompanyReviewReply/company-review-reply.entity";
 import { Order } from "./Order/order.entity";
+import { Blog } from "./Blog/blog.entity";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Ad,
       Article,
+      Blog,
       Company,
       Contest,
       CatalogFilter,

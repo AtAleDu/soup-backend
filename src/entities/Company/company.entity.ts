@@ -11,6 +11,7 @@ import {
 } from "typeorm";
 import { Article } from "../Article/article.entity";
 import { Ad } from "../Ad/ad.entity";
+import { Blog } from "../Blog/blog.entity";
 import { Tariff } from "../Tarif/tariff.entity";
 import { User } from "../User/user.entity";
 
@@ -61,6 +62,9 @@ export class Company {
 
   @OneToMany(() => Ad, (ad) => ad.company)
   ads: Ad[];
+
+  @OneToMany(() => Blog, (blog) => blog.company)
+  blogs: Blog[];
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;

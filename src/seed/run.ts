@@ -4,11 +4,18 @@ import { NewsEntity } from "../entities/News/news.entity";
 import { Contest } from "../entities/Contest/contest.entity";
 import { CatalogFilter } from "../entities/Catalog/catalogFilters/catalog-filter.entity";
 import { ContractorTypeEntity } from "../entities/Contractor/contractor.entity";
+import { Blog } from "../entities/Blog/blog.entity";
+import { Company } from "../entities/Company/company.entity";
+import { User } from "../entities/User/user.entity";
+import { Tariff } from "../entities/Tarif/tariff.entity";
+import { Article } from "../entities/Article/article.entity";
+import { Ad } from "../entities/Ad/ad.entity";
 
 import { seedNews } from "./news/news.seed";
 import { seedContest } from "./contests/contest.seed";
 import { seedCatalogFilter } from "./catalogFilters/catalog-filter.seed";
 import { seedContractor } from "./contractor/contractor.seed";
+import { seedBlog } from "./blogs/blog.seed";
 
 const dataSource = new DataSource({
   type: "postgres",
@@ -23,6 +30,12 @@ const dataSource = new DataSource({
     Contest,
     CatalogFilter,
     ContractorTypeEntity,
+    Blog,
+    Company,
+    User,
+    Tariff,
+    Article,
+    Ad,
   ],
 
   synchronize: true,
@@ -35,6 +48,7 @@ async function run() {
   await seedContest(dataSource);
   await seedCatalogFilter(dataSource);
   await seedContractor(dataSource);
+  await seedBlog(dataSource);
 
   await dataSource.destroy();
   console.log("Seed completed");
