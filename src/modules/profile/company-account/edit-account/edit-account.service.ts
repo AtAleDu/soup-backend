@@ -6,7 +6,6 @@ import { UpdateCompanyAccountDto } from '../dto/update-company-account.dto'
 import { User } from '@entities/User/user.entity'
 import { StorageService } from '@infrastructure/storage/storage.service'
 import sharp from 'sharp'
-import type { File as MulterFile } from 'multer'
 import { GetCompanyProfileService } from '../get-profile/get-profile.service'
 
 @Injectable()
@@ -102,7 +101,7 @@ export class EditCompanyAccountService {
     return this.profile.getProfile(userId)
   }
 
-  async uploadCompanyLogo(userId: string, file: MulterFile) {
+  async uploadCompanyLogo(userId: string, file) {
     const maxSizeBytes = 2 * 1024 * 1024
     const allowedMimeTypes = [
       'image/png',

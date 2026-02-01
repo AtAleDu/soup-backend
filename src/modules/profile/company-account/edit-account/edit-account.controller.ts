@@ -5,7 +5,6 @@ import { UpdateCompanyAccountDto } from '../dto/update-company-account.dto'
 import { EditCompanyAccountService } from './edit-account.service'
 import { OptionalFileInterceptor } from './optional-file.interceptor'
 import { memoryStorage } from 'multer'
-import type { File as MulterFile } from 'multer'
 
 @ApiTags('Profile')
 @ApiBearerAuth()
@@ -24,7 +23,7 @@ export class EditCompanyAccountController {
   async update(
     @Req() req,
     @Body() dto: UpdateCompanyAccountDto,
-    @UploadedFile() logo?: MulterFile,
+    @UploadedFile() logo,
   ) {
     if (logo) {
       const url = await this.service.uploadCompanyLogo(req.user.sub, logo)
