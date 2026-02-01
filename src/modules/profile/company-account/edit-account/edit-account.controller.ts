@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '@modules/auth/jwt/jwt-auth.guard'
 import { UpdateCompanyAccountDto } from '../dto/update-company-account.dto'
 import { EditCompanyAccountService } from './edit-account.service'
+import { OptionalFileInterceptor } from './optional-file.interceptor'
+import { memoryStorage } from 'multer'
+import type { File as MulterFile } from 'multer'
 
 @ApiTags('Profile')
 @ApiBearerAuth()
@@ -11,18 +14,22 @@ import { EditCompanyAccountService } from './edit-account.service'
 export class EditCompanyAccountController {
   constructor(private readonly service: EditCompanyAccountService) {}
 
-  @ApiOperation({ summary: 'Получить профиль компании' })
-  @Get()
-  get(@Req() req) {
-    return this.service.getProfile(req.user.sub)
-  }
-
   @ApiOperation({ summary: 'Обновить профиль компании' })
   @Post()
-  update(
+  @UseInterceptors(
+    OptionalFileInterceptor('logo', {
+      storage: memoryStorage(),
+    }),
+  )
+  async update(
     @Req() req,
     @Body() dto: UpdateCompanyAccountDto,
+    @UploadedFile() logo?: MulterFile,
   ) {
+    if (logo) {
+      const url = await this.service.uploadCompanyLogo(req.user.sub, logo)
+      dto.profile = { ...dto.profile, logo: url }
+    }
     return this.service.updateProfile(req.user.sub, dto)
   }
 }

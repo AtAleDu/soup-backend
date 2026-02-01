@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Company } from '@entities/Company/company.entity'
 import { UpdateCompanyAccountDto } from '../dto/update-company-account.dto'
 import { User } from '@entities/User/user.entity'
+import { StorageService } from '@infrastructure/storage/storage.service'
+import sharp from 'sharp'
+import type { File as MulterFile } from 'multer'
+import { GetCompanyProfileService } from '../get-profile/get-profile.service'
 
 @Injectable()
 export class EditCompanyAccountService {
@@ -12,18 +16,12 @@ export class EditCompanyAccountService {
     private readonly repo: Repository<Company>,
     @InjectRepository(User)
     private readonly users: Repository<User>,
+    private readonly storage: StorageService,
+    private readonly profile: GetCompanyProfileService,
   ) {}
 
-  async getProfile(userId: string) {
-    const company = await this.repo.findOne({
-      where: { userId },
-    })
-    if (!company) throw new NotFoundException('Комания не найдена')
-    return company
-  }
-
   async updateProfile(userId: string, dto: UpdateCompanyAccountDto) {
-    const company = await this.getProfile(userId)
+    const company = await this.profile.getProfile(userId)
     // Собираем только переданные поля, чтобы не затирать существующие данные.
     const updateData: Partial<Company> = {}
 
@@ -101,6 +99,55 @@ export class EditCompanyAccountService {
       // Синхронизируем имя пользователя с именем компании, если оно пришло.
       await this.users.update({ id: userId }, { name: nextUserName })
     }
-    return this.getProfile(userId)
+    return this.profile.getProfile(userId)
+  }
+
+  async uploadCompanyLogo(userId: string, file: MulterFile) {
+    const maxSizeBytes = 2 * 1024 * 1024
+    const allowedMimeTypes = [
+      'image/png',
+      'image/jpeg',
+      'image/webp',
+      'image/svg+xml',
+    ]
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException('Недопустимый формат логотипа')
+    }
+    if (file.size > maxSizeBytes) {
+      throw new BadRequestException('Размер файла превышает 2 МБ')
+    }
+
+    const metadata = await sharp(file.buffer).metadata()
+    const width = metadata.width ?? 0
+    const height = metadata.height ?? 0
+    if (width < 96 || height < 96 || width > 512 || height > 512) {
+      throw new BadRequestException('Размер логотипа должен быть от 96 до 512 пикселей')
+    }
+
+    const resizedBuffer = await sharp(file.buffer)
+      .resize(96, 96, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .png()
+      .toBuffer()
+
+    const uploadResult = await this.storage.upload(
+      {
+        buffer: resizedBuffer,
+        mimeType: 'image/png',
+        size: resizedBuffer.length,
+        originalName: 'logo.png',
+      },
+      {
+        allowedMimeTypes: ['image/png'],
+        maxSizeBytes,
+        isPublic: true,
+        pathPrefix: `personal-account/company-account/profile-logo/${userId}`,
+      },
+    )
+
+    return uploadResult.url
   }
 }
