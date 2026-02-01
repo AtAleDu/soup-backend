@@ -12,23 +12,9 @@ export class ContestsService {
     private readonly repo: Repository<Contest>,
   ) {}
 
-  // PUBLIC: получить ВСЕ конкурсы (текущие + прошедшие)
-  async findAllPublished() {
-    const today = new Date().toISOString().slice(0, 10);
-
-    return this.repo.find({
-      where: [
-        { endDate: MoreThanOrEqual(today) }, // текущие
-        { endDate: LessThan(today) },        // прошедшие
-      ],
-      order: { startDate: "DESC" },
-    });
-  }
-
   // PUBLIC: получить текущие конкурсы
   async findCurrentPublished() {
     const today = new Date().toISOString().slice(0, 10);
-
     return this.repo.find({
       where: {
         endDate: MoreThanOrEqual(today),
@@ -40,7 +26,6 @@ export class ContestsService {
   // PUBLIC: получить прошедшие конкурсы
   async findPastPublished() {
     const today = new Date().toISOString().slice(0, 10);
-
     return this.repo.find({
       where: {
         endDate: LessThan(today),
@@ -58,7 +43,6 @@ export class ContestsService {
   // ADMIN: обновить данные конкурса
   async update(id: number, dto: UpdateContestDto) {
     const contest = await this.repo.findOne({ where: { id } });
-
     if (!contest) {
       throw new NotFoundException("Contest not found");
     }
@@ -70,7 +54,6 @@ export class ContestsService {
   // ADMIN: удалить конкурс
   async remove(id: number) {
     const contest = await this.repo.findOne({ where: { id } });
-
     if (!contest) {
       throw new NotFoundException("Contest not found");
     }

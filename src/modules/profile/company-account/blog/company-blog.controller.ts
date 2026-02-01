@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
 import { CompanyBlogService, CompanyBlogStatus } from "./company-blog.service";
 import { CreateBlogDto } from "./dto/create-blog.dto";
@@ -28,6 +30,22 @@ export class CompanyBlogController {
     @Query("status") status?: string,
   ) {
     return this.service.getCompanyBlogs(req.user.sub, parseStatus(status));
+  }
+
+  @ApiOperation({ summary: "Загрузить изображение" })
+  @Post("blog/upload-image")
+  @UseInterceptors(
+    FileInterceptor("image", {
+      storage: memoryStorage(),
+    }),
+  )
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({ schema: { type: "object", properties: { image: { type: "string", format: "binary" } } } })
+  uploadImage(
+    @Req() req: { user: { sub: string } },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.service.uploadBlogImage(req.user.sub, file);
   }
 
   @ApiOperation({ summary: "Создать блог (черновик)" })

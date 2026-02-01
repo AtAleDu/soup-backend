@@ -4,11 +4,15 @@ import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { RevalidationService } from "@infrastructure/revalidation/revalidation.service";
+import { StorageService } from "@infrastructure/storage/storage.service";
 import { CreateBlogDto } from "./dto/create-blog.dto";
 import { UpdateBlogDto } from "./dto/update-blog.dto";
 import { revalidateBlogPages } from "./blog.utils";
 
 export type CompanyBlogStatus = "all" | "published" | "drafts";
+
+const BLOG_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const BLOG_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 @Injectable()
 export class CompanyBlogService {
@@ -18,6 +22,7 @@ export class CompanyBlogService {
     @InjectRepository(Blog)
     private readonly blogs: Repository<Blog>,
     private readonly revalidationService: RevalidationService,
+    private readonly storage: StorageService,
   ) {}
 
   private async getCompanyByUser(userId: string) {
@@ -141,5 +146,37 @@ export class CompanyBlogService {
     const saved = await this.blogs.save(blog);
     await revalidateBlogPages(this.revalidationService, saved.id);
     return this.mapItem({ ...saved, company }, company);
+  }
+
+  /** Универсальная загрузка изображения для блога: главное фото или изображение в блоке контента. Возвращает URL. */
+  async uploadBlogImage(userId: string, file: Express.Multer.File): Promise<{ url: string }> {
+    if (!file?.buffer) {
+      throw new BadRequestException("Файл не передан");
+    }
+    if (!BLOG_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP");
+    }
+    if (file.size > BLOG_IMAGE_MAX_SIZE) {
+      throw new BadRequestException("Размер файла превышает 5 МБ");
+    }
+
+    const company = await this.getCompanyByUser(userId);
+    const ext = file.originalname?.match(/\.[a-z]+$/i)?.[0] ?? ".jpg";
+    const uploadResult = await this.storage.upload(
+      {
+        buffer: file.buffer,
+        mimeType: file.mimetype,
+        size: file.size,
+        originalName: `blog${ext}`,
+      },
+      {
+        allowedMimeTypes: BLOG_IMAGE_MIME_TYPES,
+        maxSizeBytes: BLOG_IMAGE_MAX_SIZE,
+        isPublic: true,
+        pathPrefix: `personal-account/company-account/blog-images/${company.companyId}`,
+      },
+    );
+
+    return { url: uploadResult.url };
   }
 }
