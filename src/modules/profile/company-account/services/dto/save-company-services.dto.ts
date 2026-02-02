@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { ArrayNotEmpty, IsArray, IsString, ValidateNested } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 
 class SaveCompanyServiceItemDto {
@@ -10,6 +10,11 @@ class SaveCompanyServiceItemDto {
   @ApiProperty({ example: "МАФ" })
   @IsString()
   subcategory: string;
+
+  @ApiProperty({ example: "https://example.com/service.png", required: false, nullable: true })
+  @IsOptional()
+  @IsString()
+  imageUrl?: string | null;
 }
 
 class SaveCompanyServiceCategoryDto {

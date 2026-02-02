@@ -32,6 +32,9 @@ export class CompanyService {
   @Column({ name: "category_name" })
   categoryName: string;
 
+  @Column({ name: "image_url", nullable: true })
+  imageUrl: string | null;
+
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 

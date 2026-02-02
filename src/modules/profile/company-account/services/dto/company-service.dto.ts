@@ -5,10 +5,10 @@ export class CompanyServiceCategoryDto {
   category: string;
 
   @ApiProperty({
-    example: [{ name: "Проектирование входной группы", subcategory: "МАФ" }],
+    example: [{ name: "Проектирование входной группы", subcategory: "МАФ", imageUrl: null }],
     isArray: true,
   })
-  services: { name: string; subcategory: string }[];
+  services: { name: string; subcategory: string; imageUrl?: string | null }[];
 }
 
 export class CompanyServicesResponseDto {

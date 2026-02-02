@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
 import { CompanyServicesService } from "./company-services.service";
 import { SaveCompanyServicesDto } from "./dto/save-company-services.dto";
 import { CompanyServicesResponseDto } from "./dto/company-service.dto";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
 
 @ApiTags("Profile")
 @ApiBearerAuth()
@@ -24,5 +26,17 @@ export class CompanyServicesController {
   @Post()
   save(@Req() req, @Body() dto: SaveCompanyServicesDto) {
     return this.service.saveServices(req.user.sub, dto);
+  }
+
+  @ApiOperation({ summary: "Загрузить изображение услуги" })
+  @ApiResponse({ status: 200 })
+  @Post("upload-image")
+  @UseInterceptors(
+    FileInterceptor("image", {
+      storage: memoryStorage(),
+    }),
+  )
+  uploadImage(@Req() req, @UploadedFile() file) {
+    return this.service.uploadServiceImage(req.user.sub, file);
   }
 }
