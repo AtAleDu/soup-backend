@@ -13,6 +13,7 @@ import { ContractorTypeEntity } from './Contractor/contractor.entity'
 import { CompanyReview } from "./CompanyReview/company-review.entity";
 import { CompanyReviewReply } from "./CompanyReviewReply/company-review-reply.entity";
 import { Order } from "./Order/order.entity";
+import { CompanyService } from "./CompanyService/company-service.entity";
 import { Blog } from "./Blog/blog.entity";
 
 @Module({
@@ -32,6 +33,7 @@ import { Blog } from "./Blog/blog.entity";
       CompanyReview,
       CompanyReviewReply,
       Order,
+      CompanyService,
     ]),
   ],
   exports: [TypeOrmModule],

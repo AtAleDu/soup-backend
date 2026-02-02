@@ -13,10 +13,21 @@ import { GetCompanyProfileController, GetCompanyProfileService } from './get-pro
 import { CompanyReviewsController, CompanyReviewsService } from './reviews'
 import { CompanyOrdersController, CompanyOrdersService } from './orders'
 import { CompanyBlogController, CompanyBlogService } from './blog'
+import { CompanyServicesController } from './services/company-services.controller'
+import { CompanyServicesService } from './services/company-services.service'
+import { CompanyService } from '@entities/CompanyService/company-service.entity'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Company, User, Blog, CompanyReview, CompanyReviewReply, Order]),
+    TypeOrmModule.forFeature([
+      Company,
+      User,
+      Blog,
+      CompanyReview,
+      CompanyReviewReply,
+      Order,
+      CompanyService,
+    ]),
     RevalidationModule,
     StorageModule,
   ],
@@ -26,6 +37,7 @@ import { CompanyBlogController, CompanyBlogService } from './blog'
     CompanyReviewsController,
     CompanyOrdersController,
     CompanyBlogController,
+    CompanyServicesController,
   ],
   providers: [
     EditCompanyAccountService,
@@ -33,6 +45,7 @@ import { CompanyBlogController, CompanyBlogService } from './blog'
     CompanyReviewsService,
     CompanyOrdersService,
     CompanyBlogService,
+    CompanyServicesService,
   ],
 })
 export class CompanyAccountModule {}
