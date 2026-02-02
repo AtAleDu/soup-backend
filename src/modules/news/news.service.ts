@@ -26,10 +26,10 @@ export class NewsService {
   }
 
   async findAll() {
-    // Возвращаем новости в порядке публикации (свежие сверху)
     return this.repo.find({
       order: {
-        createdAt: "DESC", // новые сверху
+        isImportantNew: "DESC",
+        createdAt: "DESC",
       },
     });
   }
