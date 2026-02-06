@@ -5,6 +5,12 @@ import { Contest } from "@entities/Contest/contest.entity";
 import { CreateContestDto } from "./dto/create-contest.dto";
 import { UpdateContestDto } from "./dto/update-contest.dto";
 
+function startDateSince(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
+
 @Injectable()
 export class ContestsService {
   constructor(
@@ -13,25 +19,37 @@ export class ContestsService {
   ) {}
 
   // PUBLIC: получить текущие конкурсы
-  async findCurrentPublished() {
+  async findCurrentPublished(time?: string) {
     const today = new Date().toISOString().slice(0, 10);
-    return this.repo.find({
-      where: {
-        endDate: MoreThanOrEqual(today),
-      },
-      order: { startDate: "DESC" },
-    });
+    const qb = this.repo
+      .createQueryBuilder("contest")
+      .where("contest.endDate >= :today", { today })
+      .orderBy("contest.startDate", "DESC");
+
+    if (time === "week") {
+      qb.andWhere("contest.startDate >= :since", { since: startDateSince(7) });
+    } else if (time === "month") {
+      qb.andWhere("contest.startDate >= :since", { since: startDateSince(30) });
+    }
+
+    return qb.getMany();
   }
 
   // PUBLIC: получить прошедшие конкурсы
-  async findPastPublished() {
+  async findPastPublished(time?: string) {
     const today = new Date().toISOString().slice(0, 10);
-    return this.repo.find({
-      where: {
-        endDate: LessThan(today),
-      },
-      order: { startDate: "DESC" },
-    });
+    const qb = this.repo
+      .createQueryBuilder("contest")
+      .where("contest.endDate < :today", { today })
+      .orderBy("contest.startDate", "DESC");
+
+    if (time === "week") {
+      qb.andWhere("contest.startDate >= :since", { since: startDateSince(7) });
+    } else if (time === "month") {
+      qb.andWhere("contest.startDate >= :since", { since: startDateSince(30) });
+    }
+
+    return qb.getMany();
   }
 
   // ADMIN: создать новый конкурс

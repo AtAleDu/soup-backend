@@ -1,8 +1,5 @@
-import {
-  Controller,
-  Get,
-} from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { Controller, Get, Query } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from "@nestjs/swagger";
 import { ContestsService } from "./contests.service";
 
 @ApiTags("Contests")
@@ -12,17 +9,19 @@ export class ContestsController {
 
   // PUBLIC: получить текущие опубликованные конкурсы
   @ApiOperation({ summary: "Получить текущие конкурсы" })
+  @ApiQuery({ name: "time", required: false, enum: ["week", "month", "all"] })
   @ApiResponse({ status: 200, description: "Список текущих конкурсов" })
   @Get("contests/current")
-  findCurrent() {
-    return this.contestsService.findCurrentPublished();
+  findCurrent(@Query("time") time?: string) {
+    return this.contestsService.findCurrentPublished(time);
   }
 
   // PUBLIC: получить прошедшие конкурсы
   @ApiOperation({ summary: "Получить прошедшие конкурсы" })
+  @ApiQuery({ name: "time", required: false, enum: ["week", "month", "all"] })
   @ApiResponse({ status: 200, description: "Список прошедших конкурсов" })
   @Get("contests/past")
-  findPast() {
-    return this.contestsService.findPastPublished();
+  findPast(@Query("time") time?: string) {
+    return this.contestsService.findPastPublished(time);
   }
 }

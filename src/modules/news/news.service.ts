@@ -25,13 +25,20 @@ export class NewsService {
     return saved;
   }
 
-  async findAll() {
-    return this.repo.find({
-      order: {
-        isImportantNew: "DESC",
-        createdAt: "DESC",
-      },
-    });
+  async findAll(time?: string) {
+    const qb = this.repo
+      .createQueryBuilder("news")
+      .orderBy("news.isImportantNew", "DESC")
+      .addOrderBy("news.createdAt", "DESC");
+
+    if (time === "week" || time === "month") {
+      const days = time === "week" ? 7 : 30;
+      const since = new Date();
+      since.setDate(since.getDate() - days);
+      qb.andWhere("news.createdAt >= :since", { since });
+    }
+
+    return qb.getMany();
   }
 
   async findOne(id: string) {

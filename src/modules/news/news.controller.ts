@@ -1,5 +1,5 @@
-import { Controller, Get, Param } from "@nestjs/common";
-import {ApiTags,ApiOperation,ApiResponse,ApiParam,} from "@nestjs/swagger";
+import { Controller, Get, Param, Query } from "@nestjs/common";
+import {ApiTags,ApiOperation,ApiResponse,ApiParam,ApiQuery,} from "@nestjs/swagger";
 import { NewsService } from "./news.service";
 
 @ApiTags("News")
@@ -9,10 +9,11 @@ export class NewsController {
 
   // PUBLIC: получить список новостей
   @ApiOperation({ summary: "Получить список новостей" })
+  @ApiQuery({ name: "time", required: false, enum: ["week", "month", "all"] })
   @ApiResponse({ status: 200, description: "Список новостей" })
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(@Query("time") time?: string) {
+    return this.service.findAll(time);
   }
 
   // PUBLIC: получить новость по ID
