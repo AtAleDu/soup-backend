@@ -81,14 +81,16 @@ export class AuthService {
       });
     }
 
-    // Создаём verification-запись для подтверждения email
-    try {
-      return await this.verificationService.create(user.id, user.email);
-    } catch (error) {
-      await this.companies.delete({ userId: user.id });
-      await this.users.delete(user.id);
-      throw error;
-    }
+    // Временно без отправки кода — сразу активируем пользователя
+    // try {
+    //   return await this.verificationService.create(user.id, user.email);
+    // } catch (error) {
+    //   await this.companies.delete({ userId: user.id });
+    //   await this.users.delete(user.id);
+    //   throw error;
+    // }
+    await this.users.update(user.id, { status: UserStatus.ACTIVE });
+    return {};
   }
 
   // Подтверждение регистрации по коду и автоматический логин пользователя
