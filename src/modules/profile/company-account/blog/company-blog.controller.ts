@@ -43,7 +43,7 @@ export class CompanyBlogController {
   @ApiBody({ schema: { type: "object", properties: { image: { type: "string", format: "binary" } } } })
   uploadImage(
     @Req() req: { user: { sub: string } },
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file,
   ) {
     return this.service.uploadBlogImage(req.user.sub, file);
   }

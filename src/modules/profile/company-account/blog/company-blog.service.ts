@@ -149,7 +149,7 @@ export class CompanyBlogService {
   }
 
   /** Универсальная загрузка изображения для блога: главное фото или изображение в блоке контента. Возвращает URL. */
-  async uploadBlogImage(userId: string, file: Express.Multer.File): Promise<{ url: string }> {
+  async uploadBlogImage(userId: string, file): Promise<{ url: string }> {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }

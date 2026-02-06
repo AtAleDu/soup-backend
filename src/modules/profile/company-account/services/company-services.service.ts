@@ -15,7 +15,7 @@ export class CompanyServicesService {
     @InjectRepository(CompanyService)
     private readonly services: Repository<CompanyService>,
     private readonly storage: StorageService,
-  ) {}
+  ) { }
 
   private async getCompanyByUser(userId: string) {
     const company = await this.companies.findOne({ where: { userId } });
@@ -78,7 +78,7 @@ export class CompanyServicesService {
     return { success: true };
   }
 
-  async uploadServiceImage(userId: string, file: Express.Multer.File) {
+  async uploadServiceImage(userId: string, file) {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
