@@ -6,7 +6,6 @@ import { Blog } from '@entities/Blog/blog.entity'
 import { CompanyReview } from '@entities/CompanyReview/company-review.entity'
 import { CompanyReviewReply } from '@entities/CompanyReviewReply/company-review-reply.entity'
 import { Order } from '@entities/Order/order.entity'
-import { RevalidationModule } from '@infrastructure/revalidation/revalidation.module'
 import { StorageModule } from '@infrastructure/storage/storage.module'
 import { EditCompanyAccountController, EditCompanyAccountService } from './edit-account'
 import { GetCompanyProfileController, GetCompanyProfileService } from './get-profile'
@@ -31,7 +30,6 @@ import { CompanyAdsController, CompanyAdsService } from './ads'
       CompanyService,
       Tariff,
     ]),
-    RevalidationModule,
     StorageModule,
   ],
   controllers: [

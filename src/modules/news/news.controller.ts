@@ -10,10 +10,11 @@ export class NewsController {
   // PUBLIC: получить список новостей
   @ApiOperation({ summary: "Получить список новостей" })
   @ApiQuery({ name: "time", required: false, enum: ["week", "month", "all"] })
+  @ApiQuery({ name: "badge", required: false, description: "Фильтр по категории (badge)" })
   @ApiResponse({ status: 200, description: "Список новостей" })
   @Get()
-  findAll(@Query("time") time?: string) {
-    return this.service.findAll(time);
+  findAll(@Query("time") time?: string, @Query("badge") badge?: string) {
+    return this.service.findAll(time, badge);
   }
 
   // PUBLIC: получить новость по ID

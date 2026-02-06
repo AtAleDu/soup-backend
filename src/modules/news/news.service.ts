@@ -4,28 +4,21 @@ import { Repository } from "typeorm";
 import { NewsEntity } from "@entities/News/news.entity";
 import { CreateNewsDto } from "./dto/create-news.dto";
 import { UpdateNewsDto } from "./dto/update-news.dto";
-import { RevalidationService } from "@infrastructure/revalidation/revalidation.service";
-import { getNewsByIdOrFail, resetImportantNews, revalidateNewsPages } from "./news.utils";
+import { getNewsByIdOrFail, resetImportantNews } from "./news.utils";
 
 @Injectable()
 export class NewsService {
   constructor(
     @InjectRepository(NewsEntity)
     private readonly repo: Repository<NewsEntity>,
-    private readonly revalidationService: RevalidationService,
   ) {}
 
   async create(dto: CreateNewsDto) {
-    // Создание новости
     const news = this.repo.create(dto);
-    const saved = await this.repo.save(news);
-
-    await revalidateNewsPages(this.revalidationService);
-
-    return saved;
+    return this.repo.save(news);
   }
 
-  async findAll(time?: string) {
+  async findAll(time?: string, badge?: string) {
     const qb = this.repo
       .createQueryBuilder("news")
       .orderBy("news.isImportantNew", "DESC")
@@ -36,6 +29,13 @@ export class NewsService {
       const since = new Date();
       since.setDate(since.getDate() - days);
       qb.andWhere("news.createdAt >= :since", { since });
+    }
+
+    if (badge) {
+      qb.andWhere("(news.category = :badge OR news.isAds = :isAds)", {
+        badge,
+        isAds: true,
+      });
     }
 
     return qb.getMany();
@@ -55,21 +55,12 @@ export class NewsService {
     // Дату не трогаем принципиально
     Object.assign(item, dto);
 
-    const saved = await this.repo.save(item);
-
-    await revalidateNewsPages(this.revalidationService, id);
-
-    return saved;
+    return this.repo.save(item);
   }
 
   async remove(id: string) {
-    // Удаление новости
     const item = await this.findOne(id);
-
     await this.repo.remove(item);
-
-    await revalidateNewsPages(this.revalidationService, id);
-
     return { success: true };
   }
 
@@ -87,9 +78,6 @@ export class NewsService {
       item.isImportantNew = true;
       return manager.save(item);
     });
-
-    await revalidateNewsPages(this.revalidationService, id);
-
     return saved;
   }
 
@@ -102,10 +90,6 @@ export class NewsService {
     }
 
     item.isImportantNew = false;
-    const saved = await this.repo.save(item);
-
-    await revalidateNewsPages(this.revalidationService, id);
-
-    return saved;
+    return this.repo.save(item);
   }
 }
