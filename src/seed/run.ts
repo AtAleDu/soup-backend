@@ -16,6 +16,7 @@ import { seedContest } from "./contests/contest.seed";
 import { seedCatalogFilter } from "./catalogFilters/catalog-filter.seed";
 import { seedContractor } from "./contractor/contractor.seed";
 import { seedBlog } from "./blogs/blog.seed";
+import { seedTariffs } from "./tariffs/tariffs.seed";
 
 const dataSource = new DataSource({
   type: "postgres",
@@ -49,6 +50,7 @@ async function run() {
   await seedCatalogFilter(dataSource);
   await seedContractor(dataSource);
   await seedBlog(dataSource);
+  await seedTariffs(dataSource);
 
   await dataSource.destroy();
   console.log("Seed completed");

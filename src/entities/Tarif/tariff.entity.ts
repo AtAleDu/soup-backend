@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { Company } from "../Company/company.entity";
+import { User } from "../User/user.entity";
 
 @Entity("tariffs")
 export class Tariff {
@@ -12,8 +12,8 @@ export class Tariff {
   @Column("numeric")
   price: number;
 
-  @Column()
-  duration_days: number;
+  @Column({ type: "int", nullable: true })
+  duration_days: number | null;
 
   @Column({ type: "jsonb", nullable: true })
   features: any;
@@ -21,6 +21,6 @@ export class Tariff {
   @Column({ default: true })
   is_active: boolean;
 
-  @OneToMany(() => Company, (company) => company.tariff)
-  companies: Company[];
+  @OneToMany(() => User, (user) => user.tariff)
+  users: User[];
 }
