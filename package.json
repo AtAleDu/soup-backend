@@ -17,7 +17,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "ts-node -r tsconfig-paths/register src/seed/run.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/seed/run.ts",
+    "schema:sql": "ts-node -r tsconfig-paths/register src/scripts/generate-schema.ts"
   },
   "engines": {
     "npm": ">=10.0.0",

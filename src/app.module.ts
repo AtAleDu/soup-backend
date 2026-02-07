@@ -21,11 +21,11 @@ import { BlogsModule } from "./modules/blogs/blogs.module";
 
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: process.env.POSTGRESQL_HOST,
-      port: Number(process.env.POSTGRESQL_PORT),
-      username: process.env.POSTGRESQL_USER,
-      password: process.env.POSTGRESQL_PASSWORD,
-      database: process.env.POSTGRESQL_DBNAME,
+      host: process.env.POSTGRESQL_HOST || process.env.POSTGRESQL_HOSTNAME,
+      port: Number(process.env.POSTGRESQL_PORT) || Number(process.env.POSTGRESQL_PORT_NUMBER) || 5432,
+      username: process.env.POSTGRESQL_USER || process.env.POSTGRESQL_USERNAME,
+      password: process.env.POSTGRESQL_PASSWORD || process.env.POSTGRESQL_PASS,
+      database: process.env.POSTGRESQL_DBNAME ||process.env.POSTGRESQL_DB,
 
       autoLoadEntities: true,
 
