@@ -26,10 +26,9 @@ JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 
 
-// Frontend & Revalidation
+// Frontend
 
 FRONTEND_URL=http://localhost:3000
-REVALIDATE_SECRET=your_secret_key
 
 // Email (Resend)
 

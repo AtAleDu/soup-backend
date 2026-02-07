@@ -7,7 +7,6 @@ import { NewsModule } from "./modules/news/news.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ContestsModule } from "@modules/contests/contests.module";
 import { CatalogFiltersModule } from "./modules/catalog-filters/catalog-filters.module";
-import { RevalidationModule } from "@infrastructure/revalidation/revalidation.module";
 import { ContractorModule } from './modules/contractor/contractor.module'
 import { RegionsModule } from "./modules/regions/regions.module";
 import { CompanyAccountModule } from './modules/profile/company-account/company-account.module'
@@ -44,7 +43,6 @@ import { BlogsModule } from "./modules/blogs/blogs.module";
     AuthModule,
     ContestsModule,
     CatalogFiltersModule,
-    RevalidationModule,
     ContractorModule,
     RegionsModule,
     CompanyAccountModule,

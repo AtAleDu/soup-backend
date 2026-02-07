@@ -3,11 +3,9 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
-import { RevalidationService } from "@infrastructure/revalidation/revalidation.service";
 import { StorageService } from "@infrastructure/storage/storage.service";
 import { CreateBlogDto } from "./dto/create-blog.dto";
 import { UpdateBlogDto } from "./dto/update-blog.dto";
-import { revalidateBlogPages } from "./blog.utils";
 
 export type CompanyBlogStatus = "all" | "published" | "drafts";
 
@@ -21,7 +19,6 @@ export class CompanyBlogService {
     private readonly companies: Repository<Company>,
     @InjectRepository(Blog)
     private readonly blogs: Repository<Blog>,
-    private readonly revalidationService: RevalidationService,
     private readonly storage: StorageService,
   ) {}
 
@@ -108,9 +105,6 @@ export class CompanyBlogService {
       status,
     });
     const saved = await this.blogs.save(blog);
-    if (status === BlogStatus.PUBLISHED) {
-      await revalidateBlogPages(this.revalidationService, saved.id);
-    }
     return this.mapItem({ ...saved, company }, company);
   }
 
@@ -129,11 +123,7 @@ export class CompanyBlogService {
 
   async delete(userId: string, blogId: string) {
     const { blog } = await this.getBlogByCompanyId(userId, blogId);
-    const wasPublished = blog.status === BlogStatus.PUBLISHED;
     await this.blogs.remove(blog);
-    if (wasPublished) {
-      await revalidateBlogPages(this.revalidationService, blogId);
-    }
     return { success: true };
   }
 
@@ -144,7 +134,6 @@ export class CompanyBlogService {
     }
     blog.status = BlogStatus.PUBLISHED;
     const saved = await this.blogs.save(blog);
-    await revalidateBlogPages(this.revalidationService, saved.id);
     return this.mapItem({ ...saved, company }, company);
   }
 

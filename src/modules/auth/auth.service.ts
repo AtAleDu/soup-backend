@@ -13,6 +13,7 @@ import { LoginDto } from "./dto/login.dto";
 
 import { User, UserRole, UserStatus } from "@entities/User/user.entity";
 import { Company } from "@entities/Company/company.entity";
+import { Tariff } from "@entities/Tarif/tariff.entity";
 import { PasswordResetToken } from "@entities/PasswordResetToken/password-reset-token.entity";
 import {
   VerificationSession,
@@ -37,6 +38,9 @@ export class AuthService {
 
     @InjectRepository(Company)
     private readonly companies: Repository<Company>,
+
+    @InjectRepository(Tariff)
+    private readonly tariffs: Repository<Tariff>,
 
     @InjectRepository(VerificationSession)
     private readonly sessions: Repository<VerificationSession>,
@@ -66,12 +70,28 @@ export class AuthService {
       throw new BadRequestException("Пользователь уже существует");
     }
 
+    const defaultTariff =
+      dto.role === UserRole.СOMPANY
+        ? await this.tariffs.findOne({ where: { name: "basic" } })
+        : null;
+    const now = new Date();
+    const tariffEndAt =
+      defaultTariff?.duration_days != null
+        ? new Date(
+            now.getTime() +
+              defaultTariff.duration_days * 24 * 60 * 60 * 1000,
+          )
+        : null;
+
     const user = await this.users.save({
       email: dto.email,
       name: dto.name,
       role: dto.role,
       password: await this.passwordService.hash(dto.password),
       status: UserStatus.PENDING,
+      tariff: defaultTariff ?? null,
+      tariffStartAt: defaultTariff ? now : null,
+      tariffEndAt,
     });
 
     if (user.role === UserRole.СOMPANY) {

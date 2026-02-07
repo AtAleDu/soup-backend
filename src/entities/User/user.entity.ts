@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Tariff } from "../Tarif/tariff.entity";
 
 export enum UserRole {
   СOMPANY = "company",
@@ -40,4 +41,13 @@ export class User {
 
   @Column({ nullable: true })
   refreshTokenHash: string | null;
+
+  @ManyToOne(() => Tariff, (tariff) => tariff.users, { nullable: true })
+  tariff: Tariff | null;
+
+  @Column({ type: "timestamp", nullable: true })
+  tariffStartAt: Date | null;
+
+  @Column({ type: "timestamp", nullable: true })
+  tariffEndAt: Date | null;
 }

@@ -6,7 +6,6 @@ import { Blog } from '@entities/Blog/blog.entity'
 import { CompanyReview } from '@entities/CompanyReview/company-review.entity'
 import { CompanyReviewReply } from '@entities/CompanyReviewReply/company-review-reply.entity'
 import { Order } from '@entities/Order/order.entity'
-import { RevalidationModule } from '@infrastructure/revalidation/revalidation.module'
 import { StorageModule } from '@infrastructure/storage/storage.module'
 import { EditCompanyAccountController, EditCompanyAccountService } from './edit-account'
 import { GetCompanyProfileController, GetCompanyProfileService } from './get-profile'
@@ -16,6 +15,8 @@ import { CompanyBlogController, CompanyBlogService } from './blog'
 import { CompanyServicesController } from './services/company-services.controller'
 import { CompanyServicesService } from './services/company-services.service'
 import { CompanyService } from '@entities/CompanyService/company-service.entity'
+import { Tariff } from '@entities/Tarif/tariff.entity'
+import { CompanyAdsController, CompanyAdsService } from './ads'
 
 @Module({
   imports: [
@@ -27,8 +28,8 @@ import { CompanyService } from '@entities/CompanyService/company-service.entity'
       CompanyReviewReply,
       Order,
       CompanyService,
+      Tariff,
     ]),
-    RevalidationModule,
     StorageModule,
   ],
   controllers: [
@@ -38,6 +39,7 @@ import { CompanyService } from '@entities/CompanyService/company-service.entity'
     CompanyOrdersController,
     CompanyBlogController,
     CompanyServicesController,
+    CompanyAdsController,
   ],
   providers: [
     EditCompanyAccountService,
@@ -46,6 +48,7 @@ import { CompanyService } from '@entities/CompanyService/company-service.entity'
     CompanyOrdersService,
     CompanyBlogService,
     CompanyServicesService,
+    CompanyAdsService,
   ],
 })
 export class CompanyAccountModule {}
