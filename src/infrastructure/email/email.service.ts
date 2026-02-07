@@ -2,20 +2,25 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Resend } from "resend";
 
+const EMAIL_NOT_CONFIGURED =
+  "Почта не настроена. Укажите RESEND_API_KEY в .env";
+
 @Injectable()
 export class EmailService {
-  private readonly resend: Resend;
+  private readonly resend: Resend | null = null;
   private readonly fromEmail: string;
 
   constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>("RESEND_API_KEY");
-
-    this.resend = new Resend(apiKey);
+    // Пока отключено: создание клиента Resend не выполняется
+    // const apiKey = this.configService.get<string>("RESEND_API_KEY");
+    // this.resend = apiKey ? new Resend(apiKey) : null;
     this.fromEmail =
       this.configService.get<string>("EMAIL_FROM") || "onboarding@resend.dev";
   }
 
   async sendVerificationCode(email: string, code: string): Promise<void> {
+    if (!this.resend) throw new Error(EMAIL_NOT_CONFIGURED);
+
     const appName = this.configService.get<string>("APP_NAME", "Soup");
     const subject = `Код подтверждения - ${appName}`;
 
@@ -32,6 +37,8 @@ export class EmailService {
   }
 
   async sendPasswordResetLink(email: string, link: string): Promise<void> {
+    if (!this.resend) throw new Error(EMAIL_NOT_CONFIGURED);
+
     const appName = this.configService.get<string>("APP_NAME", "Soup");
     const subject = `Сброс пароля - ${appName}`;
 
