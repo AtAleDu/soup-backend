@@ -9,6 +9,7 @@
 Создайте файл `.env` в `soup-backend` и добавьте:
 
 NODE_ENV='development'
+PORT=3005
 
 // База данных
 
