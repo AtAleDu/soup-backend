@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Brackets, Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 
@@ -13,7 +13,49 @@ export class CompaniesService {
     private readonly services: Repository<CompanyService>,
   ) {}
 
-  async findAll() {
+  async findAll(filters?: string) {
+    const parsedFilters = (filters ?? "")
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .map((entry) => {
+        const [category, service] = entry.split("||");
+        if (!category || !service) return null;
+        return {
+          category: decodeURIComponent(category),
+          service: decodeURIComponent(service),
+        };
+      })
+      .filter(Boolean) as { category: string; service: string }[];
+
+    if (parsedFilters.length > 0) {
+      const qb = this.repo
+        .createQueryBuilder("company")
+        .select(["company.companyId", "company.name", "company.description", "company.logo_url"])
+        .distinct(true)
+        .innerJoin(CompanyService, "service", "service.companyId = company.companyId")
+        .where(
+          new Brackets((builder) => {
+            parsedFilters.forEach((filter, index) => {
+              builder.orWhere(
+                "(service.category = :category" +
+                  index +
+                  " AND service.service = :service" +
+                  index +
+                  ")",
+                {
+                  ["category" + index]: filter.category,
+                  ["service" + index]: filter.service,
+                },
+              );
+            });
+          }),
+        )
+        .orderBy("company.createdAt", "DESC");
+
+      return qb.getMany();
+    }
+
     return this.repo.find({
       select: {
         companyId: true,

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe } from "@nestjs/common";
+import { Controller, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CompaniesService } from "./companies.service";
 
@@ -11,8 +11,8 @@ export class CompaniesController {
   @ApiOperation({ summary: "Получить список компаний" })
   @ApiResponse({ status: 200, description: "Список компаний" })
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(@Query("filters") filters?: string) {
+    return this.service.findAll(filters);
   }
 
   @ApiOperation({ summary: "Получить компанию по id" })
