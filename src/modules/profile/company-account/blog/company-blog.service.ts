@@ -42,6 +42,7 @@ export class CompanyBlogService {
     const isPublished = item.status === BlogStatus.PUBLISHED;
     return {
       id: item.id,
+      companyId: item.companyId ?? company.companyId,
       type: isPublished ? ("published" as const) : ("draft" as const),
       title: item.title,
       description: item.description,
