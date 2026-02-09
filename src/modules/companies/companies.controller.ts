@@ -11,8 +11,8 @@ export class CompaniesController {
   @ApiOperation({ summary: "Получить список компаний" })
   @ApiResponse({ status: 200, description: "Список компаний" })
   @Get()
-  findAll(@Query("filters") filters?: string) {
-    return this.service.findAll(filters);
+  findAll(@Query("filters") filters?: string, @Query("regions") regions?: string) {
+    return this.service.findAll(filters, regions);
   }
 
   @ApiOperation({ summary: "Получить компанию по id" })

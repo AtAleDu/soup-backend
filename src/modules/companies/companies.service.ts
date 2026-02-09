@@ -13,7 +13,7 @@ export class CompaniesService {
     private readonly services: Repository<CompanyService>,
   ) {}
 
-  async findAll(filters?: string) {
+  async findAll(filters?: string, regions?: string) {
     const parsedFilters = (filters ?? "")
       .split(",")
       .map((entry) => entry.trim())
@@ -28,13 +28,27 @@ export class CompaniesService {
       })
       .filter(Boolean) as { category: string; service: string }[];
 
-    if (parsedFilters.length > 0) {
+    const parsedRegions = (regions ?? "")
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .map((entry) => decodeURIComponent(entry));
+
+    if (parsedFilters.length > 0 || parsedRegions.length > 0) {
       const qb = this.repo
         .createQueryBuilder("company")
-        .select(["company.companyId", "company.name", "company.description", "company.logo_url"])
+        .select([
+          "company.companyId",
+          "company.name",
+          "company.description",
+          "company.logo_url",
+          "company.createdAt",
+        ])
         .distinct(true)
-        .innerJoin(CompanyService, "service", "service.companyId = company.companyId")
-        .where(
+        .orderBy("company.createdAt", "DESC");
+
+      if (parsedFilters.length > 0) {
+        qb.innerJoin(CompanyService, "service", "service.companyId = company.companyId").where(
           new Brackets((builder) => {
             parsedFilters.forEach((filter, index) => {
               builder.orWhere(
@@ -50,8 +64,16 @@ export class CompaniesService {
               );
             });
           }),
-        )
-        .orderBy("company.createdAt", "DESC");
+        );
+      }
+
+      if (parsedRegions.length > 0) {
+        if (parsedFilters.length > 0) {
+          qb.andWhere("company.regions ?| array[:...regions]", { regions: parsedRegions });
+        } else {
+          qb.where("company.regions ?| array[:...regions]", { regions: parsedRegions });
+        }
+      }
 
       return qb.getMany();
     }
