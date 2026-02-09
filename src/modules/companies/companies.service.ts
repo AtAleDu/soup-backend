@@ -100,6 +100,11 @@ export class CompaniesService {
         description: true,
         logo_url: true,
         regions: true,
+        address: true,
+        phones: true,
+        emails: true,
+        email: true,
+        social_links: true,
       },
     });
     if (!company) {
@@ -134,6 +139,11 @@ export class CompaniesService {
         description: company.description ?? "",
         logoUrl: company.logo_url ?? null,
         regions: Array.isArray(company.regions) ? company.regions : [],
+        address: company.address ?? "",
+        phones: Array.isArray(company.phones) ? company.phones : [],
+        emails: Array.isArray(company.emails) ? company.emails : [],
+        email: company.email ?? "",
+        socialLinks: company.social_links ?? {},
       },
       services: Array.from(grouped.values()),
     };
