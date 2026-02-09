@@ -11,9 +11,13 @@ export class BlogsService {
     private readonly repo: Repository<Blog>,
   ) {}
 
-  async findAll() {
+  async findAll(companyId?: string) {
+    const parsedCompanyId = companyId ? Number(companyId) : undefined;
     return this.repo.find({
-      where: { status: BlogStatus.PUBLISHED },
+      where: {
+        status: BlogStatus.PUBLISHED,
+        ...(Number.isFinite(parsedCompanyId) ? { companyId: parsedCompanyId } : {}),
+      },
       relations: { company: true },
       order: { isPinned: "DESC", createdAt: "DESC" },
     });

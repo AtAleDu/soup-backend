@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -15,8 +15,8 @@ export class BlogsController {
   @ApiOperation({ summary: "Список всех опубликованных блогов (все пользователи)" })
   @ApiResponse({ status: 200, description: "Список блогов" })
   @Get()
-  findAll() {
-    return this.service.findAll();
+  findAll(@Query("companyId") companyId?: string) {
+    return this.service.findAll(companyId);
   }
 
   @ApiOperation({ summary: "Один опубликованный блог по ID" })
