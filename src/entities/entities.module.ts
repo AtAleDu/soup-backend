@@ -15,6 +15,7 @@ import { CompanyReviewReply } from "./CompanyReviewReply/company-review-reply.en
 import { Order } from "./Order/order.entity";
 import { CompanyService } from "./CompanyService/company-service.entity";
 import { Blog } from "./Blog/blog.entity";
+import { Client } from "./Client/client.entity";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Blog } from "./Blog/blog.entity";
       Ad,
       Article,
       Blog,
+      Client,
       Company,
       Contest,
       CatalogFilter,

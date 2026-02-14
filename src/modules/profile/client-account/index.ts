@@ -1,1 +1,1 @@
-// тут будет клиентский акк
+export { ClientAccountModule } from "./client-account.module";

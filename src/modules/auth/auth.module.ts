@@ -10,6 +10,7 @@ import { AuthService } from "./auth.service";
 
 import { User } from "@entities/User/user.entity";
 import { Company } from "@entities/Company/company.entity";
+import { Client } from "@entities/Client/client.entity";
 import { Tariff } from "@entities/Tarif/tariff.entity";
 import { VerificationSession } from "@entities/VerificationSession/verification-session.entity";
 import { PasswordResetToken } from "@entities/PasswordResetToken/password-reset-token.entity";
@@ -31,6 +32,7 @@ import { EmailModule } from "@infrastructure/email/email.module";
     TypeOrmModule.forFeature([
       User,
       Company,
+      Client,
       Tariff,
       VerificationSession,
       PasswordResetToken,

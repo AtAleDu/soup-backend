@@ -13,6 +13,7 @@ import { LoginDto } from "./dto/login.dto";
 
 import { User, UserRole, UserStatus } from "@entities/User/user.entity";
 import { Company } from "@entities/Company/company.entity";
+import { Client } from "@entities/Client/client.entity";
 import { Tariff } from "@entities/Tarif/tariff.entity";
 import { PasswordResetToken } from "@entities/PasswordResetToken/password-reset-token.entity";
 import {
@@ -38,6 +39,9 @@ export class AuthService {
 
     @InjectRepository(Company)
     private readonly companies: Repository<Company>,
+
+    @InjectRepository(Client)
+    private readonly clients: Repository<Client>,
 
     @InjectRepository(Tariff)
     private readonly tariffs: Repository<Tariff>,
@@ -98,6 +102,19 @@ export class AuthService {
       await this.companies.save({
         name: user.name,
         userId: user.id,
+      });
+    }
+
+    if (user.role === UserRole.CLIENT) {
+      await this.clients.save({
+        userId: user.id,
+        full_name: user.name,
+        contacts: [
+          {
+            type: "email",
+            value: user.email,
+          },
+        ],
       });
     }
 
