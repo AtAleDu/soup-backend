@@ -15,11 +15,8 @@ import { CompanyReviewReply } from "./CompanyReviewReply/company-review-reply.en
 import { Order } from "./Order/order.entity";
 import { CompanyService } from "./CompanyService/company-service.entity";
 import { Blog } from "./Blog/blog.entity";
-<<<<<<< HEAD
-import { Favorite } from "./Favorite/favorite.entity";
-=======
 import { Client } from "./Client/client.entity";
->>>>>>> origin/main
+import { Favorite } from "./Favorite/favorite.entity";
 
 @Module({
   imports: [
