@@ -8,26 +8,34 @@ import {
   UpdateDateColumn,
   Index,
 } from "typeorm";
-import { Company } from "@entities/Company/company.entity";
+import { Client } from "@entities/Client/client.entity";
+
+export const OrderStatus = {
+  ACTIVE: "active",
+  COMPLETED: "completed",
+  MODERATION: "moderation",
+} as const;
+
+export type OrderStatusType = (typeof OrderStatus)[keyof typeof OrderStatus];
 
 @Entity("orders")
-@Index(["companyId", "status", "createdAt"])
+@Index(["clientId", "createdAt"])
 export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: "company_id", type: "int" })
-  companyId: number;
+  @Column({ name: "client_id", type: "int" })
+  clientId: number;
 
-  @ManyToOne(() => Company, { onDelete: "CASCADE" })
-  @JoinColumn({ name: "company_id" })
-  company: Company;
+  @ManyToOne(() => Client, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "client_id" })
+  client: Client;
 
   @Column({ type: "varchar" })
   title: string;
 
-  @Column({ name: "orderLogoUrl", type: "varchar" })
-  orderLogoUrl: string;
+  @Column({ type: "varchar", nullable: true })
+  description: string | null;
 
   @Column({ name: "region", type: "varchar" })
   region: string;
@@ -38,8 +46,11 @@ export class Order {
   @Column({ type: "varchar" })
   category: string;
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", default: OrderStatus.ACTIVE })
   status: string;
+
+  @Column({ type: "timestamp with time zone", nullable: true })
+  deadline: Date | null;
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;

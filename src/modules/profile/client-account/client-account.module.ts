@@ -1,12 +1,28 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Client } from "@entities/Client/client.entity";
-import { GetClientProfileController, GetClientProfileService } from "./get-profile";
-import { EditClientAccountController, EditClientAccountService } from "./edit-account";
+import { Order } from "@entities/Order/order.entity";
+import {
+  GetClientProfileController,
+  GetClientProfileService,
+} from "./get-profile";
+import {
+  EditClientAccountController,
+  EditClientAccountService,
+} from "./edit-account";
+import { CreateOrderController, CreateOrderService } from "./create-order";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Client])],
-  controllers: [GetClientProfileController, EditClientAccountController],
-  providers: [GetClientProfileService, EditClientAccountService],
+  imports: [TypeOrmModule.forFeature([Client, Order])],
+  controllers: [
+    GetClientProfileController,
+    EditClientAccountController,
+    CreateOrderController,
+  ],
+  providers: [
+    GetClientProfileService,
+    EditClientAccountService,
+    CreateOrderService,
+  ],
 })
 export class ClientAccountModule {}

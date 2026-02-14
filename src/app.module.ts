@@ -14,6 +14,7 @@ import { ClientAccountModule } from "./modules/profile/client-account";
 import { CompaniesModule } from "./modules/companies/companies.module";
 import { FavoritesModule } from "./modules/favorites/favorites.module";
 import { BlogsModule } from "./modules/blogs/blogs.module";
+import { OrdersModule } from "./modules/orders";
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { BlogsModule } from "./modules/blogs/blogs.module";
     CompaniesModule,
     FavoritesModule,
     BlogsModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}
