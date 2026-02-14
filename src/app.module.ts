@@ -11,6 +11,7 @@ import { ContractorModule } from './modules/contractor/contractor.module'
 import { RegionsModule } from "./modules/regions/regions.module";
 import { CompanyAccountModule } from './modules/profile/company-account/company-account.module'
 import { CompaniesModule } from "./modules/companies/companies.module";
+import { FavoritesModule } from "./modules/favorites/favorites.module";
 import { BlogsModule } from "./modules/blogs/blogs.module";
 
 @Module({
@@ -47,6 +48,7 @@ import { BlogsModule } from "./modules/blogs/blogs.module";
     RegionsModule,
     CompanyAccountModule,
     CompaniesModule,
+    FavoritesModule,
     BlogsModule,
   ],
 })
