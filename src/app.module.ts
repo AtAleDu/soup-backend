@@ -10,6 +10,7 @@ import { CatalogFiltersModule } from "./modules/catalog-filters/catalog-filters.
 import { ContractorModule } from './modules/contractor/contractor.module'
 import { RegionsModule } from "./modules/regions/regions.module";
 import { CompanyAccountModule } from './modules/profile/company-account/company-account.module'
+import { ClientAccountModule } from "./modules/profile/client-account";
 import { CompaniesModule } from "./modules/companies/companies.module";
 import { FavoritesModule } from "./modules/favorites/favorites.module";
 import { BlogsModule } from "./modules/blogs/blogs.module";
@@ -47,6 +48,7 @@ import { BlogsModule } from "./modules/blogs/blogs.module";
     ContractorModule,
     RegionsModule,
     CompanyAccountModule,
+    ClientAccountModule,
     CompaniesModule,
     FavoritesModule,
     BlogsModule,
