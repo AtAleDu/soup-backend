@@ -92,6 +92,17 @@ export class CreateOrderService {
     return { url: uploadResult.url };
   }
 
+  async findOne(userId: string, orderId: number): Promise<Order> {
+    const client = await this.getClientByUserId(userId);
+    const order = await this.orders.findOne({
+      where: { id: orderId, clientId: client.clientId },
+    });
+    if (!order) {
+      throw new NotFoundException("Заказ не найден");
+    }
+    return order;
+  }
+
   async findAll(userId: string, status?: string): Promise<Order[]> {
     const client = await this.getClientByUserId(userId);
 

@@ -25,4 +25,11 @@ export class OrdersService {
       order: { createdAt: "DESC" },
     });
   }
+
+  /**
+   * Заказ по id из каталога заказов (для карточки заказа в каталоге).
+   */
+  async findOne(id: number): Promise<Order | null> {
+    return this.orders.findOne({ where: { id } });
+  }
 }

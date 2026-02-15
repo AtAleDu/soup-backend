@@ -62,6 +62,15 @@ export class CreateOrderController {
     return this.service.findAll(req.user.sub, status);
   }
 
+  @ApiOperation({ summary: "Получить заказ по id" })
+  @Get(":id")
+  findOne(
+    @Req() req: { user: { sub: string } },
+    @Param("id", ParseIntPipe) id: number,
+  ) {
+    return this.service.findOne(req.user.sub, id);
+  }
+
   @ApiOperation({ summary: "Изменить статус заказа (active / archive)" })
   @Patch(":id")
   updateStatus(
