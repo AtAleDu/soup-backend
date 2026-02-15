@@ -6,6 +6,8 @@ import {
   Min,
   IsISO8601,
   IsBoolean,
+  IsArray,
+  IsUrl,
 } from "class-validator";
 import { Type } from "class-transformer";
 
@@ -43,4 +45,14 @@ export class CreateOrderDto {
   @IsBoolean()
   @Type(() => Boolean)
   hidePhone?: boolean;
+
+  @ApiPropertyOptional({
+    example: ["https://example.com/file1.jpg"],
+    type: [String],
+    description: "Ссылки на загруженные файлы/фото",
+  })
+  @IsOptional()
+  @IsArray()
+  @IsUrl({}, { each: true })
+  fileUrls?: string[];
 }

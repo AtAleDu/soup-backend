@@ -7,6 +7,8 @@ import { ContractorTypeEntity } from "../entities/Contractor/contractor.entity";
 import { Blog } from "../entities/Blog/blog.entity";
 import { Company } from "../entities/Company/company.entity";
 import { User } from "../entities/User/user.entity";
+import { Client } from "../entities/Client/client.entity";
+import { Order } from "../entities/Order/order.entity";
 import { Tariff } from "../entities/Tarif/tariff.entity";
 import { Article } from "../entities/Article/article.entity";
 import { Ad } from "../entities/Ad/ad.entity";
@@ -17,6 +19,8 @@ import { seedCatalogFilter } from "./catalogFilters/catalog-filter.seed";
 import { seedContractor } from "./contractor/contractor.seed";
 import { seedBlog } from "./blogs/blog.seed";
 import { seedTariffs } from "./tariffs/tariffs.seed";
+import { seedClient } from "./client/client.seed";
+import { seedOrders } from "./orders/order.seed";
 
 const dbHost = process.env.POSTGRESQL_HOST || process.env.POSTGRESQL_HOSTNAME;
 const dbPort =
@@ -43,6 +47,8 @@ const dataSource = new DataSource({
     Blog,
     Company,
     User,
+    Client,
+    Order,
     Tariff,
     Article,
     Ad,
@@ -66,6 +72,8 @@ async function run() {
   await seedContractor(dataSource);
   await seedBlog(dataSource);
   await seedTariffs(dataSource);
+  await seedClient(dataSource);
+  await seedOrders(dataSource);
 
   await dataSource.destroy();
   console.log("Seed completed");

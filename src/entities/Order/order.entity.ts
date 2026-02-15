@@ -52,6 +52,12 @@ export class Order {
   @Column({ type: "timestamp with time zone", nullable: true })
   deadline: Date | null;
 
+  @Column({ name: "hide_phone", type: "boolean", default: false })
+  hidePhone: boolean;
+
+  @Column({ name: "file_urls", type: "jsonb", default: () => "'[]'::jsonb" })
+  fileUrls: string[];
+
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 

@@ -8,9 +8,13 @@ import {
   Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
 import { CreateOrderService } from "./create-order.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
@@ -22,6 +26,22 @@ import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 @UseGuards(JwtAuthGuard)
 export class CreateOrderController {
   constructor(private readonly service: CreateOrderService) {}
+
+  @ApiOperation({ summary: "Загрузить файл/фото к заказу" })
+  @Post("upload-file")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: memoryStorage(),
+    }),
+  )
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({ schema: { type: "object", properties: { file: { type: "string", format: "binary" } } } })
+  uploadFile(
+    @Req() req: { user: { sub: string } },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.service.uploadFile(req.user.sub, file);
+  }
 
   @ApiOperation({ summary: "Создать заказ" })
   @Post()

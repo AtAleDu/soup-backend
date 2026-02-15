@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   ForbiddenException,
@@ -6,8 +7,17 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Client } from "@entities/Client/client.entity";
-import { Order } from "@entities/Order/order.entity";
+import { Order, OrderStatus } from "@entities/Order/order.entity";
+import { StorageService } from "@infrastructure/storage/storage.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
+
+const ORDER_FILE_MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const ORDER_FILE_MIME_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "application/pdf",
+];
 
 @Injectable()
 export class CreateOrderService {
@@ -16,6 +26,7 @@ export class CreateOrderService {
     private readonly clients: Repository<Client>,
     @InjectRepository(Order)
     private readonly orders: Repository<Order>,
+    private readonly storage: StorageService,
   ) {}
 
   private async getClientByUserId(userId: string): Promise<Client> {
@@ -36,17 +47,55 @@ export class CreateOrderService {
       region: dto.location.trim(),
       price: dto.budget,
       category: dto.category.trim(),
+      status: OrderStatus.MODERATION,
       deadline: dto.deadline ? new Date(dto.deadline) : null,
+      hidePhone: dto.hidePhone ?? false,
+      fileUrls: dto.fileUrls ?? [],
     });
 
     return this.orders.save(order);
   }
 
+  async uploadFile(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<{ url: string }> {
+    if (!file?.buffer) {
+      throw new BadRequestException("Файл не передан");
+    }
+    if (!ORDER_FILE_MIME_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException(
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, PDF",
+      );
+    }
+    if (file.size > ORDER_FILE_MAX_SIZE) {
+      throw new BadRequestException("Размер файла превышает 10 МБ");
+    }
+
+    const client = await this.getClientByUserId(userId);
+    const ext = file.originalname?.match(/\.[a-z]+$/i)?.[0] ?? ".bin";
+    const uploadResult = await this.storage.upload(
+      {
+        buffer: file.buffer,
+        mimeType: file.mimetype,
+        size: file.size,
+        originalName: `order${ext}`,
+      },
+      {
+        allowedMimeTypes: ORDER_FILE_MIME_TYPES,
+        maxSizeBytes: ORDER_FILE_MAX_SIZE,
+        isPublic: true,
+        pathPrefix: `personal-account/client-account/order-files/${client.clientId}`,
+      },
+    );
+
+    return { url: uploadResult.url };
+  }
+
   async findAll(userId: string, status?: string): Promise<Order[]> {
     const client = await this.getClientByUserId(userId);
 
-    const filterByStatus =
-      status && status !== "all" ? { status } : {};
+    const filterByStatus = status && status !== "all" ? { status } : {};
 
     return this.orders.find({
       where: {
