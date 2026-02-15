@@ -16,6 +16,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { Public } from "@modules/auth/public.decorator";
 import { CreateOrderService } from "./create-order.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
@@ -27,7 +28,8 @@ import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
 export class CreateOrderController {
   constructor(private readonly service: CreateOrderService) {}
 
-  @ApiOperation({ summary: "Загрузить файл/фото к заказу" })
+  @ApiOperation({ summary: "Загрузить файл/фото к заказу (доступно без авторизации)" })
+  @Public()
   @Post("upload-file")
   @UseInterceptors(
     FileInterceptor("file", {
@@ -37,10 +39,10 @@ export class CreateOrderController {
   @ApiConsumes("multipart/form-data")
   @ApiBody({ schema: { type: "object", properties: { file: { type: "string", format: "binary" } } } })
   uploadFile(
-    @Req() req: { user: { sub: string } },
+    @Req() req: { user?: { sub: string } },
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.service.uploadFile(req.user.sub, file);
+    return this.service.uploadFile(req.user?.sub, file);
   }
 
   @ApiOperation({ summary: "Создать заказ" })

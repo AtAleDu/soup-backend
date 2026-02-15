@@ -56,9 +56,9 @@ export class CreateOrderService {
     return this.orders.save(order);
   }
 
-  async uploadFile(
-    userId: string,
+  private async doUploadFile(
     file: Express.Multer.File,
+    pathPrefix: string,
   ): Promise<{ url: string }> {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
@@ -72,7 +72,6 @@ export class CreateOrderService {
       throw new BadRequestException("Размер файла превышает 10 МБ");
     }
 
-    const client = await this.getClientByUserId(userId);
     const ext = file.originalname?.match(/\.[a-z]+$/i)?.[0] ?? ".bin";
     const uploadResult = await this.storage.upload(
       {
@@ -85,11 +84,22 @@ export class CreateOrderService {
         allowedMimeTypes: ORDER_FILE_MIME_TYPES,
         maxSizeBytes: ORDER_FILE_MAX_SIZE,
         isPublic: true,
-        pathPrefix: `personal-account/client-account/order-files/${client.clientId}`,
+        pathPrefix,
       },
     );
 
     return { url: uploadResult.url };
+  }
+
+  async uploadFile(
+    userId: string | undefined,
+    file: Express.Multer.File,
+  ): Promise<{ url: string }> {
+    const pathPrefix =
+      userId != null
+        ? `personal-account/client-account/order-files/${(await this.getClientByUserId(userId)).clientId}`
+        : "personal-account/client-account/order-files/guest";
+    return this.doUploadFile(file, pathPrefix);
   }
 
   async findOne(userId: string, orderId: number): Promise<Order> {
