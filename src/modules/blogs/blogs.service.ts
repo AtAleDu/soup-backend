@@ -22,7 +22,7 @@ export class BlogsService {
       },
       relations: { company: true },
       order: hasCompanyId 
-        ? { createdAt: "DESC" }
+        ? { pinnedByCompany: "DESC", createdAt: "DESC" }
         : { isPinned: "DESC", createdAt: "DESC" },
     });
   }

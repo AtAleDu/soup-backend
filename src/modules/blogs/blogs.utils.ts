@@ -10,3 +10,18 @@ export const resetPinnedBlog = async (excludedId: string, manager: EntityManager
     .andWhere("id != :excludedId", { excludedId })
     .execute();
 };
+
+export const resetPinnedByCompanyBlog = async (
+  companyId: number,
+  excludedId: string,
+  manager: EntityManager,
+) => {
+  await manager
+    .createQueryBuilder()
+    .update(Blog)
+    .set({ pinnedByCompany: false })
+    .where("pinnedByCompany = :pinnedByCompany", { pinnedByCompany: true })
+    .andWhere("companyId = :companyId", { companyId })
+    .andWhere("id != :excludedId", { excludedId })
+    .execute();
+};

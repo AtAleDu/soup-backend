@@ -88,4 +88,18 @@ export class CompanyBlogController {
   publish(@Req() req: { user: { sub: string } }, @Param("id") id: string) {
     return this.service.publish(req.user.sub, id);
   }
+
+  @ApiOperation({ summary: "Закрепить блог среди блогов компании" })
+  @ApiParam({ name: "id", example: "uuid" })
+  @Post("blog/:id/pin-by-company")
+  pinByCompany(@Req() req: { user: { sub: string } }, @Param("id") id: string) {
+    return this.service.pinByCompany(req.user.sub, id);
+  }
+
+  @ApiOperation({ summary: "Открепить блог среди блогов компании" })
+  @ApiParam({ name: "id", example: "uuid" })
+  @Post("blog/:id/unpin-by-company")
+  unpinByCompany(@Req() req: { user: { sub: string } }, @Param("id") id: string) {
+    return this.service.unpinByCompany(req.user.sub, id);
+  }
 }

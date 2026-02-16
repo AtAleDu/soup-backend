@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
+import { resetPinnedByCompanyBlog } from "@modules/blogs/blogs.utils";
 import { CreateBlogDto } from "./dto/create-blog.dto";
 import { UpdateBlogDto } from "./dto/update-blog.dto";
 
@@ -50,6 +51,7 @@ export class CompanyBlogService {
       contentBlocks: item.contentBlocks,
       createdAt: item.createdAt,
       isPinned: item.isPinned,
+      pinnedByCompany: item.pinnedByCompany,
       companyName: item.company?.name ?? company.name,
       companyLogoUrl: item.company?.logo_url ?? company.logo_url ?? null,
     };
@@ -63,7 +65,7 @@ export class CompanyBlogService {
       const items = await this.blogs.find({
         where: { companyId, status: BlogStatus.PUBLISHED },
         relations: { company: true },
-        order: { createdAt: "DESC" },
+        order: { pinnedByCompany: "DESC", createdAt: "DESC" },
       });
       return items.map((item) => this.mapItem(item, company));
     }
@@ -71,7 +73,7 @@ export class CompanyBlogService {
     if (status === "drafts") {
       const items = await this.blogs.find({
         where: { companyId, status: BlogStatus.DRAFT },
-        order: { createdAt: "DESC" },
+        order: { pinnedByCompany: "DESC", createdAt: "DESC" },
       });
       return items.map((item) => this.mapItem(item, company));
     }
@@ -79,14 +81,9 @@ export class CompanyBlogService {
     const items = await this.blogs.find({
       where: { companyId },
       relations: { company: true },
-      order: { createdAt: "DESC" },
+      order: { pinnedByCompany: "DESC", createdAt: "DESC" },
     });
-    return items
-      .map((item) => this.mapItem(item, company))
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
+    return items.map((item) => this.mapItem(item, company));
   }
 
   async getOne(userId: string, blogId: string) {
@@ -168,5 +165,25 @@ export class CompanyBlogService {
     );
 
     return { url: uploadResult.url };
+  }
+
+  async pinByCompany(userId: string, blogId: string) {
+    const { blog, company } = await this.getBlogByCompanyId(userId, blogId);
+    if (blog.status !== BlogStatus.PUBLISHED) {
+      throw new BadRequestException("Закрепить можно только опубликованный блог");
+    }
+    return this.blogs.manager.transaction(async (manager) => {
+      await resetPinnedByCompanyBlog(company.companyId, blogId, manager);
+      blog.pinnedByCompany = true;
+      const saved = await manager.save(blog);
+      return this.mapItem({ ...saved, company }, company);
+    });
+  }
+
+  async unpinByCompany(userId: string, blogId: string) {
+    const { blog, company } = await this.getBlogByCompanyId(userId, blogId);
+    blog.pinnedByCompany = false;
+    const saved = await this.blogs.save(blog);
+    return this.mapItem({ ...saved, company }, company);
   }
 }

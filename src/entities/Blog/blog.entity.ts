@@ -47,6 +47,9 @@ export class Blog {
   @Column({ name: "is_pinned", type: "boolean", default: false })
   isPinned: boolean;
 
+  @Column({ name: "pinned_by_company", type: "boolean", default: false })
+  pinnedByCompany: boolean;
+
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
 }
