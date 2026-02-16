@@ -21,6 +21,7 @@ import { RefreshTokenService } from "./refresh-token/refresh-token.service";
 import { VerificationService } from "./verification/verification.service";
 
 import { JwtStrategy } from "./jwt/jwt.strategy";
+import { OptionalJwtAuthGuard } from "./jwt/optional-jwt-auth.guard";
 import { EmailModule } from "@infrastructure/email/email.module";
 
 @Module({
@@ -66,8 +67,9 @@ import { EmailModule } from "@infrastructure/email/email.module";
     RefreshTokenService,
     VerificationService,
     JwtStrategy,
+    OptionalJwtAuthGuard,
   ],
 
-  exports: [AuthService],
+  exports: [AuthService, JwtStrategy, OptionalJwtAuthGuard],
 })
 export class AuthModule {}

@@ -61,6 +61,7 @@ export class CompanyBlogService {
       pinnedByCompany: item.pinnedByCompany,
       companyName: item.company?.name ?? company.name,
       companyLogoUrl: item.company?.logo_url ?? company.logo_url ?? null,
+      likesCount: item.likeCount || 0,
     };
   }
 

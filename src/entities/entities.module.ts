@@ -15,6 +15,7 @@ import { CompanyReviewReply } from "./CompanyReviewReply/company-review-reply.en
 import { Order } from "./Order/order.entity";
 import { CompanyService } from "./CompanyService/company-service.entity";
 import { Blog } from "./Blog/blog.entity";
+import { BlogLike } from "./BlogLike/blog-like.entity";
 import { Client } from "./Client/client.entity";
 import { Favorite } from "./Favorite/favorite.entity";
 import { OrderResponse } from "./OrderResponse/order-response.entity";
@@ -25,6 +26,7 @@ import { OrderResponse } from "./OrderResponse/order-response.entity";
       Ad,
       Article,
       Blog,
+      BlogLike,
       Client,
       Company,
       Favorite,

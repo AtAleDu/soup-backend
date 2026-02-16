@@ -51,6 +51,9 @@ export class Blog {
   @Column({ name: "pinned_by_company", type: "boolean", default: false })
   pinnedByCompany: boolean;
 
+  @Column({ name: "like_count", type: "int", default: 0 })
+  likeCount: number;
+
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
 }
