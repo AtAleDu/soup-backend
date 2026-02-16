@@ -13,7 +13,7 @@ export async function seedBlog(dataSource: DataSource) {
     return;
   }
 
-  await blogRepo.clear();
+  await dataSource.query('TRUNCATE TABLE "blogs" CASCADE');
 
   const blogs = BLOG_DATA.map((item) =>
     blogRepo.create({

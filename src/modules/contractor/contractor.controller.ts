@@ -18,7 +18,6 @@ export class ContractorController {
   @ApiOperation({ summary: 'Получить подрядчика по id' })
   @ApiResponse({ status: 200, type: ContractorTypeDto })
   @Get(':id')
-  @Get(':id')
   getOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.getOne(id)
   }

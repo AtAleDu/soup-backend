@@ -9,7 +9,8 @@ import { SearchIndex } from "./Search/search-index.entity";
 import { Tariff } from "./Tarif/tariff.entity";
 import { NewsEntity } from "./News/news.entity";
 import { User } from "./User/user.entity";
-import { ContractorTypeEntity } from './Contractor/contractor.entity'
+import { ContractorTypeEntity } from './Contractor/contractor-categories.entity'
+import { ContractorSubcategoryEntity } from './Contractor/contractor-subcategory.entity'
 import { CompanyReview } from "./CompanyReview/company-review.entity";
 import { CompanyReviewReply } from "./CompanyReviewReply/company-review-reply.entity";
 import { Order } from "./Order/order.entity";
@@ -38,6 +39,7 @@ import { OrderResponse } from "./OrderResponse/order-response.entity";
       NewsEntity,
       User,
       ContractorTypeEntity,
+      ContractorSubcategoryEntity,
       CompanyReview,
       CompanyReviewReply,
       Order,
@@ -46,4 +48,4 @@ import { OrderResponse } from "./OrderResponse/order-response.entity";
   ],
   exports: [TypeOrmModule],
 })
-export class EntitiesModule {}
+export class EntitiesModule { }

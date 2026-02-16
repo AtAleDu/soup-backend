@@ -3,7 +3,8 @@ import { DataSource } from "typeorm";
 import { NewsEntity } from "../entities/News/news.entity";
 import { Contest } from "../entities/Contest/contest.entity";
 import { CatalogFilter } from "../entities/Catalog/catalogFilters/catalog-filter.entity";
-import { ContractorTypeEntity } from "../entities/Contractor/contractor.entity";
+import { ContractorTypeEntity } from "../entities/Contractor/contractor-categories.entity";
+import { ContractorSubcategoryEntity } from "../entities/Contractor/contractor-subcategory.entity";
 import { Blog } from "../entities/Blog/blog.entity";
 import { Company } from "../entities/Company/company.entity";
 import { User } from "../entities/User/user.entity";
@@ -44,6 +45,7 @@ const dataSource = new DataSource({
     Contest,
     CatalogFilter,
     ContractorTypeEntity,
+    ContractorSubcategoryEntity,
     Blog,
     Company,
     User,
