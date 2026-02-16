@@ -8,7 +8,7 @@ import { resetPinnedByCompanyBlog } from "@modules/blogs/blogs.utils";
 import { CreateBlogDto } from "./dto/create-blog.dto";
 import { UpdateBlogDto } from "./dto/update-blog.dto";
 
-export type CompanyBlogStatus = "all" | "published" | "drafts";
+export type CompanyBlogStatus = "all" | "published" | "drafts" | "moderation";
 
 const BLOG_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 const BLOG_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
@@ -40,11 +40,18 @@ export class CompanyBlogService {
   }
 
   private mapItem(item: Blog, company: Company) {
-    const isPublished = item.status === BlogStatus.PUBLISHED;
+    let type: "published" | "draft" | "moderation";
+    if (item.status === BlogStatus.PUBLISHED) {
+      type = "published";
+    } else if (item.status === BlogStatus.MODERATION) {
+      type = "moderation";
+    } else {
+      type = "draft";
+    }
     return {
       id: item.id,
       companyId: item.companyId ?? company.companyId,
-      type: isPublished ? ("published" as const) : ("draft" as const),
+      type,
       title: item.title,
       description: item.description,
       imageUrl: item.imageUrl,
@@ -78,8 +85,18 @@ export class CompanyBlogService {
       return items.map((item) => this.mapItem(item, company));
     }
 
+    if (status === "moderation") {
+      const items = await this.blogs.find({
+        where: { companyId, status: BlogStatus.MODERATION },
+        relations: { company: true },
+        order: { pinnedByCompany: "DESC", createdAt: "DESC" },
+      });
+      return items.map((item) => this.mapItem(item, company));
+    }
+
+    // Fallback: возвращаем опубликованные блоги по умолчанию
     const items = await this.blogs.find({
-      where: { companyId },
+      where: { companyId, status: BlogStatus.PUBLISHED },
       relations: { company: true },
       order: { pinnedByCompany: "DESC", createdAt: "DESC" },
     });
@@ -93,7 +110,7 @@ export class CompanyBlogService {
 
   async create(userId: string, dto: CreateBlogDto) {
     const company = await this.getCompanyByUser(userId);
-    const status = dto.publish === true ? BlogStatus.PUBLISHED : BlogStatus.DRAFT;
+    const status = dto.publish === true ? BlogStatus.MODERATION : BlogStatus.DRAFT;
     const blog = this.blogs.create({
       companyId: company.companyId,
       title: dto.title,
@@ -130,7 +147,7 @@ export class CompanyBlogService {
     if (blog.status !== BlogStatus.DRAFT) {
       throw new BadRequestException("Опубликовать можно только черновик");
     }
-    blog.status = BlogStatus.PUBLISHED;
+    blog.status = BlogStatus.MODERATION;
     const saved = await this.blogs.save(blog);
     return this.mapItem({ ...saved, company }, company);
   }

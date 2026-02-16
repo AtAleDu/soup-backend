@@ -7,13 +7,13 @@ import { CompanyBlogService, CompanyBlogStatus } from "./company-blog.service";
 import { CreateBlogDto } from "./dto/create-blog.dto";
 import { UpdateBlogDto } from "./dto/update-blog.dto";
 
-const VALID_STATUSES: CompanyBlogStatus[] = ["all", "published", "drafts"];
+const VALID_STATUSES: CompanyBlogStatus[] = ["published", "moderation", "drafts"];
 
 function parseStatus(status?: string): CompanyBlogStatus {
   if (status && VALID_STATUSES.includes(status as CompanyBlogStatus)) {
     return status as CompanyBlogStatus;
   }
-  return "all";
+  return "published";
 }
 
 @ApiTags("Profile")

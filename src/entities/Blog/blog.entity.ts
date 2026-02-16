@@ -10,6 +10,7 @@ import { Company } from "@entities/Company/company.entity";
 
 export enum BlogStatus {
   DRAFT = "draft",
+  MODERATION = "moderation",
   PUBLISHED = "published",
 }
 
