@@ -17,6 +17,7 @@ import { CompanyService } from "./CompanyService/company-service.entity";
 import { Blog } from "./Blog/blog.entity";
 import { Client } from "./Client/client.entity";
 import { Favorite } from "./Favorite/favorite.entity";
+import { OrderResponse } from "./OrderResponse/order-response.entity";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { Favorite } from "./Favorite/favorite.entity";
       Client,
       Company,
       Favorite,
+      OrderResponse,
       Contest,
       CatalogFilter,
       SearchIndex,
