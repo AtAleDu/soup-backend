@@ -13,13 +13,17 @@ export class BlogsService {
 
   async findAll(companyId?: string) {
     const parsedCompanyId = companyId ? Number(companyId) : undefined;
+    const hasCompanyId = Number.isFinite(parsedCompanyId);
+    
     return this.repo.find({
       where: {
         status: BlogStatus.PUBLISHED,
-        ...(Number.isFinite(parsedCompanyId) ? { companyId: parsedCompanyId } : {}),
+        ...(hasCompanyId ? { companyId: parsedCompanyId } : {}),
       },
       relations: { company: true },
-      order: { isPinned: "DESC", createdAt: "DESC" },
+      order: hasCompanyId 
+        ? { createdAt: "DESC" }
+        : { isPinned: "DESC", createdAt: "DESC" },
     });
   }
 
