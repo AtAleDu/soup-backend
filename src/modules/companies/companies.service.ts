@@ -16,7 +16,7 @@ export class CompaniesService {
     private readonly reviews: Repository<CompanyReview>,
   ) {}
 
-  async findAll(filters?: string, regions?: string, sort?: string) {
+  async findAll(filters?: string, regions?: string) {
     const parsedFilters = (filters ?? "")
       .split(",")
       .map((entry) => entry.trim())
@@ -45,6 +45,7 @@ export class CompaniesService {
           "company.name",
           "company.description",
           "company.logo_url",
+          "company.address",
           "company.createdAt",
         ])
         .distinct(true)
@@ -79,8 +80,7 @@ export class CompaniesService {
       }
 
       const companies = await qb.getMany();
-      const companiesWithRatings = await this.withRatings(companies);
-      return this.applySort(companiesWithRatings, sort);
+      return this.withRatings(companies);
     }
 
     const companies = await this.repo.find({
@@ -89,36 +89,18 @@ export class CompaniesService {
         name: true,
         description: true,
         logo_url: true,
+        address: true,
       },
       order: {
         createdAt: "DESC",
       },
     });
-    const companiesWithRatings = await this.withRatings(companies);
-    return this.applySort(companiesWithRatings, sort);
-  }
-
-  /** Применяет сортировку к списку компаний */
-  private applySort(
-    companies: Array<Pick<Company, "companyId" | "name" | "description" | "logo_url"> & { rating: number; reviews_count: number }>,
-    sort?: string,
-  ) {
-    if (!sort || sort === "default") {
-      return companies;
-    }
-
-    const sorted = [...companies];
-    if (sort === "rating") {
-      sorted.sort((a, b) => b.rating - a.rating);
-    } else if (sort === "reviews") {
-      sorted.sort((a, b) => b.reviews_count - a.reviews_count);
-    }
-    return sorted;
+    return this.withRatings(companies);
   }
 
   /** Добавляет к списку компаний средний рейтинг и количество отзывов */
   private async withRatings(
-    companies: Pick<Company, "companyId" | "name" | "description" | "logo_url">[],
+    companies: Pick<Company, "companyId" | "name" | "description" | "logo_url" | "address">[],
   ) {
     if (companies.length === 0) return [];
     const ids = companies.map((c) => c.companyId);
