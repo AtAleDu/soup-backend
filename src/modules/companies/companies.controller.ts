@@ -1,5 +1,5 @@
 import { Controller, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CompaniesService } from "./companies.service";
 
 @ApiTags("Companies")
@@ -9,10 +9,11 @@ export class CompaniesController {
 
   // PUBLIC: список компаний для каталога
   @ApiOperation({ summary: "Получить список компаний" })
+  @ApiQuery({ name: "sort", required: false, enum: ["default", "rating", "reviews"], description: "Сортировка: default - по умолчанию, rating - по рейтингу, reviews - по количеству отзывов" })
   @ApiResponse({ status: 200, description: "Список компаний" })
   @Get()
-  findAll(@Query("filters") filters?: string, @Query("regions") regions?: string) {
-    return this.service.findAll(filters, regions);
+  findAll(@Query("filters") filters?: string, @Query("regions") regions?: string, @Query("sort") sort?: string) {
+    return this.service.findAll(filters, regions, sort);
   }
 
   @ApiOperation({ summary: "Получить компанию по id" })
