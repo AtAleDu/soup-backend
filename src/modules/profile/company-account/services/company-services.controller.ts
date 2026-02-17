@@ -36,7 +36,7 @@ export class CompanyServicesController {
       storage: memoryStorage(),
     }),
   )
-  uploadImage(@Req() req, @UploadedFile() file) {
+  uploadImage(@Req() req, @UploadedFile() file: Express.Multer.File) {
     return this.service.uploadServiceImage(req.user.sub, file);
   }
 }

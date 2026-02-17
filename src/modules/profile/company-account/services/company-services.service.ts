@@ -81,7 +81,7 @@ export class CompanyServicesService {
     return { success: true };
   }
 
-  async uploadServiceImage(userId: string, file) {
+  async uploadServiceImage(userId: string, file: Express.Multer.File) {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
