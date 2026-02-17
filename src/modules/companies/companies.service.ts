@@ -16,7 +16,7 @@ export class CompaniesService {
     private readonly reviews: Repository<CompanyReview>,
   ) {}
 
-  async findAll(filters?: string, regions?: string) {
+  async findAll(filters?: string, regions?: string, sort?: string) {
     const parsedFilters = (filters ?? "")
       .split(",")
       .map((entry) => entry.trim())
@@ -80,7 +80,8 @@ export class CompaniesService {
       }
 
       const companies = await qb.getMany();
-      return this.withRatings(companies);
+      const withStats = await this.withRatings(companies);
+      return this.applySort(withStats, sort);
     }
 
     const companies = await this.repo.find({
@@ -95,7 +96,21 @@ export class CompaniesService {
         createdAt: "DESC",
       },
     });
-    return this.withRatings(companies);
+    const withStats = await this.withRatings(companies);
+    return this.applySort(withStats, sort);
+  }
+
+  private applySort<T extends { rating?: number; reviews_count?: number }>(
+    list: T[],
+    sort?: string,
+  ): T[] {
+    if (sort === "rating") {
+      return [...list].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    }
+    if (sort === "reviews") {
+      return [...list].sort((a, b) => (b.reviews_count ?? 0) - (a.reviews_count ?? 0));
+    }
+    return list;
   }
 
   /** Добавляет к списку компаний средний рейтинг и количество отзывов */
