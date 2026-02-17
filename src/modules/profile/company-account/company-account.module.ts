@@ -15,6 +15,8 @@ import { CompanyServicesService } from './services/company-services.service'
 import { CompanyService } from '@entities/CompanyService/company-service.entity'
 import { Tariff } from '@entities/Tarif/tariff.entity'
 import { CompanyAdsController, CompanyAdsService } from './ads'
+import { OrderResponse } from '@entities/OrderResponse/order-response.entity'
+import { CompanyOrdersController, CompanyOrdersService } from './orders'
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { CompanyAdsController, CompanyAdsService } from './ads'
       CompanyReviewReply,
       CompanyService,
       Tariff,
+      OrderResponse,
     ]),
     StorageModule,
   ],
@@ -36,6 +39,7 @@ import { CompanyAdsController, CompanyAdsService } from './ads'
     CompanyBlogController,
     CompanyServicesController,
     CompanyAdsController,
+    CompanyOrdersController,
   ],
   providers: [
     EditCompanyAccountService,
@@ -44,6 +48,7 @@ import { CompanyAdsController, CompanyAdsService } from './ads'
     CompanyBlogService,
     CompanyServicesService,
     CompanyAdsService,
+    CompanyOrdersService,
   ],
 })
 export class CompanyAccountModule {}
