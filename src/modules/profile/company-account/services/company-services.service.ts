@@ -32,13 +32,14 @@ export class CompanyServicesService {
 
     const grouped = new Map<
       string,
-      { category: string; services: { name: string; subcategory: string; imageUrl: string | null }[] }
+      { category: string; description?: string; services: { name: string; subcategory: string; imageUrl: string | null }[] }
     >();
     rows.forEach((row) => {
       const key = row.category;
       if (!grouped.has(key)) {
         grouped.set(key, {
           category: row.category,
+          description: row.categoryDescription ?? undefined,
           services: [],
         });
       }
@@ -60,10 +61,12 @@ export class CompanyServicesService {
     await this.services.delete({ companyId: company.companyId });
 
     const rows = dto.categories.flatMap((category) =>
-      category.services.map((service) =>
+      category.services.map((service, index) =>
         this.services.create({
           companyId: company.companyId,
           category: category.category,
+          // Сохраняем описание только в первую услугу категории
+          categoryDescription: index === 0 ? (category.description ?? null) : null,
           service: service.subcategory,
           categoryName: service.name,
           imageUrl: service.imageUrl ?? null,

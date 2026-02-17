@@ -26,6 +26,9 @@ export class CompanyService {
   @Column()
   category: string;
 
+  @Column({ name: "category_description", type: "varchar", length: 500, nullable: true })
+  categoryDescription: string | null;
+
   @Column()
   service: string;
 

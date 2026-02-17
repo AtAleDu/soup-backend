@@ -52,7 +52,11 @@ export class CompaniesService {
         .orderBy("company.createdAt", "DESC");
 
       if (parsedFilters.length > 0) {
-        qb.innerJoin(CompanyService, "service", "service.companyId = company.companyId").where(
+        qb.innerJoin(
+          CompanyService,
+          "service",
+          "service.companyId = company.companyId",
+        ).where(
           new Brackets((builder) => {
             parsedFilters.forEach((filter, index) => {
               builder.orWhere(
@@ -73,9 +77,13 @@ export class CompaniesService {
 
       if (parsedRegions.length > 0) {
         if (parsedFilters.length > 0) {
-          qb.andWhere("company.regions ?| array[:...regions]", { regions: parsedRegions });
+          qb.andWhere("company.regions ?| array[:...regions]", {
+            regions: parsedRegions,
+          });
         } else {
-          qb.where("company.regions ?| array[:...regions]", { regions: parsedRegions });
+          qb.where("company.regions ?| array[:...regions]", {
+            regions: parsedRegions,
+          });
         }
       }
 
@@ -108,14 +116,19 @@ export class CompaniesService {
       return [...list].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     }
     if (sort === "reviews") {
-      return [...list].sort((a, b) => (b.reviews_count ?? 0) - (a.reviews_count ?? 0));
+      return [...list].sort(
+        (a, b) => (b.reviews_count ?? 0) - (a.reviews_count ?? 0),
+      );
     }
     return list;
   }
 
   /** Добавляет к списку компаний средний рейтинг и количество отзывов */
   private async withRatings(
-    companies: Pick<Company, "companyId" | "name" | "description" | "logo_url" | "address">[],
+    companies: Pick<
+      Company,
+      "companyId" | "name" | "description" | "logo_url" | "address"
+    >[],
   ) {
     if (companies.length === 0) return [];
     const ids = companies.map((c) => c.companyId);
@@ -126,7 +139,11 @@ export class CompaniesService {
       .addSelect("COUNT(r.id)", "reviews_count")
       .where("r.companyId IN (:...ids)", { ids })
       .groupBy("r.companyId")
-      .getRawMany<{ companyId: number; rating: string; reviews_count: string }>();
+      .getRawMany<{
+        companyId: number;
+        rating: string;
+        reviews_count: string;
+      }>();
     const byId = new Map(
       raw.map((r) => [
         r.companyId,
@@ -173,12 +190,24 @@ export class CompaniesService {
 
     const grouped = new Map<
       string,
-      { category: string; services: { name: string; subcategory: string; imageUrl: string | null }[] }
+      {
+        category: string;
+        description?: string;
+        services: {
+          name: string;
+          subcategory: string;
+          imageUrl: string | null;
+        }[];
+      }
     >();
     rows.forEach((row) => {
       const key = row.category;
       if (!grouped.has(key)) {
-        grouped.set(key, { category: row.category, services: [] });
+        grouped.set(key, {
+          category: row.category,
+          description: row.categoryDescription ?? undefined,
+          services: [],
+        });
       }
       grouped.get(key)!.services.push({
         name: row.categoryName,

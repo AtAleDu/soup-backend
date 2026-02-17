@@ -4,6 +4,9 @@ export class CompanyServiceCategoryDto {
   @ApiProperty({ example: "Производство" })
   category: string;
 
+  @ApiProperty({ example: "Описание категории", required: false })
+  description?: string;
+
   @ApiProperty({
     example: [{ name: "Проектирование входной группы", subcategory: "МАФ", imageUrl: null }],
     isArray: true,
