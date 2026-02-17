@@ -17,8 +17,8 @@ export class CompanyReview {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: "order_id", type: "bigint", unique: true })
-  orderId: string;
+  @Column({ name: "order_id", type: "bigint", unique: true, nullable: true })
+  orderId: string | null;
 
   @Column({ name: "company_id", type: "int" })
   companyId: number;
@@ -54,4 +54,7 @@ export class CompanyReview {
 
   @UpdateDateColumn({ name: "updated_at" })
   updatedAt: Date;
+
+  @Column({ name: "image_urls", type: "jsonb", nullable: true })
+  imageUrls: string[] | null;
 }
