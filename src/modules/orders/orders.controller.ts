@@ -10,7 +10,7 @@ import {
   UseGuards,
   Body,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { OrdersService } from "./orders.service";
 import { OrderStatus } from "@entities/Order/order.entity";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
@@ -32,9 +32,10 @@ export class OrdersController {
     description:
       "По умолчанию возвращаются активные заказы. Для каталога / откликов компаний.",
   })
+  @ApiQuery({ name: "sort", required: false, enum: ["new", "no-responses"], description: "Сортировка: new - новые (по умолчанию), no-responses - без откликов" })
   @Get()
-  findAll(@Query("status") status?: string) {
-    return this.service.findAllByStatus(status ?? OrderStatus.ACTIVE);
+  findAll(@Query("status") status?: string, @Query("sort") sort?: string) {
+    return this.service.findAllByStatus(status ?? OrderStatus.ACTIVE, sort);
   }
 
   @ApiOperation({

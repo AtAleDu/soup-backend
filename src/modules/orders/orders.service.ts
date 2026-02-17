@@ -29,16 +29,32 @@ export class OrdersService {
   /**
    * Список заказов всех пользователей по статусу (для каталога / откликов компаний).
    */
-  async findAllByStatus(status: string = OrderStatus.ACTIVE): Promise<Order[]> {
+  async findAllByStatus(status: string = OrderStatus.ACTIVE, sort?: string): Promise<Order[]> {
     const allowed = Object.values(OrderStatus);
     const filterStatus = allowed.includes(status as (typeof allowed)[number])
       ? status
       : OrderStatus.ACTIVE;
 
-    return this.orders.find({
+    const orders = await this.orders.find({
       where: { status: filterStatus },
       order: { createdAt: "DESC" },
     });
+
+    if (sort === "no-responses") {
+      const ordersWithResponses = await Promise.all(
+        orders.map(async (order) => {
+          const responsesCount = await this.orderResponses.count({
+            where: { orderId: order.id },
+          });
+          return { order, responsesCount };
+        }),
+      );
+      return ordersWithResponses
+        .filter((item) => item.responsesCount === 0)
+        .map((item) => item.order);
+    }
+
+    return orders;
   }
 
   /**
