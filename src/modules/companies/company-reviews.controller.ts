@@ -12,7 +12,13 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { Roles } from "@modules/auth/guards/roles.decorator";
@@ -56,13 +62,23 @@ export class CompanyReviewsController {
     }),
   )
   @ApiConsumes("multipart/form-data")
-  @ApiBody({ schema: { type: "object", properties: { image: { type: "string", format: "binary" } } } })
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: { image: { type: "string", format: "binary" } },
+    },
+  })
   uploadImage(
     @Param("companyId", ParseIntPipe) companyId: number,
     @Param("reviewId", ParseIntPipe) reviewId: number,
     @Req() req: { user: { sub: string } },
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file,
   ) {
-    return this.service.uploadReviewImage(companyId, reviewId, req.user.sub, file);
+    return this.service.uploadReviewImage(
+      companyId,
+      reviewId,
+      req.user.sub,
+      file,
+    );
   }
 }

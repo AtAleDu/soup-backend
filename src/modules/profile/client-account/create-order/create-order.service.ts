@@ -57,7 +57,7 @@ export class CreateOrderService {
   }
 
   private async doUploadFile(
-    file: Express.Multer.File,
+    file,
     pathPrefix: string,
   ): Promise<{ url: string }> {
     if (!file?.buffer) {
@@ -93,7 +93,7 @@ export class CreateOrderService {
 
   async uploadFile(
     userId: string | undefined,
-    file: Express.Multer.File,
+    file,
   ): Promise<{ url: string }> {
     const pathPrefix =
       userId != null

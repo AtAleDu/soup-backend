@@ -85,7 +85,11 @@ export class CompanyReviewsService {
   }
 
   /** Создать отзыв (только клиент) */
-  async createReview(companyId: number, userId: string, dto: CreateCompanyReviewDto) {
+  async createReview(
+    companyId: number,
+    userId: string,
+    dto: CreateCompanyReviewDto,
+  ) {
     const company = await this.companies.findOne({
       where: { companyId },
       select: { companyId: true },
@@ -118,13 +122,15 @@ export class CompanyReviewsService {
     companyId: number,
     reviewId: number,
     userId: string,
-    file: Express.Multer.File,
+    file,
   ): Promise<{ url: string }> {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
     if (!REVIEW_IMAGE_MIME_TYPES.includes(file.mimetype)) {
-      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP");
+      throw new BadRequestException(
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP",
+      );
     }
     if (file.size > REVIEW_IMAGE_MAX_SIZE) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
@@ -137,7 +143,9 @@ export class CompanyReviewsService {
       throw new NotFoundException("Отзыв не найден");
     }
     if (review.authorId !== userId) {
-      throw new ForbiddenException("Можно добавлять фото только к своему отзыву");
+      throw new ForbiddenException(
+        "Можно добавлять фото только к своему отзыву",
+      );
     }
 
     const pathPrefix = `${STORAGE_PATH_PREFIX}/${companyId}/${reviewId}`;
@@ -156,7 +164,9 @@ export class CompanyReviewsService {
       },
     );
 
-    const imageUrls = Array.isArray(review.imageUrls) ? [...review.imageUrls] : [];
+    const imageUrls = Array.isArray(review.imageUrls)
+      ? [...review.imageUrls]
+      : [];
     imageUrls.push(uploadResult.url);
     review.imageUrls = imageUrls;
     await this.reviews.save(review);
@@ -164,10 +174,7 @@ export class CompanyReviewsService {
     return { url: uploadResult.url };
   }
 
-  private mapReview(
-    review: CompanyReview,
-    reply: CompanyReviewReply | null,
-  ) {
+  private mapReview(review: CompanyReview, reply: CompanyReviewReply | null) {
     return {
       id: review.id,
       authorId: review.authorId,

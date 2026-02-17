@@ -40,7 +40,7 @@ export class CreateOrderController {
   @ApiBody({ schema: { type: "object", properties: { file: { type: "string", format: "binary" } } } })
   uploadFile(
     @Req() req: { user?: { sub: string } },
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file,
   ) {
     return this.service.uploadFile(req.user?.sub, file);
   }

@@ -1,10 +1,17 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
-import { SERVICE_IMAGE_MAX_SIZE, SERVICE_IMAGE_MIME_TYPES } from "./company-services.constants";
+import {
+  SERVICE_IMAGE_MAX_SIZE,
+  SERVICE_IMAGE_MIME_TYPES,
+} from "./company-services.constants";
 import { SaveCompanyServicesDto } from "./dto/save-company-services.dto";
 
 @Injectable()
@@ -15,7 +22,7 @@ export class CompanyServicesService {
     @InjectRepository(CompanyService)
     private readonly services: Repository<CompanyService>,
     private readonly storage: StorageService,
-  ) { }
+  ) {}
 
   private async getCompanyByUser(userId: string) {
     const company = await this.companies.findOne({ where: { userId } });
@@ -32,7 +39,15 @@ export class CompanyServicesService {
 
     const grouped = new Map<
       string,
-      { category: string; description?: string; services: { name: string; subcategory: string; imageUrl: string | null }[] }
+      {
+        category: string;
+        description?: string;
+        services: {
+          name: string;
+          subcategory: string;
+          imageUrl: string | null;
+        }[];
+      }
     >();
     rows.forEach((row) => {
       const key = row.category;
@@ -66,7 +81,8 @@ export class CompanyServicesService {
           companyId: company.companyId,
           category: category.category,
           // Сохраняем описание только в первую услугу категории
-          categoryDescription: index === 0 ? (category.description ?? null) : null,
+          categoryDescription:
+            index === 0 ? (category.description ?? null) : null,
           service: service.subcategory,
           categoryName: service.name,
           imageUrl: service.imageUrl ?? null,
@@ -81,12 +97,14 @@ export class CompanyServicesService {
     return { success: true };
   }
 
-  async uploadServiceImage(userId: string, file: Express.Multer.File) {
+  async uploadServiceImage(userId: string, file) {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
     if (!SERVICE_IMAGE_MIME_TYPES.includes(file.mimetype)) {
-      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP");
+      throw new BadRequestException(
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP",
+      );
     }
     if (file.size > SERVICE_IMAGE_MAX_SIZE) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
