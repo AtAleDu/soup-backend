@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Brackets, Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
+import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
 
 @Injectable()
 export class CompaniesService {
@@ -11,6 +12,8 @@ export class CompaniesService {
     private readonly repo: Repository<Company>,
     @InjectRepository(CompanyService)
     private readonly services: Repository<CompanyService>,
+    @InjectRepository(CompanyReview)
+    private readonly reviews: Repository<CompanyReview>,
   ) {}
 
   async findAll(filters?: string, regions?: string) {
@@ -75,10 +78,11 @@ export class CompaniesService {
         }
       }
 
-      return qb.getMany();
+      const companies = await qb.getMany();
+      return this.withRatings(companies);
     }
 
-    return this.repo.find({
+    const companies = await this.repo.find({
       select: {
         companyId: true,
         name: true,
@@ -88,6 +92,40 @@ export class CompaniesService {
       order: {
         createdAt: "DESC",
       },
+    });
+    return this.withRatings(companies);
+  }
+
+  /** Добавляет к списку компаний средний рейтинг и количество отзывов */
+  private async withRatings(
+    companies: Pick<Company, "companyId" | "name" | "description" | "logo_url">[],
+  ) {
+    if (companies.length === 0) return [];
+    const ids = companies.map((c) => c.companyId);
+    const raw = await this.reviews
+      .createQueryBuilder("r")
+      .select("r.companyId", "companyId")
+      .addSelect("COALESCE(AVG(r.rating), 0)", "rating")
+      .addSelect("COUNT(r.id)", "reviews_count")
+      .where("r.companyId IN (:...ids)", { ids })
+      .groupBy("r.companyId")
+      .getRawMany<{ companyId: number; rating: string; reviews_count: string }>();
+    const byId = new Map(
+      raw.map((r) => [
+        r.companyId,
+        {
+          rating: Math.round(Number(r.rating) * 10) / 10,
+          reviews_count: Number(r.reviews_count) ?? 0,
+        },
+      ]),
+    );
+    return companies.map((c) => {
+      const stats = byId.get(c.companyId) ?? { rating: 0, reviews_count: 0 };
+      return {
+        ...c,
+        rating: stats.rating,
+        reviews_count: stats.reviews_count,
+      };
     });
   }
 
