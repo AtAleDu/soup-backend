@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Blog } from "@entities/Blog/blog.entity";
 import { BlogLike } from "@entities/BlogLike/blog-like.entity";
+import { StorageModule } from "@infrastructure/storage/storage.module";
 import { BlogsController } from "./blogs.controller";
 import { BlogsService } from "./blogs.service";
 import { AdminBlogsController } from "./admin/admin-blogs.controller";
@@ -11,6 +12,7 @@ import { AuthModule } from "@modules/auth/auth.module";
   imports: [
     TypeOrmModule.forFeature([Blog, BlogLike]),
     AuthModule,
+    StorageModule,
   ],
   controllers: [BlogsController, AdminBlogsController],
   providers: [BlogsService],

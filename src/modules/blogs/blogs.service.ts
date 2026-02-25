@@ -3,7 +3,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, DataSource, In } from "typeorm";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { BlogLike } from "@entities/BlogLike/blog-like.entity";
+import { StorageService } from "@infrastructure/storage/storage.service";
 import { resetPinnedBlog } from "./blogs.utils";
+import { UpdateBlogDto } from "./dto/update-blog.dto";
+
+const BLOG_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const BLOG_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 @Injectable()
 export class BlogsService {
@@ -13,6 +18,7 @@ export class BlogsService {
     @InjectRepository(BlogLike)
     private readonly likesRepo: Repository<BlogLike>,
     private readonly dataSource: DataSource,
+    private readonly storage: StorageService,
   ) {}
 
   async findAll(companyId?: string, userId?: string) {
@@ -161,6 +167,69 @@ export class BlogsService {
     if (!blog) throw new NotFoundException("Blog not found");
     blog.isPinned = false;
     return this.repo.save(blog);
+  }
+
+  async uploadBlogImageForAdmin(file: Express.Multer.File): Promise<{ url: string }> {
+    if (!file?.buffer) {
+      throw new BadRequestException("Файл не передан");
+    }
+    if (!BLOG_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException(
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP",
+      );
+    }
+    if (file.size > BLOG_IMAGE_MAX_SIZE) {
+      throw new BadRequestException("Размер файла превышает 5 МБ");
+    }
+    const ext = file.originalname?.match(/\.[a-z]+$/i)?.[0] ?? ".jpg";
+    const uploadResult = await this.storage.upload(
+      {
+        buffer: file.buffer,
+        mimeType: file.mimetype,
+        size: file.size,
+        originalName: `blog-admin-${Date.now()}${ext}`,
+      },
+      {
+        allowedMimeTypes: BLOG_IMAGE_MIME_TYPES,
+        maxSizeBytes: BLOG_IMAGE_MAX_SIZE,
+        isPublic: true,
+        pathPrefix: "blogs/admin-images",
+      },
+    );
+    return { url: uploadResult.url };
+  }
+
+  async findAllForAdmin() {
+    return this.repo.find({
+      relations: { company: true },
+      order: { createdAt: "DESC" },
+    });
+  }
+
+  async findOneForAdmin(id: string) {
+    const blog = await this.repo.findOne({
+      where: { id },
+      relations: { company: true },
+    });
+    if (!blog) throw new NotFoundException("Blog not found");
+    return blog;
+  }
+
+  async updateForAdmin(id: string, dto: UpdateBlogDto) {
+    const blog = await this.repo.findOne({ where: { id }, relations: { company: true } });
+    if (!blog) throw new NotFoundException("Blog not found");
+    if (dto.title !== undefined) blog.title = dto.title;
+    if (dto.description !== undefined) blog.description = dto.description;
+    if (dto.imageUrl !== undefined) blog.imageUrl = dto.imageUrl;
+    if (dto.contentBlocks !== undefined) blog.contentBlocks = dto.contentBlocks;
+    return this.repo.save(blog);
+  }
+
+  async removeForAdmin(id: string) {
+    const blog = await this.repo.findOne({ where: { id } });
+    if (!blog) throw new NotFoundException("Blog not found");
+    await this.repo.remove(blog);
+    return { success: true };
   }
 
   async findTopLiked(limit: number = 5, userId?: string) {
