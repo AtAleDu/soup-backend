@@ -6,16 +6,6 @@ export class CreateContractorSubcategoryDto {
   @ApiProperty({ example: 'Архитектура' })
   @IsString()
   title: string
-
-  @ApiProperty({ example: null, nullable: true, required: false })
-  @IsOptional()
-  @IsString()
-  logoUrl?: string
-
-  @ApiProperty({ example: null, nullable: true, required: false })
-  @IsOptional()
-  @IsString()
-  imageUrl?: string
 }
 
 export class CreateContractorTypeDto {
@@ -42,7 +32,7 @@ export class CreateContractorTypeDto {
     description: 'Сабкатегории категории',
   })
   @IsArray()
-  @ArrayNotEmpty()
+  @ArrayNotEmpty({ message: 'Список подкатегорий не может быть пустым' })
   @ValidateNested({ each: true })
   @Type(() => CreateContractorSubcategoryDto)
   subcategories: CreateContractorSubcategoryDto[]

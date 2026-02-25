@@ -10,6 +10,7 @@ import { ContractorService } from '../contractor.service'
 import { CreateContractorTypeDto } from '../dto/create-contractor.dto'
 import { UpdateContractorTypeDto } from '../dto/update-contractor.dto'
 import { ContractorTypeDto } from '../dto/contractor.dto'
+import { AdminContractorTypeDto } from '../dto/admin-contractor.dto'
 import { JwtAuthGuard } from "../../auth/jwt/jwt-auth.guard";
 
 @ApiTags('Contractors')
@@ -18,6 +19,13 @@ import { JwtAuthGuard } from "../../auth/jwt/jwt-auth.guard";
 @Controller('admin/contractors')
 export class ContractorAdminController {
   constructor(private readonly service: ContractorService) {}
+
+  @ApiOperation({ summary: 'Список подрядчиков (admin)' })
+  @ApiResponse({ status: 200, type: AdminContractorTypeDto, isArray: true })
+  @Get()
+  getList(): Promise<AdminContractorTypeDto[]> {
+    return this.service.getTypesForAdmin()
+  }
 
   // CREATE
   @ApiOperation({ summary: 'Создать подрядчика (admin)' })

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm'
 import { ContractorTypeEntity } from '@entities/Contractor/contractor-categories.entity'
 import { ContractorSubcategoryEntity } from '@entities/Contractor/contractor-subcategory.entity'
 import { ContractorTypeDto } from './dto/contractor.dto'
+import { AdminContractorTypeDto } from './dto/admin-contractor.dto'
 import {
   CreateContractorSubcategoryDto,
   CreateContractorTypeDto,
@@ -15,18 +16,29 @@ export class ContractorService {
   constructor(
     @InjectRepository(ContractorTypeEntity)
     private readonly categoryRepo: Repository<ContractorTypeEntity>,
+    @InjectRepository(ContractorSubcategoryEntity)
+    private readonly subcategoryRepo: Repository<ContractorSubcategoryEntity>,
   ) { }
 
   private mapToDto(entity: ContractorTypeEntity): ContractorTypeDto {
     const subcategories = [...(entity.subcategories ?? [])]
       .sort((a, b) => a.title.localeCompare(b.title, 'ru', { sensitivity: 'base' }))
-      .map((subcategory) => ({
-        title: subcategory.title,
-        logoUrl: subcategory.logoUrl,
-        imageUrl: subcategory.imageUrl,
-      }))
+      .map((subcategory) => ({ title: subcategory.title }))
 
     return {
+      title: entity.title,
+      logoUrl: entity.logoUrl,
+      subcategories,
+    }
+  }
+
+  private mapToAdminDto(entity: ContractorTypeEntity): AdminContractorTypeDto {
+    const subcategories = [...(entity.subcategories ?? [])]
+      .sort((a, b) => a.title.localeCompare(b.title, 'ru', { sensitivity: 'base' }))
+      .map((subcategory) => ({ title: subcategory.title }))
+
+    return {
+      id: entity.id,
       title: entity.title,
       logoUrl: entity.logoUrl,
       subcategories,
@@ -37,11 +49,7 @@ export class ContractorService {
     subcategories: CreateContractorSubcategoryDto[],
   ): ContractorSubcategoryEntity[] {
     const items = subcategories
-      .map((subcategory) => ({
-        title: subcategory.title.trim(),
-        logoUrl: subcategory.logoUrl?.trim() || null,
-        imageUrl: subcategory.imageUrl?.trim() || null,
-      }))
+      .map((subcategory) => ({ title: subcategory.title.trim() }))
       .filter((subcategory) => subcategory.title.length > 0)
 
     const uniqueTitles = new Set(
@@ -66,6 +74,15 @@ export class ContractorService {
     })
 
     return categories.map((category) => this.mapToDto(category))
+  }
+
+  async getTypesForAdmin(): Promise<AdminContractorTypeDto[]> {
+    const categories = await this.categoryRepo.find({
+      relations: { subcategories: true },
+      order: { title: 'ASC', subcategories: { title: 'ASC' } },
+    })
+
+    return categories.map((category) => this.mapToAdminDto(category))
   }
 
   async getOne(id: string): Promise<ContractorTypeDto> {
@@ -129,6 +146,7 @@ export class ContractorService {
     }
 
     if (dto.subcategories !== undefined) {
+      await this.subcategoryRepo.delete({ categoryId: id })
       entity.subcategories = this.normalizeSubcategories(dto.subcategories)
     }
 

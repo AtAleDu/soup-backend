@@ -27,10 +27,4 @@ export class ContractorSubcategoryEntity {
 
   @Column()
   title: string
-
-  @Column({ name: 'logo_url', type: 'text', nullable: true })
-  logoUrl: string | null
-
-  @Column({ name: 'image_url', type: 'text', nullable: true })
-  imageUrl: string | null
 }
