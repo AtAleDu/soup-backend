@@ -1,5 +1,27 @@
-import { Controller, Post, Put, Delete, Param, Body, ParseIntPipe, UseGuards } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from "@nestjs/swagger";
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+  UseGuards,
+  UploadedFile,
+  UseInterceptors,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
+} from "@nestjs/swagger";
 import { ContestsService } from "../contests.service";
 import { CreateContestDto } from "../dto/create-contest.dto";
 import { UpdateContestDto } from "../dto/update-contest.dto";
@@ -12,7 +34,40 @@ import { JwtAuthGuard } from "../../auth/jwt/jwt-auth.guard";
 export class AdminContestsController {
   constructor(private readonly contestsService: ContestsService) {}
 
-  // ADMIN: создать новый конкурс
+  @ApiOperation({ summary: "Список всех конкурсов (admin)" })
+  @ApiResponse({ status: 200, description: "Список конкурсов" })
+  @Get()
+  findAll() {
+    return this.contestsService.findAll();
+  }
+
+  @ApiOperation({ summary: "Загрузить изображение конкурса (admin)" })
+  @Post("upload-image")
+  @UseInterceptors(
+    FileInterceptor("image", {
+      storage: memoryStorage(),
+    }),
+  )
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: { image: { type: "string", format: "binary" } },
+    },
+  })
+  uploadImage(@UploadedFile() file: Express.Multer.File) {
+    return this.contestsService.uploadContestImage(file);
+  }
+
+  @ApiOperation({ summary: "Получить конкурс по id (admin)" })
+  @ApiParam({ name: "id", type: Number })
+  @ApiResponse({ status: 200, description: "Конкурс" })
+  @ApiResponse({ status: 404, description: "Конкурс не найден" })
+  @Get(":id")
+  findOne(@Param("id", ParseIntPipe) id: number) {
+    return this.contestsService.findOne(id);
+  }
+
   @ApiOperation({ summary: "Создать конкурс (admin)" })
   @ApiResponse({ status: 201, description: "Конкурс создан" })
   @ApiResponse({ status: 400, description: "Ошибка валидации" })
