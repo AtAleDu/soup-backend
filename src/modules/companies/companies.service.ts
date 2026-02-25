@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Brackets, Repository } from "typeorm";
+import { Brackets, In, Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
+import { ContractorTypeEntity } from "@entities/Contractor/contractor-categories.entity";
 
 @Injectable()
 export class CompaniesService {
@@ -14,6 +15,8 @@ export class CompaniesService {
     private readonly services: Repository<CompanyService>,
     @InjectRepository(CompanyReview)
     private readonly reviews: Repository<CompanyReview>,
+    @InjectRepository(ContractorTypeEntity)
+    private readonly contractorCategories: Repository<ContractorTypeEntity>,
   ) {}
 
   async findAll(filters?: string, regions?: string, sort?: string) {
@@ -193,6 +196,7 @@ export class CompaniesService {
       {
         category: string;
         description?: string;
+        iconUrl?: string | null;
         services: {
           name: string;
           subcategory: string;
@@ -214,6 +218,21 @@ export class CompaniesService {
         subcategory: row.service,
         imageUrl: row.imageUrl ?? null,
       });
+    });
+
+    const categoryTitles = Array.from(grouped.keys());
+    const categoryIcons =
+      categoryTitles.length > 0
+        ? await this.contractorCategories.find({
+            where: { title: In(categoryTitles) },
+            select: { title: true, logoUrl: true },
+          })
+        : [];
+    const iconByTitle = new Map(
+      categoryIcons.map((c) => [c.title, c.logoUrl ?? null]),
+    );
+    grouped.forEach((value) => {
+      value.iconUrl = iconByTitle.get(value.category) ?? null;
     });
 
     return {
