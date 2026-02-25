@@ -5,6 +5,7 @@ import { CompanyService } from "@entities/CompanyService/company-service.entity"
 import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
 import { CompanyReviewReply } from "@entities/CompanyReviewReply/company-review-reply.entity";
 import { Client } from "@entities/Client/client.entity";
+import { ContractorTypeEntity } from "@entities/Contractor/contractor-categories.entity";
 import { StorageModule } from "@infrastructure/storage/storage.module";
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { CompaniesController } from "./companies.controller";
@@ -20,6 +21,7 @@ import { CompanyReviewsService } from "./company-reviews.service";
       CompanyReview,
       CompanyReviewReply,
       Client,
+      ContractorTypeEntity,
     ]),
     StorageModule,
   ],
