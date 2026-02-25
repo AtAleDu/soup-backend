@@ -5,12 +5,17 @@ import { NewsEntity } from "@entities/News/news.entity";
 import { CreateNewsDto } from "./dto/create-news.dto";
 import { UpdateNewsDto } from "./dto/update-news.dto";
 import { getNewsByIdOrFail, resetImportantNews } from "./news.utils";
+import { StorageService } from "@infrastructure/storage/storage.service";
+
+const NEWS_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const NEWS_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 @Injectable()
 export class NewsService {
   constructor(
     @InjectRepository(NewsEntity)
     private readonly repo: Repository<NewsEntity>,
+    private readonly storage: StorageService,
   ) {}
 
   async create(dto: CreateNewsDto) {
@@ -91,5 +96,36 @@ export class NewsService {
 
     item.isImportantNew = false;
     return this.repo.save(item);
+  }
+
+  /** Загрузка изображения для новости (admin). Возвращает URL. */
+  async uploadNewsImage(file: Express.Multer.File): Promise<{ url: string }> {
+    if (!file?.buffer) {
+      throw new BadRequestException("Файл не передан");
+    }
+    if (!NEWS_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP");
+    }
+    if (file.size > NEWS_IMAGE_MAX_SIZE) {
+      throw new BadRequestException("Размер файла превышает 5 МБ");
+    }
+
+    const ext = file.originalname?.match(/\.[a-z]+$/i)?.[0] ?? ".jpg";
+    const uploadResult = await this.storage.upload(
+      {
+        buffer: file.buffer,
+        mimeType: file.mimetype,
+        size: file.size,
+        originalName: `news-${Date.now()}${ext}`,
+      },
+      {
+        allowedMimeTypes: NEWS_IMAGE_MIME_TYPES,
+        maxSizeBytes: NEWS_IMAGE_MAX_SIZE,
+        isPublic: true,
+        pathPrefix: "news/admin-images",
+      },
+    );
+
+    return { url: uploadResult.url };
   }
 }

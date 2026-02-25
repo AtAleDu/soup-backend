@@ -1,5 +1,26 @@
-import {Controller,Post,Put,Delete,Body,Param,UseGuards,Patch,} from "@nestjs/common";
-import {ApiTags,ApiOperation,ApiResponse,ApiParam,ApiBearerAuth,} from "@nestjs/swagger";
+import {
+  Controller,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Patch,
+  UploadedFile,
+  UseInterceptors,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
+} from "@nestjs/swagger";
 import { NewsService } from "../news.service";
 import { CreateNewsDto } from "../dto/create-news.dto";
 import { UpdateNewsDto } from "../dto/update-news.dto";
@@ -11,6 +32,20 @@ import { JwtAuthGuard } from "../../auth/jwt/jwt-auth.guard";
 @Controller("admin/news")
 export class AdminNewsController {
   constructor(private readonly service: NewsService) {}
+
+  // ADMIN: загрузить изображение для новости
+  @ApiOperation({ summary: "Загрузить изображение (admin)" })
+  @Post("upload-image")
+  @UseInterceptors(
+    FileInterceptor("image", {
+      storage: memoryStorage(),
+    }),
+  )
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({ schema: { type: "object", properties: { image: { type: "string", format: "binary" } } } })
+  uploadImage(@UploadedFile() file: Express.Multer.File) {
+    return this.service.uploadNewsImage(file);
+  }
 
   // ADMIN: создать новость
   @ApiOperation({ summary: "Создать новость (admin)" })

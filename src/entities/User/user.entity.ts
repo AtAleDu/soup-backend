@@ -4,6 +4,7 @@ import { Tariff } from "../Tarif/tariff.entity";
 export enum UserRole {
   СOMPANY = "company",
   CLIENT = "client",
+  ADMIN = "ADMIN",
 }
 
 export enum UserStatus {
@@ -16,11 +17,7 @@ export class User {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({
-    type: "enum",
-    enum: UserRole,
-    default: UserRole.СOMPANY,
-  })
+  @Column({ type: "varchar", length: 20, default: UserRole.СOMPANY })
   role: UserRole;
 
   @Column()
