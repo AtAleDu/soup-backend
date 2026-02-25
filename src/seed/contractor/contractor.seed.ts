@@ -31,15 +31,8 @@ export const seedContractor = async (dataSource: DataSource) => {
     existing.subcategories = seedCategory.subcategories.map((seedSubcategory) => {
       const matched = subcategoriesByTitle.get(seedSubcategory.title)
       if (!matched) {
-        return subcategoryRepo.create({
-          title: seedSubcategory.title,
-          logoUrl: seedSubcategory.logoUrl,
-          imageUrl: seedSubcategory.imageUrl,
-        })
+        return subcategoryRepo.create({ title: seedSubcategory.title })
       }
-
-      matched.logoUrl = seedSubcategory.logoUrl
-      matched.imageUrl = seedSubcategory.imageUrl
       return matched
     })
 
