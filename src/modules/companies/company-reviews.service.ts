@@ -11,10 +11,9 @@ import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
 import { CompanyReviewReply } from "@entities/CompanyReviewReply/company-review-reply.entity";
 import { Client } from "@entities/Client/client.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
+import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 import { CreateCompanyReviewDto } from "./dto/create-company-review.dto";
 
-const REVIEW_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-const REVIEW_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const STORAGE_PATH_PREFIX = "personal-account/company-account/reviews";
 
 @Injectable()
@@ -127,12 +126,12 @@ export class CompanyReviewsService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!REVIEW_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
       throw new BadRequestException(
-        "Недопустимый формат. Разрешены: PNG, JPEG, WebP",
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
       );
     }
-    if (file.size > REVIEW_IMAGE_MAX_SIZE) {
+    if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
     }
 
@@ -157,8 +156,8 @@ export class CompanyReviewsService {
         originalName: file.originalname ?? "image.jpg",
       },
       {
-        allowedMimeTypes: REVIEW_IMAGE_MIME_TYPES,
-        maxSizeBytes: REVIEW_IMAGE_MAX_SIZE,
+        allowedMimeTypes: [...UPLOAD_IMAGE.allowedMimeTypes],
+        maxSizeBytes: UPLOAD_IMAGE.maxSizeBytes,
         isPublic: true,
         pathPrefix,
       },

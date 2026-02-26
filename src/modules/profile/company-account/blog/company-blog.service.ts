@@ -4,14 +4,12 @@ import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
+import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 import { resetPinnedByCompanyBlog } from "@modules/blogs/blogs.utils";
 import { CreateBlogDto } from "./dto/create-blog.dto";
 import { UpdateBlogDto } from "./dto/update-blog.dto";
 
 export type CompanyBlogStatus = "all" | "published" | "drafts" | "moderation";
-
-const BLOG_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-const BLOG_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 @Injectable()
 export class CompanyBlogService {
@@ -158,10 +156,10 @@ export class CompanyBlogService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!BLOG_IMAGE_MIME_TYPES.includes(file.mimetype)) {
-      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP");
+    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
+      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG");
     }
-    if (file.size > BLOG_IMAGE_MAX_SIZE) {
+    if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
     }
 
@@ -175,8 +173,8 @@ export class CompanyBlogService {
         originalName: `blog${ext}`,
       },
       {
-        allowedMimeTypes: BLOG_IMAGE_MIME_TYPES,
-        maxSizeBytes: BLOG_IMAGE_MAX_SIZE,
+        allowedMimeTypes: [...UPLOAD_IMAGE.allowedMimeTypes],
+        maxSizeBytes: UPLOAD_IMAGE.maxSizeBytes,
         isPublic: true,
         pathPrefix: `personal-account/company-account/blog-images/${company.companyId}`,
       },

@@ -4,11 +4,9 @@ import { Repository, DataSource, In } from "typeorm";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { BlogLike } from "@entities/BlogLike/blog-like.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
+import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 import { resetPinnedBlog } from "./blogs.utils";
 import { UpdateBlogDto } from "./dto/update-blog.dto";
-
-const BLOG_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-const BLOG_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
 @Injectable()
 export class BlogsService {
@@ -173,12 +171,12 @@ export class BlogsService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!BLOG_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
       throw new BadRequestException(
-        "Недопустимый формат. Разрешены: PNG, JPEG, WebP",
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
       );
     }
-    if (file.size > BLOG_IMAGE_MAX_SIZE) {
+    if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
     }
     const ext = file.originalname?.match(/\.[a-z]+$/i)?.[0] ?? ".jpg";
@@ -190,8 +188,8 @@ export class BlogsService {
         originalName: `blog-admin-${Date.now()}${ext}`,
       },
       {
-        allowedMimeTypes: BLOG_IMAGE_MIME_TYPES,
-        maxSizeBytes: BLOG_IMAGE_MAX_SIZE,
+        allowedMimeTypes: [...UPLOAD_IMAGE.allowedMimeTypes],
+        maxSizeBytes: UPLOAD_IMAGE.maxSizeBytes,
         isPublic: true,
         pathPrefix: "blogs/admin-images",
       },

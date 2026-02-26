@@ -9,15 +9,8 @@ import { Repository } from "typeorm";
 import { Client } from "@entities/Client/client.entity";
 import { Order, OrderStatus } from "@entities/Order/order.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
+import { UPLOAD_ORDER_FILE } from "@infrastructure/upload/upload-constraints";
 import { CreateOrderDto } from "./dto/create-order.dto";
-
-const ORDER_FILE_MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-const ORDER_FILE_MIME_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "application/pdf",
-];
 
 @Injectable()
 export class CreateOrderService {
@@ -63,12 +56,12 @@ export class CreateOrderService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!ORDER_FILE_MIME_TYPES.includes(file.mimetype)) {
+    if (!(UPLOAD_ORDER_FILE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
       throw new BadRequestException(
-        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, PDF",
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG, PDF, DOC, DOCX",
       );
     }
-    if (file.size > ORDER_FILE_MAX_SIZE) {
+    if (file.size > UPLOAD_ORDER_FILE.maxSizeBytes) {
       throw new BadRequestException("Размер файла превышает 10 МБ");
     }
 
@@ -81,8 +74,8 @@ export class CreateOrderService {
         originalName: `order${ext}`,
       },
       {
-        allowedMimeTypes: ORDER_FILE_MIME_TYPES,
-        maxSizeBytes: ORDER_FILE_MAX_SIZE,
+        allowedMimeTypes: [...UPLOAD_ORDER_FILE.allowedMimeTypes],
+        maxSizeBytes: UPLOAD_ORDER_FILE.maxSizeBytes,
         isPublic: true,
         pathPrefix,
       },

@@ -6,9 +6,7 @@ import { CreateNewsDto } from "./dto/create-news.dto";
 import { UpdateNewsDto } from "./dto/update-news.dto";
 import { getNewsByIdOrFail, resetImportantNews } from "./news.utils";
 import { StorageService } from "@infrastructure/storage/storage.service";
-
-const NEWS_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-const NEWS_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
+import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 
 @Injectable()
 export class NewsService {
@@ -103,10 +101,10 @@ export class NewsService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!NEWS_IMAGE_MIME_TYPES.includes(file.mimetype)) {
-      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP");
+    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
+      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG");
     }
-    if (file.size > NEWS_IMAGE_MAX_SIZE) {
+    if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
     }
 
@@ -119,8 +117,8 @@ export class NewsService {
         originalName: `news-${Date.now()}${ext}`,
       },
       {
-        allowedMimeTypes: NEWS_IMAGE_MIME_TYPES,
-        maxSizeBytes: NEWS_IMAGE_MAX_SIZE,
+        allowedMimeTypes: [...UPLOAD_IMAGE.allowedMimeTypes],
+        maxSizeBytes: UPLOAD_IMAGE.maxSizeBytes,
         isPublic: true,
         pathPrefix: "news/admin-images",
       },

@@ -5,6 +5,7 @@ import { Company } from '@entities/Company/company.entity'
 import { UpdateCompanyAccountDto } from '../dto/update-company-account.dto'
 import { User } from '@entities/User/user.entity'
 import { StorageService } from '@infrastructure/storage/storage.service'
+import { UPLOAD_LOGO } from '@infrastructure/upload/upload-constraints'
 import sharp from 'sharp'
 import { GetCompanyProfileService } from '../get-profile/get-profile.service'
 
@@ -102,25 +103,22 @@ export class EditCompanyAccountService {
   }
 
   async uploadCompanyLogo(userId: string, file) {
-    const maxSizeBytes = 2 * 1024 * 1024
-    const allowedMimeTypes = [
-      'image/png',
-      'image/jpeg',
-      'image/webp',
-      'image/svg+xml',
-    ]
-
-    if (!allowedMimeTypes.includes(file.mimetype)) {
+    if (!(UPLOAD_LOGO.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
       throw new BadRequestException('Недопустимый формат логотипа')
     }
-    if (file.size > maxSizeBytes) {
+    if (file.size > UPLOAD_LOGO.maxSizeBytes) {
       throw new BadRequestException('Размер файла превышает 2 МБ')
     }
 
     const metadata = await sharp(file.buffer).metadata()
     const width = metadata.width ?? 0
     const height = metadata.height ?? 0
-    if (width < 96 || height < 96 || width > 512 || height > 512) {
+    if (
+      width < UPLOAD_LOGO.minWidth ||
+      height < UPLOAD_LOGO.minHeight ||
+      width > UPLOAD_LOGO.maxWidth ||
+      height > UPLOAD_LOGO.maxHeight
+    ) {
       throw new BadRequestException('Размер логотипа должен быть от 96 до 512 пикселей')
     }
 
@@ -141,7 +139,7 @@ export class EditCompanyAccountService {
       },
       {
         allowedMimeTypes: ['image/png'],
-        maxSizeBytes,
+        maxSizeBytes: UPLOAD_LOGO.maxSizeBytes,
         isPublic: true,
         pathPrefix: `personal-account/company-account/profile-logo/${userId}`,
       },

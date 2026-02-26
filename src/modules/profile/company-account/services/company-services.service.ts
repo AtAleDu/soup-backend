@@ -8,10 +8,7 @@ import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
-import {
-  SERVICE_IMAGE_MAX_SIZE,
-  SERVICE_IMAGE_MIME_TYPES,
-} from "./company-services.constants";
+import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 import { SaveCompanyServicesDto } from "./dto/save-company-services.dto";
 
 @Injectable()
@@ -101,12 +98,12 @@ export class CompanyServicesService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!SERVICE_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
       throw new BadRequestException(
-        "Недопустимый формат. Разрешены: PNG, JPEG, WebP",
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
       );
     }
-    if (file.size > SERVICE_IMAGE_MAX_SIZE) {
+    if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
     }
 
@@ -120,8 +117,8 @@ export class CompanyServicesService {
         originalName: `service${ext}`,
       },
       {
-        allowedMimeTypes: SERVICE_IMAGE_MIME_TYPES,
-        maxSizeBytes: SERVICE_IMAGE_MAX_SIZE,
+        allowedMimeTypes: [...UPLOAD_IMAGE.allowedMimeTypes],
+        maxSizeBytes: UPLOAD_IMAGE.maxSizeBytes,
         isPublic: true,
         pathPrefix: `personal-account/company-account/service-images/${company.companyId}`,
       },

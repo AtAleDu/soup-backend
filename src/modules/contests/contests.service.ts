@@ -5,9 +5,7 @@ import { Contest } from "@entities/Contest/contest.entity";
 import { CreateContestDto } from "./dto/create-contest.dto";
 import { UpdateContestDto } from "./dto/update-contest.dto";
 import { StorageService } from "@infrastructure/storage/storage.service";
-
-const CONTEST_IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-const CONTEST_IMAGE_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"];
+import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 
 function startDateSince(days: number): string {
   const d = new Date();
@@ -27,12 +25,12 @@ export class ContestsService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!CONTEST_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
       throw new BadRequestException(
-        "Недопустимый формат. Разрешены: PNG, JPEG, WebP",
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
       );
     }
-    if (file.size > CONTEST_IMAGE_MAX_SIZE) {
+    if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
     }
 
@@ -45,8 +43,8 @@ export class ContestsService {
         originalName: `contest-${Date.now()}${ext}`,
       },
       {
-        allowedMimeTypes: CONTEST_IMAGE_MIME_TYPES,
-        maxSizeBytes: CONTEST_IMAGE_MAX_SIZE,
+        allowedMimeTypes: [...UPLOAD_IMAGE.allowedMimeTypes],
+        maxSizeBytes: UPLOAD_IMAGE.maxSizeBytes,
         isPublic: true,
         pathPrefix: "contests/admin-images",
       },
