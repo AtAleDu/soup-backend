@@ -23,7 +23,7 @@ import { RespondOrderDto } from "./dto/respond-order.dto";
 @ApiBearerAuth()
 @Controller("orders")
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("company")
+@Roles("company", "ADMIN")
 export class OrdersController {
   constructor(private readonly service: OrdersService) {}
 
