@@ -199,6 +199,7 @@ export class BlogsService {
 
   async findAllForAdmin() {
     return this.repo.find({
+      where: { status: BlogStatus.PUBLISHED },
       relations: { company: true },
       order: { createdAt: "DESC" },
     });
