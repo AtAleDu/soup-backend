@@ -7,6 +7,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
+import { CompanyServiceStatus } from "@entities/CompanyService/company-service-status.enum";
 import { StorageService } from "@infrastructure/storage/storage.service";
 import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 import { SaveCompanyServicesDto } from "./dto/save-company-services.dto";
@@ -83,6 +84,7 @@ export class CompanyServicesService {
           service: service.subcategory,
           categoryName: service.name,
           imageUrls: Array.isArray(service.imageUrls) ? service.imageUrls : [],
+          status: CompanyServiceStatus.MODERATION,
         }),
       ),
     );

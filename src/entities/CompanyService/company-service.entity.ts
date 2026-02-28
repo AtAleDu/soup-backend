@@ -9,6 +9,7 @@ import {
   Index,
 } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
+import { CompanyServiceStatus } from "./company-service-status.enum";
 
 @Entity("company_services")
 @Index(["companyId", "category"])
@@ -37,6 +38,13 @@ export class CompanyService {
 
   @Column("text", { array: true, name: "image_urls", default: [] })
   imageUrls: string[];
+
+  @Column({
+    type: "enum",
+    enum: CompanyServiceStatus,
+    default: CompanyServiceStatus.MODERATION,
+  })
+  status: CompanyServiceStatus;
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;

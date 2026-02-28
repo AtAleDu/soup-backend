@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Brackets, In, Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
+import { CompanyServiceStatus } from "@entities/CompanyService/company-service-status.enum";
 import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
 import { ContractorTypeEntity } from "@entities/Contractor/contractor-categories.entity";
 
@@ -187,7 +188,10 @@ export class CompaniesService {
     }
 
     const rows = await this.services.find({
-      where: { companyId: company.companyId },
+      where: {
+        companyId: company.companyId,
+        status: CompanyServiceStatus.ACTIVE,
+      },
       order: { category: "ASC", service: "ASC" },
     });
 
