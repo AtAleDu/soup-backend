@@ -15,13 +15,6 @@ export class CreateNewsDto {
   image: string;
 
   @ApiProperty({
-    example: "Обложка новости",
-    description: "alt-текст изображения",
-  })
-  @IsString()
-  imageAlt: string;
-
-  @ApiProperty({
     example: "Политика",
     description: "Категория новости",
   })
