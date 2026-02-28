@@ -200,7 +200,7 @@ export class CompaniesService {
         services: {
           name: string;
           subcategory: string;
-          imageUrl: string | null;
+          imageUrls: string[];
         }[];
       }
     >();
@@ -216,7 +216,7 @@ export class CompaniesService {
       grouped.get(key)!.services.push({
         name: row.categoryName,
         subcategory: row.service,
-        imageUrl: row.imageUrl ?? null,
+        imageUrls: Array.isArray(row.imageUrls) ? row.imageUrls : [],
       });
     });
 

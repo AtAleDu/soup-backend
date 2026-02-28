@@ -7,8 +7,8 @@ export class NewsEntity {
   @Column()
   image: string;
 
-  @Column()
-  imageAlt: string;
+  @Column({ nullable: true })
+  imageAlt: string | null;
 
   @Column()
   category: string;

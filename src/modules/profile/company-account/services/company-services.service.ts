@@ -42,7 +42,7 @@ export class CompanyServicesService {
         services: {
           name: string;
           subcategory: string;
-          imageUrl: string | null;
+          imageUrls: string[];
         }[];
       }
     >();
@@ -58,7 +58,7 @@ export class CompanyServicesService {
       grouped.get(key)!.services.push({
         name: row.categoryName,
         subcategory: row.service,
-        imageUrl: row.imageUrl ?? null,
+        imageUrls: Array.isArray(row.imageUrls) ? row.imageUrls : [],
       });
     });
 
@@ -82,7 +82,7 @@ export class CompanyServicesService {
             index === 0 ? (category.description ?? null) : null,
           service: service.subcategory,
           categoryName: service.name,
-          imageUrl: service.imageUrl ?? null,
+          imageUrls: Array.isArray(service.imageUrls) ? service.imageUrls : [],
         }),
       ),
     );

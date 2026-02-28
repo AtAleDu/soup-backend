@@ -18,13 +18,14 @@ class SaveCompanyServiceItemDto {
   subcategory: string;
 
   @ApiProperty({
-    example: "https://example.com/service.png",
+    example: ["https://example.com/service.png"],
+    isArray: true,
     required: false,
-    nullable: true,
   })
   @IsOptional()
-  @IsString()
-  imageUrl?: string | null;
+  @IsArray()
+  @IsString({ each: true })
+  imageUrls?: string[];
 }
 
 class SaveCompanyServiceCategoryDto {
