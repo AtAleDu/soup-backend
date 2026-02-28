@@ -8,9 +8,6 @@ export class NewsEntity {
   image: string;
 
   @Column()
-  imageAlt: string;
-
-  @Column()
   category: string;
 
   @Column()
