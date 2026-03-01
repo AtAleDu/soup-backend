@@ -26,6 +26,52 @@ export class OrdersService {
     private readonly companies: Repository<Company>,
   ) {}
 
+  async findAllForAdmin(status?: string): Promise<Order[]> {
+    const filterStatus = status ?? OrderStatus.MODERATION;
+    const allowed = Object.values(OrderStatus);
+    const safeStatus = allowed.includes(filterStatus as (typeof allowed)[number])
+      ? filterStatus
+      : OrderStatus.MODERATION;
+    return this.orders.find({
+      where: { status: safeStatus },
+      relations: { client: true },
+      order: { createdAt: "DESC" },
+    });
+  }
+
+  async findOneForAdmin(id: number): Promise<Order> {
+    const order = await this.orders.findOne({
+      where: { id },
+      relations: { client: true },
+    });
+    if (!order) {
+      throw new NotFoundException("Заказ не найден");
+    }
+    return order;
+  }
+
+  async updateStatusForAdmin(id: number, status: string): Promise<Order> {
+    const allowed = Object.values(OrderStatus);
+    if (!allowed.includes(status as (typeof allowed)[number])) {
+      throw new BadRequestException("Недопустимый статус");
+    }
+    const order = await this.orders.findOne({ where: { id } });
+    if (!order) {
+      throw new NotFoundException("Заказ не найден");
+    }
+    order.status = status;
+    return this.orders.save(order);
+  }
+
+  async removeForAdmin(id: number): Promise<{ success: boolean }> {
+    const order = await this.orders.findOne({ where: { id } });
+    if (!order) {
+      throw new NotFoundException("Заказ не найден");
+    }
+    await this.orders.remove(order);
+    return { success: true };
+  }
+
   /**
    * Список заказов всех пользователей по статусу (для каталога / откликов компаний).
    */
