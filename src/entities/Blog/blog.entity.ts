@@ -54,6 +54,12 @@ export class Blog {
   @Column({ name: "like_count", type: "int", default: 0 })
   likeCount: number;
 
+  @Column({ name: "rejection_reason", type: "text", nullable: true })
+  rejectionReason: string | null;
+
+  @Column({ name: "approved_at", type: "timestamptz", nullable: true })
+  approvedAt: Date | null;
+
   @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt: Date;
 }

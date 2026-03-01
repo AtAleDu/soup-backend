@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Patch,
+  Query,
   UseGuards,
   UploadedFile,
   UseInterceptors,
@@ -23,6 +24,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { BlogStatus } from "@entities/Blog/blog.entity";
 import { BlogsService } from "../blogs.service";
 import { UpdateBlogDto } from "../dto/update-blog.dto";
 
@@ -36,8 +38,13 @@ export class AdminBlogsController {
   @ApiOperation({ summary: "Список всех блогов (admin)" })
   @ApiResponse({ status: 200, description: "Список блогов" })
   @Get()
-  findAll() {
-    return this.service.findAllForAdmin();
+  findAll(@Query("status") status?: "draft" | "published" | "moderation") {
+    const statusMap: Record<string, BlogStatus> = {
+      draft: BlogStatus.DRAFT,
+      moderation: BlogStatus.MODERATION,
+      published: BlogStatus.PUBLISHED,
+    };
+    return this.service.findAllForAdmin(status ? statusMap[status] : undefined);
   }
 
   @ApiOperation({ summary: "Загрузить изображение блога (admin)" })

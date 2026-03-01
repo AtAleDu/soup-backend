@@ -1,7 +1,18 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsString, IsOptional, IsArray } from "class-validator";
+import { IsString, IsOptional, IsArray, IsEnum } from "class-validator";
+import { BlogStatus } from "@entities/Blog/blog.entity";
 
 export class UpdateBlogDto {
+  @ApiPropertyOptional({ enum: BlogStatus, example: BlogStatus.PUBLISHED })
+  @IsOptional()
+  @IsEnum(BlogStatus)
+  status?: BlogStatus;
+
+  @ApiPropertyOptional({ example: "Причина отказа от модерации" })
+  @IsOptional()
+  @IsString()
+  rejectionReason?: string;
+
   @ApiPropertyOptional({ example: "https://cdn.site/blog/cover.jpg" })
   @IsOptional()
   @IsString()

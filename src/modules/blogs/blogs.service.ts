@@ -197,9 +197,10 @@ export class BlogsService {
     return { url: uploadResult.url };
   }
 
-  async findAllForAdmin() {
+  async findAllForAdmin(status?: BlogStatus) {
+    const where = status ? { status } : { status: BlogStatus.PUBLISHED };
     return this.repo.find({
-      where: { status: BlogStatus.PUBLISHED },
+      where,
       relations: { company: true },
       order: { createdAt: "DESC" },
     });
@@ -217,6 +218,11 @@ export class BlogsService {
   async updateForAdmin(id: string, dto: UpdateBlogDto) {
     const blog = await this.repo.findOne({ where: { id }, relations: { company: true } });
     if (!blog) throw new NotFoundException("Blog not found");
+    if (dto.status !== undefined) {
+      blog.status = dto.status;
+      if (dto.status === BlogStatus.PUBLISHED) blog.approvedAt = new Date();
+    }
+    if (dto.rejectionReason !== undefined) blog.rejectionReason = dto.rejectionReason;
     if (dto.title !== undefined) blog.title = dto.title;
     if (dto.description !== undefined) blog.description = dto.description;
     if (dto.imageUrl !== undefined) blog.imageUrl = dto.imageUrl;

@@ -23,6 +23,12 @@ function parseStatus(status?: string): CompanyBlogStatus {
 export class CompanyBlogController {
   constructor(private readonly service: CompanyBlogService) {}
 
+  @ApiOperation({ summary: "Уведомления компании (отклонённые блоги с причиной)" })
+  @Get("notifications")
+  getNotifications(@Req() req: { user: { sub: string } }) {
+    return this.service.getCompanyNotifications(req.user.sub);
+  }
+
   @ApiOperation({ summary: "Блоги компании: все / опубликованные / черновики" })
   @Get("blog")
   getBlogs(
