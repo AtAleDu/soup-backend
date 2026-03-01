@@ -7,6 +7,8 @@ import {
   GetClientProfileController,
   GetClientProfileService,
 } from "./get-profile";
+import { ClientNotificationsController } from "./notifications/client-notifications.controller";
+import { ClientNotificationsService } from "./notifications/client-notifications.service";
 import {
   EditClientAccountController,
   EditClientAccountService,
@@ -20,11 +22,13 @@ import { CreateOrderController, CreateOrderService } from "./create-order";
   ],
   controllers: [
     GetClientProfileController,
+    ClientNotificationsController,
     EditClientAccountController,
     CreateOrderController,
   ],
   providers: [
     GetClientProfileService,
+    ClientNotificationsService,
     EditClientAccountService,
     CreateOrderService,
   ],

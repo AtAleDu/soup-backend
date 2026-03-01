@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { IsNull, Not, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
@@ -101,49 +101,6 @@ export class CompanyBlogService {
       order: { pinnedByCompany: "DESC", createdAt: "DESC" },
     });
     return items.map((item) => this.mapItem(item, company));
-  }
-
-  async getCompanyNotifications(userId: string) {
-    const company = await this.getCompanyByUser(userId);
-    const [rejected, approved] = await Promise.all([
-      this.blogs.find({
-        where: {
-          companyId: company.companyId,
-          status: BlogStatus.DRAFT,
-          rejectionReason: Not(IsNull()),
-        },
-        order: { createdAt: "DESC" },
-      }),
-      this.blogs.find({
-        where: {
-          companyId: company.companyId,
-          status: BlogStatus.PUBLISHED,
-          approvedAt: Not(IsNull()),
-        },
-        order: { approvedAt: "DESC" },
-      }),
-    ]);
-    const rejectedItems = rejected.map((b) => ({
-      id: b.id,
-      entityType: "blog" as const,
-      entityId: b.id,
-      entityTitle: b.title,
-      status: "rejected" as const,
-      rejectionReason: b.rejectionReason ?? undefined,
-      createdAt: b.createdAt,
-    }));
-    const approvedItems = approved.map((b) => ({
-      id: b.id,
-      entityType: "blog" as const,
-      entityId: b.id,
-      entityTitle: b.title,
-      status: "approved" as const,
-      createdAt: b.approvedAt ?? b.createdAt,
-    }));
-    const merged = [...rejectedItems, ...approvedItems].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-    return merged;
   }
 
   async getOne(userId: string, blogId: string) {
