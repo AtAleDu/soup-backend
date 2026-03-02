@@ -57,7 +57,7 @@ export class CompanyServicesService {
         });
       }
       grouped.get(key)!.services.push({
-        name: row.categoryName,
+        name: row.service,
         subcategory: row.service,
         imageUrls: Array.isArray(row.imageUrls) ? row.imageUrls : [],
       });
@@ -81,8 +81,7 @@ export class CompanyServicesService {
           // Сохраняем описание только в первую услугу категории
           categoryDescription:
             index === 0 ? (category.description ?? null) : null,
-          service: service.subcategory,
-          categoryName: service.name,
+          service: service.name,
           imageUrls: Array.isArray(service.imageUrls) ? service.imageUrls : [],
           status: CompanyServiceStatus.MODERATION,
         }),

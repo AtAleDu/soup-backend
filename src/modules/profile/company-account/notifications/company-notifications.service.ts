@@ -96,7 +96,7 @@ export class CompanyNotificationsService {
         id: s.id,
         entityType: "service" as const,
         entityId: s.id,
-        entityTitle: s.categoryName,
+        entityTitle: s.service,
         status: "approved" as const,
         createdAt: toDateStr(s.updatedAt),
       }),
@@ -107,7 +107,7 @@ export class CompanyNotificationsService {
         id: s.id,
         entityType: "service" as const,
         entityId: s.id,
-        entityTitle: s.categoryName,
+        entityTitle: s.service,
         status: "rejected" as const,
         createdAt: toDateStr(s.updatedAt),
       }));

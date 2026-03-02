@@ -33,9 +33,6 @@ export class CompanyService {
   @Column()
   service: string;
 
-  @Column({ name: "category_name" })
-  categoryName: string;
-
   @Column("text", { array: true, name: "image_urls", default: [] })
   imageUrls: string[];
 

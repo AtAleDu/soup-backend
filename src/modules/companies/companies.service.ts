@@ -218,7 +218,7 @@ export class CompaniesService {
         });
       }
       grouped.get(key)!.services.push({
-        name: row.categoryName,
+        name: row.service,
         subcategory: row.service,
         imageUrls: Array.isArray(row.imageUrls) ? row.imageUrls : [],
       });
