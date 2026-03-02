@@ -50,16 +50,26 @@ export class OrdersService {
     return order;
   }
 
-  async updateStatusForAdmin(id: number, status: string): Promise<Order> {
+  async updateStatusForAdmin(
+    id: number,
+    dto: { status: string; rejectionReason?: string },
+  ): Promise<Order> {
     const allowed = Object.values(OrderStatus);
-    if (!allowed.includes(status as (typeof allowed)[number])) {
+    if (!allowed.includes(dto.status as (typeof allowed)[number])) {
       throw new BadRequestException("Недопустимый статус");
     }
     const order = await this.orders.findOne({ where: { id } });
     if (!order) {
       throw new NotFoundException("Заказ не найден");
     }
-    order.status = status;
+    order.status = dto.status;
+    if (dto.status === OrderStatus.ACTIVE) {
+      order.approvedAt = new Date();
+      order.rejectionReason = null;
+    }
+    if (dto.rejectionReason !== undefined) {
+      order.rejectionReason = dto.rejectionReason || null;
+    }
     return this.orders.save(order);
   }
 

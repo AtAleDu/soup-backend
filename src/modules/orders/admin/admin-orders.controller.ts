@@ -61,7 +61,10 @@ export class AdminOrdersController {
     @Param("id", ParseIntPipe) id: number,
     @Body() dto: UpdateOrderStatusDto,
   ) {
-    return this.service.updateStatusForAdmin(id, dto.status);
+    return this.service.updateStatusForAdmin(id, {
+      status: dto.status,
+      rejectionReason: dto.rejectionReason,
+    });
   }
 
   @ApiOperation({ summary: "Удалить заказ (admin)" })

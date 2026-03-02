@@ -49,6 +49,12 @@ export class Order {
   @Column({ type: "varchar", default: OrderStatus.ACTIVE })
   status: string;
 
+  @Column({ name: "rejection_reason", type: "text", nullable: true })
+  rejectionReason: string | null;
+
+  @Column({ name: "approved_at", type: "timestamptz", nullable: true })
+  approvedAt: Date | null;
+
   @Column({ type: "timestamp with time zone", nullable: true })
   deadline: Date | null;
 

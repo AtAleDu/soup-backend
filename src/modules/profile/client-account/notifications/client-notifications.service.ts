@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { IsNull, Not, Repository } from "typeorm";
 import { Client } from "@entities/Client/client.entity";
 import { Order, OrderStatus } from "@entities/Order/order.entity";
 
@@ -31,14 +31,23 @@ export class ClientNotificationsService {
 
   async getNotifications(userId: string): Promise<ClientNotificationItem[]> {
     const client = await this.getClientByUser(userId);
+    const clientId = client.clientId;
 
-    const [ordersActive, ordersCompleted] = await Promise.all([
+    const [ordersApproved, ordersRejected] = await Promise.all([
       this.orders.find({
-        where: { clientId: client.clientId, status: OrderStatus.ACTIVE },
-        order: { updatedAt: "DESC" },
+        where: {
+          clientId,
+          status: OrderStatus.ACTIVE,
+          approvedAt: Not(IsNull()),
+        },
+        order: { approvedAt: "DESC" },
       }),
       this.orders.find({
-        where: { clientId: client.clientId, status: OrderStatus.COMPLETED },
+        where: {
+          clientId,
+          status: OrderStatus.COMPLETED,
+          rejectionReason: Not(IsNull()),
+        },
         order: { updatedAt: "DESC" },
       }),
     ]);
@@ -46,20 +55,34 @@ export class ClientNotificationsService {
     const toDateStr = (d: Date | string) =>
       d instanceof Date ? d.toISOString() : String(d);
 
-    const items: ClientNotificationItem[] = [...ordersActive, ...ordersCompleted]
-      .sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-      )
-      .map((order) => ({
+    const approvedItems: ClientNotificationItem[] = ordersApproved.map(
+      (order) => ({
         id: String(order.id),
         entityType: "order" as const,
         entityId: String(order.id),
         entityTitle: order.title,
         status: "approved" as const,
-        createdAt: toDateStr(order.updatedAt),
-      }));
+        createdAt: toDateStr(order.approvedAt ?? order.updatedAt),
+      }),
+    );
 
-    return items;
+    const rejectedItems: ClientNotificationItem[] = ordersRejected.map(
+      (order) => ({
+        id: String(order.id),
+        entityType: "order" as const,
+        entityId: String(order.id),
+        entityTitle: order.title,
+        status: "rejected" as const,
+        rejectionReason: order.rejectionReason ?? undefined,
+        createdAt: toDateStr(order.updatedAt),
+      }),
+    );
+
+    const merged = [...approvedItems, ...rejectedItems].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    return merged;
   }
 }
