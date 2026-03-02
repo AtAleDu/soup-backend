@@ -21,8 +21,8 @@ export const UPLOAD_ORDER_FILE = {
 export const UPLOAD_LOGO = {
   allowedMimeTypes: ["image/png", "image/jpeg", "image/webp", "image/svg+xml"],
   maxSizeBytes: 2 * 1024 * 1024, // 2 MB
-  minWidth: 96,
+  minWidth: 16,
   maxWidth: 512,
-  minHeight: 96,
+  minHeight: 16,
   maxHeight: 512,
 } as const;

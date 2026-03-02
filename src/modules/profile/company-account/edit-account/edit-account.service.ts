@@ -119,7 +119,7 @@ export class EditCompanyAccountService {
       width > UPLOAD_LOGO.maxWidth ||
       height > UPLOAD_LOGO.maxHeight
     ) {
-      throw new BadRequestException('Размер логотипа должен быть от 96 до 512 пикселей')
+      throw new BadRequestException('Размер логотипа должен быть от 16 до 512 пикселей')
     }
 
     const resizedBuffer = await sharp(file.buffer)
