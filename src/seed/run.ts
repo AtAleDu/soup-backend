@@ -12,7 +12,7 @@ import { Client } from "../entities/Client/client.entity";
 import { Order } from "../entities/Order/order.entity";
 import { Tariff } from "../entities/Tarif/tariff.entity";
 import { Article } from "../entities/Article/article.entity";
-import { Ad } from "../entities/Ad/ad.entity";
+import { AdBanner } from "../entities/Ad/ad-banner.entity";
 import { AdPosition } from "../entities/Ad/ad-position.entity";
 
 import { seedNews } from "./news/news.seed";
@@ -55,7 +55,7 @@ const dataSource = new DataSource({
     Order,
     Tariff,
     Article,
-    Ad,
+    AdBanner,
     AdPosition,
   ],
 

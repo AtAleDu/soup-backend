@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { Ad } from "./Ad/ad.entity";
+import { AdBanner } from "./Ad/ad-banner.entity";
 import { AdPosition } from "./Ad/ad-position.entity";
 import { Article } from "./Article/article.entity";
 import { Company } from "./Company/company.entity";
@@ -25,7 +25,7 @@ import { OrderResponse } from "./OrderResponse/order-response.entity";
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Ad,
+      AdBanner,
       AdPosition,
       Article,
       Blog,

@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { Article } from "../Article/article.entity";
-import { Ad } from "../Ad/ad.entity";
+import { AdBanner } from "../Ad/ad-banner.entity";
 import { Blog } from "../Blog/blog.entity";
 import { User } from "../User/user.entity";
 
@@ -56,8 +56,8 @@ export class Company {
   @OneToMany(() => Article, (article) => article.author)
   articles: Article[];
 
-  @OneToMany(() => Ad, (ad) => ad.company)
-  ads: Ad[];
+  @OneToMany(() => AdBanner, (adBanner) => adBanner.company)
+  adBanners: AdBanner[];
 
   @OneToMany(() => Blog, (blog) => blog.company)
   blogs: Blog[];
