@@ -83,7 +83,7 @@ export class CompanyServicesService {
             index === 0 ? (category.description ?? null) : null,
           service: service.name,
           imageUrls: Array.isArray(service.imageUrls) ? service.imageUrls : [],
-          status: CompanyServiceStatus.MODERATION,
+          status: CompanyServiceStatus.ACTIVE,
         }),
       ),
     );

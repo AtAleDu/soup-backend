@@ -39,7 +39,7 @@ export class CompanyService {
   @Column({
     type: "enum",
     enum: CompanyServiceStatus,
-    default: CompanyServiceStatus.MODERATION,
+    default: CompanyServiceStatus.ACTIVE,
   })
   status: CompanyServiceStatus;
 
