@@ -13,6 +13,7 @@ import { Order } from "../entities/Order/order.entity";
 import { Tariff } from "../entities/Tarif/tariff.entity";
 import { Article } from "../entities/Article/article.entity";
 import { Ad } from "../entities/Ad/ad.entity";
+import { AdPosition } from "../entities/Ad/ad-position.entity";
 
 import { seedNews } from "./news/news.seed";
 import { seedContest } from "./contests/contest.seed";
@@ -22,6 +23,7 @@ import { seedBlog } from "./blogs/blog.seed";
 import { seedTariffs } from "./tariffs/tariffs.seed";
 import { seedClient } from "./client/client.seed";
 import { seedOrders } from "./orders/order.seed";
+import { seedAdPositions } from "./ad-positions/ad-positions.seed";
 
 const dbHost = process.env.POSTGRESQL_HOST || process.env.POSTGRESQL_HOSTNAME;
 const dbPort =
@@ -54,6 +56,7 @@ const dataSource = new DataSource({
     Tariff,
     Article,
     Ad,
+    AdPosition,
   ],
 
   synchronize: true,
@@ -76,6 +79,7 @@ async function run() {
   await seedTariffs(dataSource);
   await seedClient(dataSource);
   await seedOrders(dataSource);
+  await seedAdPositions(dataSource);
 
   await dataSource.destroy();
   console.log("Seed completed");

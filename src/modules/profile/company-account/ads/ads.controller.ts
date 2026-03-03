@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '@modules/auth/jwt/jwt-auth.guard'
 import { CompanyAdsService } from './ads.service'
 import { CompanyTariffsResponseDto } from './dto/company-tariffs.dto'
 import { CompanyCurrentTariffResponseDto } from './dto/company-current-tariff.dto'
+import { CompanyAdPositionsResponseDto } from './dto/company-ad-positions.dto'
 
 @ApiTags('Profile')
 @ApiBearerAuth()
@@ -24,5 +25,12 @@ export class CompanyAdsController {
   @Get('current-tariff')
   getCurrentTariff(@Req() req) {
     return this.service.getCurrentTariff(req.user.sub)
+  }
+
+  @ApiOperation({ summary: 'Получить список доступных позиций рекламы' })
+  @ApiResponse({ status: 200, type: CompanyAdPositionsResponseDto })
+  @Get('positions')
+  getAdPositions() {
+    return this.service.getAdPositions()
   }
 }

@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Ad } from "./Ad/ad.entity";
+import { AdPosition } from "./Ad/ad-position.entity";
 import { Article } from "./Article/article.entity";
 import { Company } from "./Company/company.entity";
 import { Contest } from "./Contest/contest.entity";
@@ -25,6 +26,7 @@ import { OrderResponse } from "./OrderResponse/order-response.entity";
   imports: [
     TypeOrmModule.forFeature([
       Ad,
+      AdPosition,
       Article,
       Blog,
       BlogLike,

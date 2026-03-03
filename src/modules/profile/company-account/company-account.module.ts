@@ -14,7 +14,8 @@ import { CompanyServicesController } from './services/company-services.controlle
 import { CompanyServicesService } from './services/company-services.service'
 import { CompanyService } from '@entities/CompanyService/company-service.entity'
 import { Tariff } from '@entities/Tarif/tariff.entity'
-import { CompanyAdsController, CompanyAdsService } from './ads'
+import { AdPosition } from '@entities/Ad/ad-position.entity'
+import { AdsExpirationScheduler, CompanyAdsController, CompanyAdsService } from './ads'
 import { OrderResponse } from '@entities/OrderResponse/order-response.entity'
 import { CompanyOrdersController, CompanyOrdersService } from './orders'
 import { CompanyNotificationsController } from './notifications/company-notifications.controller'
@@ -30,6 +31,7 @@ import { CompanyNotificationsService } from './notifications/company-notificatio
       CompanyReviewReply,
       CompanyService,
       Tariff,
+      AdPosition,
       OrderResponse,
     ]),
     StorageModule,
@@ -52,6 +54,7 @@ import { CompanyNotificationsService } from './notifications/company-notificatio
     CompanyNotificationsService,
     CompanyServicesService,
     CompanyAdsService,
+    AdsExpirationScheduler,
     CompanyOrdersService,
   ],
 })
