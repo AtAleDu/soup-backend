@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger'
 import { IsArray, IsEmail, IsObject, IsOptional, IsString, IsUrl, ValidateIf, ValidateNested } from 'class-validator'
-import { Type } from 'class-transformer'
+import { Transform, Type } from 'class-transformer'
 
 class CompanyPhoneDto {
   @ApiPropertyOptional({ example: '+79998887766' })
@@ -52,6 +52,11 @@ class CompanyContactsDto {
   @ApiPropertyOptional({ example: ['contact@company.com', 'sales@company.com'] })
   @IsOptional()
   @IsArray()
+  @Transform(({ value }: { value: unknown }) =>
+    Array.isArray(value)
+      ? value.filter((v): v is string => typeof v === 'string' && v.trim() !== '')
+      : value,
+  )
   @IsEmail({}, { each: true })
   emails?: string[]
 
