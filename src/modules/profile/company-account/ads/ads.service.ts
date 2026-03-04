@@ -4,8 +4,15 @@ import { Repository } from 'typeorm'
 import { User } from '@entities/User/user.entity'
 import { Tariff } from '@entities/Tarif/tariff.entity'
 import { AdPosition } from '@entities/Ad/ad-position.entity'
+import { Company } from '@entities/Company/company.entity'
+import { AdBanner } from '@entities/Ad/ad-banner.entity'
 
 const DEFAULT_TARIFF_NAME = 'basic'
+const DEFAULT_AD_POSITION_PRICE = 5000
+const AD_POSITION_PRICE_BY_CODE: Record<string, number> = {
+  banner: 5000,
+}
+const MAX_BANNERS_PER_POSITION = 5
 
 @Injectable()
 export class CompanyAdsService {
@@ -16,6 +23,10 @@ export class CompanyAdsService {
     private readonly tariffs: Repository<Tariff>,
     @InjectRepository(AdPosition)
     private readonly adPositions: Repository<AdPosition>,
+    @InjectRepository(Company)
+    private readonly companies: Repository<Company>,
+    @InjectRepository(AdBanner)
+    private readonly adBanners: Repository<AdBanner>,
   ) {}
 
   private async getUserById(userId: string) {
@@ -38,14 +49,39 @@ export class CompanyAdsService {
     }
   }
 
-  private mapAdPosition(position: AdPosition) {
+  private mapAdPosition(
+    position: AdPosition,
+    createdBannersCount: number,
+    previewBanners: AdBanner[],
+  ) {
+    const rawPrice = Number(position.price)
+    const fallbackPrice =
+      AD_POSITION_PRICE_BY_CODE[position.code] ?? DEFAULT_AD_POSITION_PRICE
+    const price = rawPrice > 0 ? rawPrice : fallbackPrice
+
     return {
       id: position.id,
       code: position.code,
       title: position.title,
       description: position.description,
+      price,
       sortOrder: position.sort_order,
+      createdBannersCount,
+      maxBanners: MAX_BANNERS_PER_POSITION,
+      canAddToCart:
+        createdBannersCount > 0 && createdBannersCount <= MAX_BANNERS_PER_POSITION,
+      previewBanners: previewBanners.map((banner) => ({
+        id: banner.id,
+        imageUrl: banner.image_url,
+        link: banner.link,
+      })),
     }
+  }
+
+  private async getCompanyByUserId(userId: string) {
+    const company = await this.companies.findOne({ where: { userId } })
+    if (!company) throw new NotFoundException('Компания не найдена')
+    return company
   }
 
   private async getDefaultTariff() {
@@ -131,14 +167,36 @@ export class CompanyAdsService {
     }
   }
 
-  async getAdPositions() {
+  async getAdPositions(userId: string) {
+    const company = await this.getCompanyByUserId(userId)
     const positions = await this.adPositions.find({
       where: { is_active: true },
       order: { sort_order: 'ASC', id: 'ASC' },
     })
+    const banners = await this.adBanners.find({
+      where: { company: { companyId: company.companyId }, is_active: true },
+      relations: ['position'],
+      order: { id: 'DESC' },
+    })
+
+    const bannersByPositionId = new Map<number, AdBanner[]>()
+    for (const banner of banners) {
+      const positionId = banner.position?.id
+      if (!positionId) continue
+      const list = bannersByPositionId.get(positionId) ?? []
+      list.push(banner)
+      bannersByPositionId.set(positionId, list)
+    }
 
     return {
-      positions: positions.map((position) => this.mapAdPosition(position)),
+      positions: positions.map((position) => {
+        const positionBanners = bannersByPositionId.get(position.id) ?? []
+        return this.mapAdPosition(
+          position,
+          positionBanners.length,
+          positionBanners.slice(0, MAX_BANNERS_PER_POSITION),
+        )
+      }),
     }
   }
 

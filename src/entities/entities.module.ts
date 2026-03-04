@@ -21,6 +21,8 @@ import { BlogLike } from "./BlogLike/blog-like.entity";
 import { Client } from "./Client/client.entity";
 import { Favorite } from "./Favorite/favorite.entity";
 import { OrderResponse } from "./OrderResponse/order-response.entity";
+import { AdsCart } from "./AdsCart/ads-cart.entity";
+import { AdsCartItem } from "./AdsCartItem/ads-cart-item.entity";
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { OrderResponse } from "./OrderResponse/order-response.entity";
       Company,
       Favorite,
       OrderResponse,
+      AdsCart,
+      AdsCartItem,
       Contest,
       CatalogFilter,
       SearchIndex,

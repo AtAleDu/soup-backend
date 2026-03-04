@@ -30,7 +30,7 @@ export class CompanyAdsController {
   @ApiOperation({ summary: 'Получить список доступных позиций рекламы' })
   @ApiResponse({ status: 200, type: CompanyAdPositionsResponseDto })
   @Get('positions')
-  getAdPositions() {
-    return this.service.getAdPositions()
+  getAdPositions(@Req() req) {
+    return this.service.getAdPositions(req.user.sub)
   }
 }
