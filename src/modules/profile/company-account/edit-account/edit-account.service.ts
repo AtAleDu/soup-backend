@@ -51,6 +51,7 @@ export class EditCompanyAccountService {
             phone: item.phone,
             representativeName: item.representativeName,
           }))
+          .slice(0, 1)
         updateData.phones = phones
       }
       if (dto.contacts.emails !== undefined) {
@@ -59,7 +60,7 @@ export class EditCompanyAccountService {
             (value): value is string =>
               typeof value === 'string' && value.trim() !== '',
           )
-          .slice(0, 2)
+          .slice(0, 1)
         updateData.emails = emails
         updateData.email = emails[0] ?? null
       } else if (dto.contacts.email !== undefined) {
@@ -92,6 +93,43 @@ export class EditCompanyAccountService {
     if (dto.logo_url !== undefined) updateData.logo_url = dto.logo_url
     if (dto.address !== undefined) updateData.address = dto.address
 
+    const hasProfileUpdate =
+      dto.profile !== undefined ||
+      dto.contacts !== undefined ||
+      dto.socials !== undefined ||
+      dto.name !== undefined ||
+      dto.description !== undefined ||
+      dto.region !== undefined ||
+      dto.regions !== undefined ||
+      dto.activity_type !== undefined ||
+      dto.website !== undefined ||
+      dto.logo_url !== undefined ||
+      dto.address !== undefined ||
+      dto.social_links !== undefined
+
+    const isLogoOnlyUpdate =
+      dto.profile !== undefined &&
+      dto.profile.logo !== undefined &&
+      dto.profile.name === undefined &&
+      dto.profile.description === undefined &&
+      dto.profile.regions === undefined &&
+      dto.profile.address === undefined &&
+      dto.contacts === undefined &&
+      dto.socials === undefined &&
+      dto.name === undefined &&
+      dto.description === undefined &&
+      dto.region === undefined &&
+      dto.regions === undefined &&
+      dto.activity_type === undefined &&
+      dto.website === undefined &&
+      dto.logo_url === undefined &&
+      dto.address === undefined &&
+      dto.social_links === undefined
+
+    if (hasProfileUpdate && !isLogoOnlyUpdate) {
+      this.validateRequiredProfileFields(company, updateData)
+    }
+
     await this.repo.update({ userId }, updateData)
 
     const nextUserName = dto.profile?.name ?? dto.name
@@ -102,6 +140,56 @@ export class EditCompanyAccountService {
     return this.profile.getProfile(userId)
   }
 
+  private validateRequiredProfileFields(
+    company: Company,
+    updateData: Partial<Company>,
+  ) {
+    const phones = (updateData.phones ?? company.phones ?? []) as
+      | Array<{ phone?: string | null }>
+      | null
+    const emails = (updateData.emails ?? company.emails ?? []) as
+      | Array<string | null>
+      | null
+    const name = updateData.name ?? company.name
+    const description = updateData.description ?? company.description
+    const logo = updateData.logo_url ?? company.logo_url
+    const regions = (updateData.regions ?? company.regions ?? []) as
+      | string[]
+      | null
+
+    const hasRequiredPhone = Array.isArray(phones)
+      ? phones.some(
+          (item) =>
+            typeof item?.phone === 'string' && item.phone.trim().length > 0,
+        )
+      : false
+
+    const hasRequiredEmail = Array.isArray(emails)
+      ? emails.some(
+          (value) => typeof value === 'string' && value.trim().length > 0,
+        )
+      : false
+
+    const missingFields: string[] = []
+    if (typeof name !== 'string' || name.trim().length === 0) missingFields.push('name')
+    if (typeof description !== 'string' || description.trim().length === 0) {
+      missingFields.push('description')
+    }
+    if (!Array.isArray(regions) || regions.length === 0) missingFields.push('regions')
+    if (Array.isArray(regions) && regions.length > 3) {
+      throw new BadRequestException('Можно указать не более 3 регионов')
+    }
+    if (typeof logo !== 'string' || logo.trim().length === 0) missingFields.push('logo')
+    if (!hasRequiredPhone) missingFields.push('phone')
+    if (!hasRequiredEmail) missingFields.push('email')
+
+    if (missingFields.length > 0) {
+      throw new BadRequestException(
+        `Обязательные поля не заполнены: ${missingFields.join(', ')}`,
+      )
+    }
+  }
+
   async uploadCompanyLogo(userId: string, file) {
     if (!(UPLOAD_LOGO.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
       throw new BadRequestException('Недопустимый формат логотипа')
@@ -110,25 +198,33 @@ export class EditCompanyAccountService {
       throw new BadRequestException('Размер файла превышает 2 МБ')
     }
 
-    const metadata = await sharp(file.buffer).metadata()
-    const width = metadata.width ?? 0
-    const height = metadata.height ?? 0
-    if (
-      width < UPLOAD_LOGO.minWidth ||
-      height < UPLOAD_LOGO.minHeight ||
-      width > UPLOAD_LOGO.maxWidth ||
-      height > UPLOAD_LOGO.maxHeight
-    ) {
-      throw new BadRequestException('Размер логотипа должен быть от 16 до 512 пикселей')
-    }
+    let resizedBuffer: Buffer
+    try {
+      const metadata = await sharp(file.buffer).metadata()
+      const width = metadata.width ?? 0
+      const height = metadata.height ?? 0
+      if (
+        width < UPLOAD_LOGO.minWidth ||
+        height < UPLOAD_LOGO.minHeight ||
+        width > UPLOAD_LOGO.maxWidth ||
+        height > UPLOAD_LOGO.maxHeight
+      ) {
+        throw new BadRequestException('Размер логотипа должен быть от 16 до 512 пикселей')
+      }
 
-    const resizedBuffer = await sharp(file.buffer)
-      .resize(96, 96, {
-        fit: 'contain',
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer()
+      resizedBuffer = await sharp(file.buffer)
+        .resize(96, 96, {
+          fit: 'contain',
+          background: { r: 0, g: 0, b: 0, alpha: 0 },
+        })
+        .png()
+        .toBuffer()
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+      throw new BadRequestException('Некорректный файл изображения')
+    }
 
     const uploadResult = await this.storage.upload(
       {

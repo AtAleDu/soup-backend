@@ -1,10 +1,11 @@
-import { Body, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '@modules/auth/jwt/jwt-auth.guard'
 import { UpdateCompanyAccountDto } from '../dto/update-company-account.dto'
 import { EditCompanyAccountService } from './edit-account.service'
 import { OptionalFileInterceptor } from './optional-file.interceptor'
 import { memoryStorage } from 'multer'
+import { UPLOAD_LOGO } from '@infrastructure/upload/upload-constraints'
 
 @ApiTags('Profile')
 @ApiBearerAuth()
@@ -18,6 +19,18 @@ export class EditCompanyAccountController {
   @UseInterceptors(
     OptionalFileInterceptor('logo', {
       storage: memoryStorage(),
+      limits: { fileSize: UPLOAD_LOGO.maxSizeBytes },
+      fileFilter: (_req, file, cb) => {
+        if (
+          !(UPLOAD_LOGO.allowedMimeTypes as readonly string[]).includes(
+            file.mimetype,
+          )
+        ) {
+          cb(new BadRequestException('Недопустимый формат логотипа'), false)
+          return
+        }
+        cb(null, true)
+      },
     }),
   )
   async update(
