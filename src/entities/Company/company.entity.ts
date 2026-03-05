@@ -32,7 +32,7 @@ export class Company {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 500 })
   description: string;
 
   @Column({ type: "jsonb", nullable: true })

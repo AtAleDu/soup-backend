@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger'
-import { IsArray, IsEmail, IsObject, IsOptional, IsString, IsUrl, ValidateIf, ValidateNested } from 'class-validator'
+import { IsArray, IsEmail, IsObject, IsOptional, IsString, IsUrl, MaxLength, ValidateIf, ValidateNested } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 
 class CompanyPhoneDto {
@@ -28,6 +28,7 @@ class CompanyProfileDto {
   @ApiPropertyOptional({ example: 'Описание компании' })
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   description?: string
 
   @ApiPropertyOptional({ example: ['Челябинская область'] })
@@ -126,6 +127,7 @@ export class UpdateCompanyAccountDto {
   @ApiPropertyOptional({ example: 'Описание компании' })
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   description?: string
 
   @ApiPropertyOptional({ example: 'Челябинская область' })
