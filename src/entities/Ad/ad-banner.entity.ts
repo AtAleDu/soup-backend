@@ -13,7 +13,7 @@ export class AdBanner {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Company, (company) => company.adBanners, { onDelete: "CASCADE" })
+  @ManyToOne(() => Company, { onDelete: "CASCADE" })
   @JoinColumn({ name: "company_id" })
   company: Company;
 

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Company } from '@entities/Company/company.entity'
 import { AdPosition } from '@entities/Ad/ad-position.entity'
-import { AdBanner } from '@entities/Ad/ad-banner.entity'
+import { Ad } from '@entities/Ad/ad.entity'
 import { Tariff } from '@entities/Tarif/tariff.entity'
 import { AdsCart } from '@entities/AdsCart/ads-cart.entity'
 import { AdsCartItem } from '@entities/AdsCartItem/ads-cart-item.entity'
@@ -14,7 +14,7 @@ import { CompanyAdsCartService } from './cart.service'
     TypeOrmModule.forFeature([
       Company,
       AdPosition,
-      AdBanner,
+      Ad,
       Tariff,
       AdsCart,
       AdsCartItem,

@@ -38,6 +38,13 @@ export class CompanyAdsCartController {
     return this.service.addItemToCart(req.user.sub, dto)
   }
 
+  @ApiOperation({ summary: 'Оформить рекламную корзину' })
+  @ApiResponse({ status: 200, type: AdsCartResponseDto })
+  @Post('checkout')
+  checkout(@Req() req) {
+    return this.service.checkoutCart(req.user.sub)
+  }
+
   @ApiOperation({ summary: 'Обновить позицию в корзине рекламы' })
   @ApiResponse({ status: 200, type: AdsCartResponseDto })
   @Patch('items/:itemId')

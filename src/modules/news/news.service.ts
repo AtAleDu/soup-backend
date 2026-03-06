@@ -2,6 +2,9 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { NewsEntity } from "@entities/News/news.entity";
+import { Ad } from "@entities/Ad/ad.entity";
+import { AdKind } from "@entities/Ad/ad-kind.enum";
+import { AdStatus } from "@entities/Ad/ad-status.enum";
 import { CreateNewsDto } from "./dto/create-news.dto";
 import { UpdateNewsDto } from "./dto/update-news.dto";
 import { getNewsByIdOrFail, resetImportantNews } from "./news.utils";
@@ -13,6 +16,8 @@ export class NewsService {
   constructor(
     @InjectRepository(NewsEntity)
     private readonly repo: Repository<NewsEntity>,
+    @InjectRepository(Ad)
+    private readonly ads: Repository<Ad>,
     private readonly storage: StorageService,
   ) {}
 
@@ -21,7 +26,42 @@ export class NewsService {
     return this.repo.save(news);
   }
 
-  async findAll(time?: string, badge?: string) {
+  private mapMixedAd(ad: Ad) {
+    return {
+      kind: "ad" as const,
+      data: {
+        id: ad.id,
+        adKind: ad.adKind,
+        placement: ad.placement,
+        title: ad.title,
+        description: ad.description,
+        imageUrl: ad.imageUrl,
+        clickUrl: `/ads/${ad.id}/click`,
+      },
+    };
+  }
+
+  private mixNewsWithAds(news: NewsEntity[], ads: Ad[]) {
+    const mixed: Array<{ kind: "news"; data: NewsEntity } | { kind: "ad"; data: any }> = [];
+    const chunkSize = 3;
+    let adCursor = 0;
+
+    for (let i = 0; i < news.length; i += chunkSize) {
+      const chunk = news.slice(i, i + chunkSize);
+      for (const item of chunk) {
+        mixed.push({ kind: "news", data: item });
+      }
+
+      if (adCursor < ads.length) {
+        mixed.push(this.mapMixedAd(ads[adCursor]));
+        adCursor += 1;
+      }
+    }
+
+    return mixed;
+  }
+
+  async findAll(time?: string, badge?: string, withAds?: boolean, adsPlacement?: string) {
     const qb = this.repo
       .createQueryBuilder("news")
       .orderBy("news.isImportantNew", "DESC")
@@ -35,13 +75,29 @@ export class NewsService {
     }
 
     if (badge) {
-      qb.andWhere("(news.category = :badge OR news.isAds = :isAds)", {
-        badge,
-        isAds: true,
-      });
+      qb.andWhere("news.category = :badge", { badge });
     }
 
-    return qb.getMany();
+    const list = await qb.getMany();
+    if (!withAds) {
+      return list;
+    }
+
+    const adLimit = Math.max(1, Math.ceil(list.length / 3));
+    const placement = adsPlacement || "news_inline";
+    const ads = await this.ads
+      .createQueryBuilder("ad")
+      .where("ad.status = :status", { status: AdStatus.ACTIVE })
+      .andWhere("ad.is_active = true")
+      .andWhere("ad.ad_kind = :adKind", { adKind: AdKind.BANNER })
+      .andWhere("ad.placement = :placement", { placement })
+      .andWhere("(ad.start_date IS NULL OR ad.start_date <= CURRENT_DATE)")
+      .andWhere("(ad.end_date IS NULL OR ad.end_date >= CURRENT_DATE)")
+      .orderBy("RANDOM()")
+      .limit(adLimit)
+      .getMany();
+
+    return this.mixNewsWithAds(list, ads);
   }
 
   async findOne(id: string) {

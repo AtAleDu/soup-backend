@@ -8,7 +8,9 @@ import { Repository } from 'typeorm'
 import { Company } from '@entities/Company/company.entity'
 import { AdPosition } from '@entities/Ad/ad-position.entity'
 import { Tariff } from '@entities/Tarif/tariff.entity'
-import { AdBanner } from '@entities/Ad/ad-banner.entity'
+import { Ad } from '@entities/Ad/ad.entity'
+import { AdKind } from '@entities/Ad/ad-kind.enum'
+import { AdStatus } from '@entities/Ad/ad-status.enum'
 import { AdsCart } from '@entities/AdsCart/ads-cart.entity'
 import { AdsCartStatus } from '@entities/AdsCart/ads-cart-status.enum'
 import { AdsCartItem } from '@entities/AdsCartItem/ads-cart-item.entity'
@@ -33,8 +35,8 @@ export class CompanyAdsCartService {
     private readonly adPositions: Repository<AdPosition>,
     @InjectRepository(Tariff)
     private readonly tariffs: Repository<Tariff>,
-    @InjectRepository(AdBanner)
-    private readonly adBanners: Repository<AdBanner>,
+    @InjectRepository(Ad)
+    private readonly ads: Repository<Ad>,
     @InjectRepository(AdsCart)
     private readonly carts: Repository<AdsCart>,
     @InjectRepository(AdsCartItem)
@@ -77,14 +79,38 @@ export class CompanyAdsCartService {
   }
 
   private async resolveCreatedBannersCount(companyId: number, positionId: number) {
-    const count = await this.adBanners.count({
+    const count = await this.ads.count({
       where: {
-        company: { companyId },
-        position: { id: positionId },
-        is_active: true,
+        companyId,
+        positionId,
+        adKind: AdKind.BANNER,
+        isActive: true,
       },
     })
     return count
+  }
+
+  private async moveCompanyDraftAdsToPendingReview(companyId: number, positionId: number) {
+    const drafts = await this.ads.find({
+      where: {
+        companyId,
+        positionId,
+        adKind: AdKind.BANNER,
+        status: AdStatus.DRAFT,
+        isActive: true,
+      },
+      order: { id: 'DESC' },
+      take: MAX_BANNERS_PER_POSITION,
+    })
+
+    if (!drafts.length) {
+      return
+    }
+
+    for (const ad of drafts) {
+      ad.status = AdStatus.PENDING_REVIEW
+    }
+    await this.ads.save(drafts)
   }
 
   private mapCartItem(item: AdsCartItem) {
@@ -369,5 +395,32 @@ export class CompanyAdsCartService {
 
     const fullCart = await this.loadCartWithItems(item.cartId)
     return { cart: this.mapCart(fullCart) }
+  }
+
+  async checkoutCart(userId: string) {
+    const company = await this.getCompanyByUserId(userId)
+    const cart = await this.getOrCreateActiveCart(company.companyId)
+    const fullCart = await this.loadCartWithItems(cart.id)
+
+    if (!fullCart.items?.length) {
+      throw new BadRequestException('Корзина пуста')
+    }
+
+    const positionItems = fullCart.items.filter(
+      (item) => item.itemType === AdsCartItemType.POSITION && item.positionId != null,
+    )
+
+    for (const item of positionItems) {
+      await this.moveCompanyDraftAdsToPendingReview(company.companyId, item.positionId!)
+    }
+
+    await this.carts.update(
+      { id: fullCart.id },
+      { status: AdsCartStatus.CHECKED_OUT },
+    )
+    await this.carts.increment({ id: fullCart.id }, 'version', 1)
+
+    const checkedOutCart = await this.loadCartWithItems(fullCart.id)
+    return { cart: this.mapCart(checkedOutCart) }
   }
 }

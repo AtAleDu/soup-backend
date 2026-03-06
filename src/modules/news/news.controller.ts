@@ -11,10 +11,18 @@ export class NewsController {
   @ApiOperation({ summary: "Получить список новостей" })
   @ApiQuery({ name: "time", required: false, enum: ["week", "month", "all"] })
   @ApiQuery({ name: "badge", required: false, description: "Фильтр по категории (badge)" })
+  @ApiQuery({ name: "withAds", required: false, description: "Смешать ленту с рекламой" })
+  @ApiQuery({ name: "adsPlacement", required: false, description: "Плейсмент рекламы для mixed-ленты" })
   @ApiResponse({ status: 200, description: "Список новостей" })
   @Get()
-  findAll(@Query("time") time?: string, @Query("badge") badge?: string) {
-    return this.service.findAll(time, badge);
+  findAll(
+    @Query("time") time?: string,
+    @Query("badge") badge?: string,
+    @Query("withAds") withAds?: string,
+    @Query("adsPlacement") adsPlacement?: string,
+  ) {
+    const withAdsEnabled = withAds === "1" || withAds === "true";
+    return this.service.findAll(time, badge, withAdsEnabled, adsPlacement);
   }
 
   // PUBLIC: получить новость по ID

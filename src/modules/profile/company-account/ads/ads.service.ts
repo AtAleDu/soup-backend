@@ -5,7 +5,8 @@ import { User } from '@entities/User/user.entity'
 import { Tariff } from '@entities/Tarif/tariff.entity'
 import { AdPosition } from '@entities/Ad/ad-position.entity'
 import { Company } from '@entities/Company/company.entity'
-import { AdBanner } from '@entities/Ad/ad-banner.entity'
+import { Ad } from '@entities/Ad/ad.entity'
+import { AdKind } from '@entities/Ad/ad-kind.enum'
 
 const DEFAULT_TARIFF_NAME = 'basic'
 const DEFAULT_AD_POSITION_PRICE = 5000
@@ -25,8 +26,8 @@ export class CompanyAdsService {
     private readonly adPositions: Repository<AdPosition>,
     @InjectRepository(Company)
     private readonly companies: Repository<Company>,
-    @InjectRepository(AdBanner)
-    private readonly adBanners: Repository<AdBanner>,
+    @InjectRepository(Ad)
+    private readonly ads: Repository<Ad>,
   ) {}
 
   private async getUserById(userId: string) {
@@ -52,7 +53,7 @@ export class CompanyAdsService {
   private mapAdPosition(
     position: AdPosition,
     createdBannersCount: number,
-    previewBanners: AdBanner[],
+    previewBanners: Ad[],
   ) {
     const rawPrice = Number(position.price)
     const fallbackPrice =
@@ -72,8 +73,8 @@ export class CompanyAdsService {
         createdBannersCount > 0 && createdBannersCount <= MAX_BANNERS_PER_POSITION,
       previewBanners: previewBanners.map((banner) => ({
         id: banner.id,
-        imageUrl: banner.image_url,
-        link: banner.link,
+        imageUrl: banner.imageUrl,
+        link: banner.targetUrl,
       })),
     }
   }
@@ -173,15 +174,19 @@ export class CompanyAdsService {
       where: { is_active: true },
       order: { sort_order: 'ASC', id: 'ASC' },
     })
-    const banners = await this.adBanners.find({
-      where: { company: { companyId: company.companyId }, is_active: true },
+    const banners = await this.ads.find({
+      where: {
+        companyId: company.companyId,
+        adKind: AdKind.BANNER,
+        isActive: true,
+      },
       relations: ['position'],
       order: { id: 'DESC' },
     })
 
-    const bannersByPositionId = new Map<number, AdBanner[]>()
+    const bannersByPositionId = new Map<number, Ad[]>()
     for (const banner of banners) {
-      const positionId = banner.position?.id
+      const positionId = banner.positionId ?? banner.position?.id
       if (!positionId) continue
       const list = bannersByPositionId.get(positionId) ?? []
       list.push(banner)

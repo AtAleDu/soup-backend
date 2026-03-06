@@ -15,7 +15,7 @@ import { CompanyServicesService } from './services/company-services.service'
 import { CompanyService } from '@entities/CompanyService/company-service.entity'
 import { Tariff } from '@entities/Tarif/tariff.entity'
 import { AdPosition } from '@entities/Ad/ad-position.entity'
-import { AdBanner } from '@entities/Ad/ad-banner.entity'
+import { Ad } from '@entities/Ad/ad.entity'
 import { AdsExpirationScheduler, CompanyAdsController, CompanyAdsService } from './ads'
 import { AdsCartModule } from './ads/cart/ads-cart.module'
 import { OrderResponse } from '@entities/OrderResponse/order-response.entity'
@@ -34,7 +34,7 @@ import { CompanyNotificationsService } from './notifications/company-notificatio
       CompanyService,
       Tariff,
       AdPosition,
-      AdBanner,
+      Ad,
       OrderResponse,
     ]),
     StorageModule,
