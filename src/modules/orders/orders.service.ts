@@ -11,6 +11,7 @@ import { Order } from "@entities/Order/order.entity";
 import { OrderStatus } from "@entities/Order/order.entity";
 import { OrderResponse } from "@entities/OrderResponse/order-response.entity";
 import { Company } from "@entities/Company/company.entity";
+import { CompanyStatus } from "@entities/Company/company-status.enum";
 import type { ClientContact } from "@entities/Client/client.entity";
 import type { ClientContactsResponseDto } from "./dto/client-contacts-response.dto";
 import type { RespondOrderDto } from "./dto/respond-order.dto";
@@ -199,6 +200,11 @@ export class OrdersService {
     const company = await this.companies.findOne({ where: { userId } });
     if (!company) {
       throw new ForbiddenException("Отклик доступен только компаниям");
+    }
+    if (company.status !== CompanyStatus.ACTIVE) {
+      throw new ForbiddenException(
+        "Отклик доступен только компаниям со статусом active",
+      );
     }
 
     const order = await this.orders.findOne({

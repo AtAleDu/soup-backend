@@ -2,13 +2,14 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { IsNull, Not, Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
+import { CompanyStatus } from "@entities/Company/company-status.enum";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 import { CompanyServiceStatus } from "@entities/CompanyService/company-service-status.enum";
 
 export type CompanyNotificationItem = {
   id: string;
-  entityType: "blog" | "service";
+  entityType: "blog" | "service" | "company";
   entityId: string;
   entityTitle: string;
   status: "rejected" | "approved";
@@ -138,10 +139,33 @@ export class CompanyNotificationsService {
       };
     }
 
+    const companyItem: CompanyNotificationItem | null =
+      company.status === CompanyStatus.ACTIVE
+        ? {
+            id: `company-approved-${company.companyId}`,
+            entityType: "company",
+            entityId: String(company.companyId),
+            entityTitle: company.name,
+            status: "approved",
+            createdAt: toDateStr(company.updatedAt),
+          }
+        : company.status === CompanyStatus.REJECTED
+          ? {
+              id: `company-rejected-${company.companyId}`,
+              entityType: "company",
+              entityId: String(company.companyId),
+              entityTitle: company.name,
+              status: "rejected",
+              rejectionReason: company.rejectionReason ?? undefined,
+              createdAt: toDateStr(company.updatedAt),
+            }
+          : null;
+
     const merged = [
       ...blogRejectedItems,
       ...blogApprovedItems,
       ...(serviceItem ? [serviceItem] : []),
+      ...(companyItem ? [companyItem] : []),
     ].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),

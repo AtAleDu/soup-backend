@@ -13,6 +13,7 @@ import { Article } from "../Article/article.entity";
 import { Ad } from "../Ad/ad.entity";
 import { Blog } from "../Blog/blog.entity";
 import { User } from "../User/user.entity";
+import { CompanyStatus } from "./company-status.enum";
 
 @Entity("companies")
 export class Company {
@@ -52,6 +53,22 @@ export class Company {
 
   @Column({ nullable: true })
   email: string;
+
+  @Column({
+    type: "enum",
+    enum: CompanyStatus,
+    enumName: "companies_status_enum",
+    default: CompanyStatus.MODERATION,
+  })
+  status: CompanyStatus;
+
+  @Column({
+    name: "rejection_reason",
+    type: "varchar",
+    length: 500,
+    nullable: true,
+  })
+  rejectionReason: string | null;
 
   @OneToMany(() => Article, (article) => article.author)
   articles: Article[];

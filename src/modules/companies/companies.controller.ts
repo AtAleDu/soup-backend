@@ -1,6 +1,23 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { CompaniesService } from "./companies.service";
+import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { UpdateCompanyModerationDto } from "./dto/update-company-moderation.dto";
 
 @ApiTags("Companies")
 @Controller("companies")
@@ -22,5 +39,44 @@ export class CompaniesController {
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.service.findOne(id);
+  }
+}
+
+@ApiTags("Admin moderation companies")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller("admin/moderation/companies")
+export class AdminModerationCompaniesController {
+  constructor(private readonly service: CompaniesService) {}
+
+  @ApiOperation({
+    summary: "Список компаний в статусе moderation",
+  })
+  @ApiResponse({ status: 200, description: "Список компаний" })
+  @Get()
+  getModerationCompanies() {
+    return this.service.getModerationCompanies();
+  }
+
+  @ApiOperation({
+    summary: "Данные компании в статусе moderation",
+  })
+  @ApiResponse({ status: 200, description: "Данные компании" })
+  @ApiResponse({ status: 404, description: "Компания не найдена" })
+  @Get(":id")
+  getModerationCompany(@Param("id", ParseIntPipe) id: number) {
+    return this.service.getModerationCompany(id);
+  }
+
+  @ApiOperation({
+    summary: "Одобрить или отклонить компанию на модерации",
+  })
+  @ApiResponse({ status: 200, description: "Статус компании обновлен" })
+  @Patch(":id")
+  moderateCompany(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() dto: UpdateCompanyModerationDto,
+  ) {
+    return this.service.moderateCompany(id, dto);
   }
 }

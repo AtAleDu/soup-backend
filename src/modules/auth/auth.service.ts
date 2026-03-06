@@ -13,6 +13,7 @@ import { LoginDto } from "./dto/login.dto";
 
 import { User, UserRole, UserStatus } from "@entities/User/user.entity";
 import { Company } from "@entities/Company/company.entity";
+import { CompanyStatus } from "@entities/Company/company-status.enum";
 import { Client } from "@entities/Client/client.entity";
 import { Tariff } from "@entities/Tarif/tariff.entity";
 import { PasswordResetToken } from "@entities/PasswordResetToken/password-reset-token.entity";
@@ -82,8 +83,7 @@ export class AuthService {
     const tariffEndAt =
       defaultTariff?.duration_days != null
         ? new Date(
-            now.getTime() +
-              defaultTariff.duration_days * 24 * 60 * 60 * 1000,
+            now.getTime() + defaultTariff.duration_days * 24 * 60 * 60 * 1000,
           )
         : null;
 
@@ -102,6 +102,7 @@ export class AuthService {
       await this.companies.save({
         name: user.name,
         userId: user.id,
+        status: CompanyStatus.MODERATION,
       });
     }
 
@@ -238,10 +239,7 @@ export class AuthService {
       order: { createdAt: "DESC" },
     });
 
-    if (
-      lastToken &&
-      Date.now() - lastToken.createdAt.getTime() < 60_000
-    ) {
+    if (lastToken && Date.now() - lastToken.createdAt.getTime() < 60_000) {
       throw new BadRequestException("Подождите перед повторным запросом");
     }
 

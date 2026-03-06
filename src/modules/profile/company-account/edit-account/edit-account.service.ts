@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Company } from '@entities/Company/company.entity'
+import { CompanyStatus } from '@entities/Company/company-status.enum'
 import { UpdateCompanyAccountDto } from '../dto/update-company-account.dto'
 import { User } from '@entities/User/user.entity'
 import { StorageService } from '@infrastructure/storage/storage.service'
@@ -128,6 +129,11 @@ export class EditCompanyAccountService {
 
     if (hasProfileUpdate && !isLogoOnlyUpdate) {
       this.validateRequiredProfileFields(company, updateData)
+    }
+
+    if (hasProfileUpdate) {
+      updateData.status = CompanyStatus.MODERATION
+      updateData.rejectionReason = null
     }
 
     await this.repo.update({ userId }, updateData)

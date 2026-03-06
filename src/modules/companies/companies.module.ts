@@ -8,7 +8,10 @@ import { Client } from "@entities/Client/client.entity";
 import { ContractorTypeEntity } from "@entities/Contractor/contractor-categories.entity";
 import { StorageModule } from "@infrastructure/storage/storage.module";
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
-import { CompaniesController } from "./companies.controller";
+import {
+  AdminModerationCompaniesController,
+  CompaniesController,
+} from "./companies.controller";
 import { CompaniesService } from "./companies.service";
 import { CompanyReviewsController } from "./company-reviews.controller";
 import { CompanyReviewsService } from "./company-reviews.service";
@@ -25,7 +28,11 @@ import { CompanyReviewsService } from "./company-reviews.service";
     ]),
     StorageModule,
   ],
-  controllers: [CompanyReviewsController, CompaniesController],
+  controllers: [
+    CompanyReviewsController,
+    CompaniesController,
+    AdminModerationCompaniesController,
+  ],
   providers: [CompaniesService, CompanyReviewsService, RolesGuard],
 })
 export class CompaniesModule {}

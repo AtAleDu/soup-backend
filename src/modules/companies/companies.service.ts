@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Brackets, In, Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
+import { CompanyStatus } from "@entities/Company/company-status.enum";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 import { CompanyServiceStatus } from "@entities/CompanyService/company-service-status.enum";
 import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
@@ -53,14 +58,17 @@ export class CompaniesService {
           "company.createdAt",
         ])
         .distinct(true)
-        .orderBy("company.createdAt", "DESC");
+        .orderBy("company.createdAt", "DESC")
+        .where("company.status = :companyStatus", {
+          companyStatus: CompanyStatus.ACTIVE,
+        });
 
       if (parsedFilters.length > 0) {
         qb.innerJoin(
           CompanyService,
           "service",
           "service.companyId = company.companyId",
-        ).where(
+        ).andWhere(
           new Brackets((builder) => {
             parsedFilters.forEach((filter, index) => {
               builder.orWhere(
@@ -80,15 +88,9 @@ export class CompaniesService {
       }
 
       if (parsedRegions.length > 0) {
-        if (parsedFilters.length > 0) {
-          qb.andWhere("company.regions ?| array[:...regions]", {
-            regions: parsedRegions,
-          });
-        } else {
-          qb.where("company.regions ?| array[:...regions]", {
-            regions: parsedRegions,
-          });
-        }
+        qb.andWhere("company.regions ?| array[:...regions]", {
+          regions: parsedRegions,
+        });
       }
 
       const companies = await qb.getMany();
@@ -97,6 +99,9 @@ export class CompaniesService {
     }
 
     const companies = await this.repo.find({
+      where: {
+        status: CompanyStatus.ACTIVE,
+      },
       select: {
         companyId: true,
         name: true,
@@ -254,5 +259,74 @@ export class CompaniesService {
       },
       services: Array.from(grouped.values()),
     };
+  }
+
+  async getModerationCompanies() {
+    const companies = await this.repo.find({
+      where: { status: CompanyStatus.MODERATION },
+      select: {
+        companyId: true,
+        name: true,
+        logo_url: true,
+      },
+      order: { updatedAt: "DESC" },
+    });
+
+    return companies.map((company) => ({
+      id: company.companyId,
+      name: company.name,
+      logo_url: company.logo_url ?? null,
+    }));
+  }
+
+  async getModerationCompany(companyId: number) {
+    const company = await this.repo.findOne({
+      where: { companyId, status: CompanyStatus.MODERATION },
+      select: {
+        companyId: true,
+        userId: true,
+        name: true,
+        logo_url: true,
+        description: true,
+        regions: true,
+        social_links: true,
+        address: true,
+        phones: true,
+        emails: true,
+        email: true,
+        status: true,
+      },
+    });
+
+    if (!company) {
+      throw new NotFoundException("Компания на модерации не найдена");
+    }
+
+    return company;
+  }
+
+  async moderateCompany(
+    companyId: number,
+    dto: { status: "active" | "rejected"; rejectionReason?: string },
+  ) {
+    const company = await this.repo.findOne({ where: { companyId } });
+    if (!company) {
+      throw new NotFoundException("Компания не найдена");
+    }
+
+    if (company.status !== CompanyStatus.MODERATION) {
+      throw new BadRequestException("Компания уже прошла модерацию");
+    }
+    if (dto.status === "rejected" && !dto.rejectionReason?.trim()) {
+      throw new BadRequestException("Укажите причину отказа");
+    }
+
+    company.status =
+      dto.status === "active" ? CompanyStatus.ACTIVE : CompanyStatus.REJECTED;
+    company.rejectionReason =
+      dto.status === "rejected" ? dto.rejectionReason?.trim() || null : null;
+
+    await this.repo.save(company);
+    return { success: true };
   }
 }
