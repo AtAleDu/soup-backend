@@ -41,27 +41,19 @@ export class NewsService {
     };
   }
 
-  private mixNewsWithAds(news: NewsEntity[], ads: Ad[]) {
-    const mixed: Array<{ kind: "news"; data: NewsEntity } | { kind: "ad"; data: any }> = [];
-    const chunkSize = 3;
-    let adCursor = 0;
-
-    for (let i = 0; i < news.length; i += chunkSize) {
-      const chunk = news.slice(i, i + chunkSize);
-      for (const item of chunk) {
-        mixed.push({ kind: "news", data: item });
-      }
-
-      if (adCursor < ads.length) {
-        mixed.push(this.mapMixedAd(ads[adCursor]));
-        adCursor += 1;
-      }
+  private buildNewsWithSingleBanner(news: NewsEntity[], ad: Ad | null) {
+    const mixed: Array<{ kind: "news"; data: NewsEntity } | { kind: "ad"; data: any }> =
+      news.map((item) => ({ kind: "news", data: item }));
+    if (!ad) {
+      return mixed;
     }
 
+    const randomIndex = Math.floor(Math.random() * (mixed.length + 1));
+    mixed.splice(randomIndex, 0, this.mapMixedAd(ad));
     return mixed;
   }
 
-  async findAll(time?: string, badge?: string, withAds?: boolean, adsPlacement?: string) {
+  async findAll(time?: string, badge?: string, withAds?: boolean) {
     const qb = this.repo
       .createQueryBuilder("news")
       .orderBy("news.isImportantNew", "DESC")
@@ -78,26 +70,26 @@ export class NewsService {
       qb.andWhere("news.category = :badge", { badge });
     }
 
+    if (withAds) {
+      qb.limit(9);
+    }
+
     const list = await qb.getMany();
     if (!withAds) {
       return list;
     }
 
-    const adLimit = Math.max(1, Math.ceil(list.length / 3));
-    const placement = adsPlacement || "news_inline";
-    const ads = await this.ads
+    const ad = await this.ads
       .createQueryBuilder("ad")
       .where("ad.status = :status", { status: AdStatus.ACTIVE })
       .andWhere("ad.is_active = true")
       .andWhere("ad.ad_kind = :adKind", { adKind: AdKind.BANNER })
-      .andWhere("ad.placement = :placement", { placement })
       .andWhere("(ad.start_date IS NULL OR ad.start_date <= CURRENT_DATE)")
       .andWhere("(ad.end_date IS NULL OR ad.end_date >= CURRENT_DATE)")
       .orderBy("RANDOM()")
-      .limit(adLimit)
-      .getMany();
+      .getOne();
 
-    return this.mixNewsWithAds(list, ads);
+    return this.buildNewsWithSingleBanner(list, ad ?? null);
   }
 
   async findOne(id: string) {
