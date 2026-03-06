@@ -10,9 +10,13 @@ import { EditCompanyAccountController, EditCompanyAccountService } from './edit-
 import { GetCompanyProfileController, GetCompanyProfileService } from './get-profile'
 import { CompanyReviewsController, CompanyReviewsService } from './reviews'
 import { CompanyBlogController, CompanyBlogService } from './blog'
-import { CompanyServicesController } from './services/company-services.controller'
+import {
+  AdminModerationServicesController,
+  CompanyServicesController,
+} from './services/company-services.controller'
 import { CompanyServicesService } from './services/company-services.service'
 import { CompanyService } from '@entities/CompanyService/company-service.entity'
+import { ContractorTypeEntity } from '@entities/Contractor/contractor-categories.entity'
 import { Tariff } from '@entities/Tarif/tariff.entity'
 import { AdPosition } from '@entities/Ad/ad-position.entity'
 import { Ad } from '@entities/Ad/ad.entity'
@@ -32,6 +36,7 @@ import { CompanyNotificationsService } from './notifications/company-notificatio
       CompanyReview,
       CompanyReviewReply,
       CompanyService,
+      ContractorTypeEntity,
       Tariff,
       AdPosition,
       Ad,
@@ -47,6 +52,7 @@ import { CompanyNotificationsService } from './notifications/company-notificatio
     CompanyBlogController,
     CompanyNotificationsController,
     CompanyServicesController,
+    AdminModerationServicesController,
     CompanyAdsController,
     CompanyOrdersController,
   ],

@@ -43,6 +43,14 @@ export class CompanyService {
   })
   status: CompanyServiceStatus;
 
+  @Column({
+    name: "rejection_reason",
+    type: "varchar",
+    length: 500,
+    nullable: true,
+  })
+  rejectionReason: string | null;
+
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;
 

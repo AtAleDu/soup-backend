@@ -1,9 +1,22 @@
-import { Body, Controller, Get, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Param,
+  ParseIntPipe,
+  Post,
+  Req,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
 import { CompanyServicesService } from "./company-services.service";
 import { SaveCompanyServicesDto } from "./dto/save-company-services.dto";
 import { CompanyServicesResponseDto } from "./dto/company-service.dto";
+import { UpdateCompanyServicesModerationDto } from "./dto/update-company-services-moderation.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
 
@@ -38,5 +51,44 @@ export class CompanyServicesController {
   )
   uploadImage(@Req() req, @UploadedFile() file) {
     return this.service.uploadServiceImage(req.user.sub, file);
+  }
+}
+
+@ApiTags("Admin moderation services")
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller("admin/moderation/services")
+export class AdminModerationServicesController {
+  constructor(private readonly service: CompanyServicesService) {}
+
+  @ApiOperation({
+    summary: "Список компаний с услугами в статусе moderation",
+  })
+  @ApiResponse({ status: 200, description: "Список компаний" })
+  @Get("companies")
+  getModerationCompanies() {
+    return this.service.getModerationCompanies();
+  }
+
+  @ApiOperation({
+    summary: "Получить услуги компании в статусе moderation",
+  })
+  @ApiResponse({ status: 200, description: "Данные компании и услуги" })
+  @ApiResponse({ status: 404, description: "Компания не найдена" })
+  @Get(":id")
+  getModerationCompanyServices(@Param("id", ParseIntPipe) id: number) {
+    return this.service.getModerationCompanyServices(id);
+  }
+
+  @ApiOperation({
+    summary: "Одобрить или отклонить услуги компании на модерации",
+  })
+  @ApiResponse({ status: 200, description: "Статусы услуг обновлены" })
+  @Patch(":id")
+  moderateCompanyServices(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() dto: UpdateCompanyServicesModerationDto,
+  ) {
+    return this.service.moderateCompanyServices(id, dto);
   }
 }

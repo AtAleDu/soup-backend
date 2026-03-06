@@ -91,32 +91,57 @@ export class CompanyNotificationsService {
       }),
     );
 
-    const serviceApprovedItems: CompanyNotificationItem[] = servicesActive.map(
-      (s) => ({
-        id: s.id,
-        entityType: "service" as const,
-        entityId: s.id,
-        entityTitle: s.service,
-        status: "approved" as const,
-        createdAt: toDateStr(s.updatedAt),
-      }),
-    );
+    const latestApprovedService = servicesActive[0];
+    const latestRejectedService = servicesRejected[0];
 
-    const serviceRejectedItems: CompanyNotificationItem[] =
-      servicesRejected.map((s) => ({
-        id: s.id,
+    let serviceItem: CompanyNotificationItem | null = null;
+    if (latestApprovedService && latestRejectedService) {
+      const approvedTime = new Date(latestApprovedService.updatedAt).getTime();
+      const rejectedTime = new Date(latestRejectedService.updatedAt).getTime();
+      serviceItem =
+        approvedTime >= rejectedTime
+          ? {
+              id: `service-approved-${latestApprovedService.id}`,
+              entityType: "service" as const,
+              entityId: String(latestApprovedService.companyId),
+              entityTitle: "Услуги",
+              status: "approved" as const,
+              createdAt: toDateStr(latestApprovedService.updatedAt),
+            }
+          : {
+              id: `service-rejected-${latestRejectedService.id}`,
+              entityType: "service" as const,
+              entityId: String(latestRejectedService.companyId),
+              entityTitle: "Услуги",
+              status: "rejected" as const,
+              rejectionReason: latestRejectedService.rejectionReason ?? undefined,
+              createdAt: toDateStr(latestRejectedService.updatedAt),
+            };
+    } else if (latestApprovedService) {
+      serviceItem = {
+        id: `service-approved-${latestApprovedService.id}`,
         entityType: "service" as const,
-        entityId: s.id,
-        entityTitle: s.service,
+        entityId: String(latestApprovedService.companyId),
+        entityTitle: "Услуги",
+        status: "approved" as const,
+        createdAt: toDateStr(latestApprovedService.updatedAt),
+      };
+    } else if (latestRejectedService) {
+      serviceItem = {
+        id: `service-rejected-${latestRejectedService.id}`,
+        entityType: "service" as const,
+        entityId: String(latestRejectedService.companyId),
+        entityTitle: "Услуги",
         status: "rejected" as const,
-        createdAt: toDateStr(s.updatedAt),
-      }));
+        rejectionReason: latestRejectedService.rejectionReason ?? undefined,
+        createdAt: toDateStr(latestRejectedService.updatedAt),
+      };
+    }
 
     const merged = [
       ...blogRejectedItems,
       ...blogApprovedItems,
-      ...serviceApprovedItems,
-      ...serviceRejectedItems,
+      ...(serviceItem ? [serviceItem] : []),
     ].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
