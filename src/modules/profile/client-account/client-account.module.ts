@@ -4,6 +4,10 @@ import { Client } from "@entities/Client/client.entity";
 import { Order } from "@entities/Order/order.entity";
 import { StorageModule } from "@infrastructure/storage/storage.module";
 import {
+  AdminModerationClientsController,
+  AdminModerationClientsService,
+} from "./admin-moderation";
+import {
   GetClientProfileController,
   GetClientProfileService,
 } from "./get-profile";
@@ -25,12 +29,14 @@ import { CreateOrderController, CreateOrderService } from "./create-order";
     ClientNotificationsController,
     EditClientAccountController,
     CreateOrderController,
+    AdminModerationClientsController,
   ],
   providers: [
     GetClientProfileService,
     ClientNotificationsService,
     EditClientAccountService,
     CreateOrderService,
+    AdminModerationClientsService,
   ],
 })
 export class ClientAccountModule {}

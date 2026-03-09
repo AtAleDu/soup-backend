@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "@entities/User/user.entity";
+import { ClientStatus } from "./client-status.enum";
 
 type ClientContactType = "phone" | "email" | "telegram" | "max";
 
@@ -64,6 +65,17 @@ export class Client {
     default: () => `'{"phone":false,"email":false,"social_links":false}'::jsonb`,
   })
   privacy_settings: ClientPrivacySettings;
+
+  @Column({
+    type: "enum",
+    enum: ClientStatus,
+    enumName: "clients_status_enum",
+    default: ClientStatus.PENDING,
+  })
+  status: ClientStatus;
+
+  @Column({ name: "rejection_reason", type: "varchar", length: 500, nullable: true })
+  rejection_reason: string | null;
 
   @CreateDateColumn({ name: "created_at" })
   createdAt: Date;

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Client } from "@entities/Client/client.entity";
+import { ClientStatus } from "@entities/Client/client-status.enum";
 import { Repository } from "typeorm";
 import { StorageService } from "@infrastructure/storage/storage.service";
 import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
@@ -55,6 +56,11 @@ export class EditClientAccountService {
         email: Boolean(dto.privacy_settings.email),
         social_links: Boolean(dto.privacy_settings.social_links),
       };
+    }
+
+    if (dto.submit_for_moderation === true) {
+      updateData.status = ClientStatus.MODERATION;
+      updateData.rejection_reason = null;
     }
 
     await this.repo.update({ userId }, updateData);

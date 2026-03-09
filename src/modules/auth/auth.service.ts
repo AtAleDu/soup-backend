@@ -15,6 +15,7 @@ import { User, UserRole, UserStatus } from "@entities/User/user.entity";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyStatus } from "@entities/Company/company-status.enum";
 import { Client } from "@entities/Client/client.entity";
+import { ClientStatus } from "@entities/Client/client-status.enum";
 import { Tariff } from "@entities/Tarif/tariff.entity";
 import { PasswordResetToken } from "@entities/PasswordResetToken/password-reset-token.entity";
 import {
@@ -110,6 +111,7 @@ export class AuthService {
       await this.clients.save({
         userId: user.id,
         full_name: user.name,
+        status: ClientStatus.PENDING,
         contacts: [
           {
             type: "email",

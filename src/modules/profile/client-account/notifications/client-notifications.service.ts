@@ -2,11 +2,12 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { IsNull, Not, Repository } from "typeorm";
 import { Client } from "@entities/Client/client.entity";
+import { ClientStatus } from "@entities/Client/client-status.enum";
 import { Order, OrderStatus } from "@entities/Order/order.entity";
 
 export type ClientNotificationItem = {
   id: string;
-  entityType: "order";
+  entityType: "order" | "client_profile";
   entityId: string;
   entityTitle: string;
   status: "rejected" | "approved";
@@ -78,7 +79,35 @@ export class ClientNotificationsService {
       }),
     );
 
-    const merged = [...approvedItems, ...rejectedItems].sort(
+    const profileTitle =
+      client.full_name?.trim() || "Профиль клиента";
+    const clientProfileItem: ClientNotificationItem | null =
+      client.status === ClientStatus.ACTIVE
+        ? {
+            id: `client-profile-approved-${client.clientId}`,
+            entityType: "client_profile",
+            entityId: String(client.clientId),
+            entityTitle: profileTitle,
+            status: "approved",
+            createdAt: toDateStr(client.updatedAt),
+          }
+        : client.status === ClientStatus.REJECTED
+          ? {
+              id: `client-profile-rejected-${client.clientId}`,
+              entityType: "client_profile",
+              entityId: String(client.clientId),
+              entityTitle: profileTitle,
+              status: "rejected",
+              rejectionReason: client.rejection_reason ?? undefined,
+              createdAt: toDateStr(client.updatedAt),
+            }
+          : null;
+
+    const merged = [
+      ...approvedItems,
+      ...rejectedItems,
+      ...(clientProfileItem ? [clientProfileItem] : []),
+    ].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );

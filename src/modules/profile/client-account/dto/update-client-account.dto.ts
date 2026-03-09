@@ -27,7 +27,10 @@ class ClientProfileDto {
 }
 
 class ClientContactDto {
-  @ApiPropertyOptional({ example: "email", enum: ["phone", "email", "telegram", "max"] })
+  @ApiPropertyOptional({
+    example: "email",
+    enum: ["phone", "email", "telegram", "max"],
+  })
   @IsIn(["phone", "email", "telegram", "max"])
   type: "phone" | "email" | "telegram" | "max";
 
@@ -66,6 +69,11 @@ class ClientPrivacySettingsDto {
 }
 
 export class UpdateClientAccountDto {
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  submit_for_moderation?: boolean;
+
   @ApiPropertyOptional({ type: ClientProfileDto })
   @IsOptional()
   @ValidateNested()

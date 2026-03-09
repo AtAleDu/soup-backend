@@ -23,7 +23,9 @@ export async function seedClient(dataSource: DataSource) {
     await userRepo.save(user);
   }
 
-  const existingClient = await clientRepo.findOne({ where: { userId: user.id } });
+  const existingClient = await clientRepo.findOne({
+    where: { userId: user.id },
+  });
   if (!existingClient) {
     const client = clientRepo.create({
       userId: user.id,
