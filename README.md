@@ -30,6 +30,7 @@ JWT_REFRESH_EXPIRES_IN=7d
 // Frontend
 
 FRONTEND_URL=http://localhost:3000
+CORS_ORIGINS=https://благоустроители.рф
 
 // Email (Resend)
 
@@ -50,4 +51,25 @@ S3_SECRET_KEY=
 4) Для получения документации по API используйте: `http://localhost:3005/api`
 
 5) Если все работает, то заполните бд сид-данными, которые автоматически подставят нужные данные в бд: `npm run seed`
+
+## Security
+
+### CORS
+
+Backend разрешает CORS только для доменов, указанных в переменной окружения:
+
+`CORS_ORIGINS=https://example.com`
+
+### Refresh Token Cookie
+
+Refresh token хранится в httpOnly cookie со следующими параметрами:
+
+* httpOnly — защита от XSS
+* secure — cookie передается только по HTTPS в production
+* sameSite — защита от CSRF
+* path=/auth/refresh — cookie доступна только для refresh endpoint
+
+### Logout
+
+При logout refresh cookie удаляется с теми же параметрами, что и при установке.
 

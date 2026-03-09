@@ -58,11 +58,12 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { accessToken, refreshToken } = await this.authService.login(body);
+    const isProd = process.env.NODE_ENV === "production";
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      sameSite: "strict",
-      secure: false,
+      sameSite: isProd ? "none" : "strict",
+      secure: isProd,
       path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -87,6 +88,7 @@ export class AuthController {
     if (!refreshToken) {
       throw new UnauthorizedException();
     }
+    const isProd = process.env.NODE_ENV === "production";
 
     const payload = this.tokenService.verifyRefresh(refreshToken);
 
@@ -95,8 +97,8 @@ export class AuthController {
 
     res.cookie("refreshToken", newRefresh, {
       httpOnly: true,
-      sameSite: "strict",
-      secure: false,
+      sameSite: isProd ? "none" : "strict",
+      secure: isProd,
       path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -117,12 +119,13 @@ export class AuthController {
       body.verificationId,
       body.code,
     );
+    const isProd = process.env.NODE_ENV === "production";
 
     // Устанавливаем refresh token так же, как при логине / reset-password
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
-      sameSite: "strict",
-      secure: false,
+      sameSite: isProd ? "none" : "strict",
+      secure: isProd,
       path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -173,12 +176,13 @@ export class AuthController {
       body.password,
       body.passwordConfirm,
     );
+    const isProd = process.env.NODE_ENV === "production";
 
     // Устанавливаем refresh token так же, как при логине / обновлении
     res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
-      sameSite: "strict",
-      secure: false,
+      sameSite: isProd ? "none" : "strict",
+      secure: isProd,
       path: "/auth/refresh",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -210,11 +214,14 @@ export class AuthController {
   @Post("logout")
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const user = req.user as { sub: string };
+    const isProd = process.env.NODE_ENV === "production";
 
     await this.authService.logout(user.sub);
 
     res.clearCookie("refreshToken", {
       path: "/auth/refresh",
+      sameSite: isProd ? "none" : "strict",
+      secure: isProd,
     });
 
     return { success: true };
