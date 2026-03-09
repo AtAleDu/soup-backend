@@ -5,7 +5,7 @@ import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiTags } 
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
 import { CompanyBlogService, CompanyBlogStatus } from "./company-blog.service";
 import { CreateBlogDto } from "./dto/create-blog.dto";
-import { UpdateBlogDto } from "./dto/update-blog.dto";
+import { CompanyUpdateBlogDto } from "./dto/update-blog.dto";
 
 const VALID_STATUSES: CompanyBlogStatus[] = ["published", "moderation", "drafts"];
 
@@ -70,7 +70,7 @@ export class CompanyBlogController {
   update(
     @Req() req: { user: { sub: string } },
     @Param("id") id: string,
-    @Body() dto: UpdateBlogDto,
+    @Body() dto: CompanyUpdateBlogDto,
   ) {
     return this.service.update(req.user.sub, id, dto);
   }

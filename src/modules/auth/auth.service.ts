@@ -103,7 +103,7 @@ export class AuthService {
       await this.companies.save({
         name: user.name,
         userId: user.id,
-        status: CompanyStatus.MODERATION,
+        status: CompanyStatus.PENDING,
       });
     }
 

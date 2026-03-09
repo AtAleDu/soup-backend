@@ -1,169 +1,192 @@
-import { ApiPropertyOptional } from '@nestjs/swagger'
-import { IsArray, IsEmail, IsObject, IsOptional, IsString, IsUrl, MaxLength, ValidateIf, ValidateNested } from 'class-validator'
-import { Transform, Type } from 'class-transformer'
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  IsArray,
+  IsBoolean,
+  IsEmail,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+  ValidateIf,
+  ValidateNested,
+} from "class-validator";
+import { Transform, Type } from "class-transformer";
 
 class CompanyPhoneDto {
-  @ApiPropertyOptional({ example: '+79998887766' })
+  @ApiPropertyOptional({ example: "+79998887766" })
   @IsOptional()
   @IsString()
-  phone?: string
+  phone?: string;
 
-  @ApiPropertyOptional({ example: 'Иван Иванов' })
+  @ApiPropertyOptional({ example: "Иван Иванов" })
   @IsOptional()
   @IsString()
-  representativeName?: string
+  representativeName?: string;
 }
 
 class CompanyProfileDto {
-  @ApiPropertyOptional({ example: 'https://example.com/logo.png' })
+  @ApiPropertyOptional({ example: "https://example.com/logo.png" })
   @IsOptional()
   @IsUrl()
-  logo?: string
+  logo?: string;
 
-  @ApiPropertyOptional({ example: 'Тестовая компания' })
+  @ApiPropertyOptional({ example: "Тестовая компания" })
   @IsOptional()
   @IsString()
-  name?: string
+  name?: string;
 
-  @ApiPropertyOptional({ example: 'Описание компании' })
+  @ApiPropertyOptional({ example: "Описание компании" })
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  description?: string
+  description?: string;
 
-  @ApiPropertyOptional({ example: ['Челябинская область'] })
+  @ApiPropertyOptional({ example: ["Челябинская область"] })
   @IsOptional()
   @IsArray()
-  regions?: string[]
+  regions?: string[];
 
-  @ApiPropertyOptional({ example: 'г. Москва, ул. Пример, 1' })
+  @ApiPropertyOptional({ example: "г. Москва, ул. Пример, 1" })
   @IsOptional()
   @IsString()
-  address?: string
+  address?: string;
 }
 
 class CompanyContactsDto {
-  @ApiPropertyOptional({ example: ['+79998887766'] })
+  @ApiPropertyOptional({ example: ["+79998887766"] })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CompanyPhoneDto)
-  phones?: CompanyPhoneDto[]
+  phones?: CompanyPhoneDto[];
 
-  @ApiPropertyOptional({ example: ['contact@company.com', 'sales@company.com'] })
+  @ApiPropertyOptional({
+    example: ["contact@company.com", "sales@company.com"],
+  })
   @IsOptional()
   @IsArray()
   @Transform(({ value }: { value: unknown }) =>
     Array.isArray(value)
-      ? value.filter((v): v is string => typeof v === 'string' && v.trim() !== '')
+      ? value.filter(
+          (v): v is string => typeof v === "string" && v.trim() !== "",
+        )
       : value,
   )
   @IsEmail({}, { each: true })
-  emails?: string[]
+  emails?: string[];
 
-  @ApiPropertyOptional({ example: 'contact@company.com' })
-  @ValidateIf((_, value) => value !== undefined && value !== null && value !== '')
+  @ApiPropertyOptional({ example: "contact@company.com" })
+  @ValidateIf(
+    (_, value) => value !== undefined && value !== null && value !== "",
+  )
   @IsEmail()
-  email?: string
-
+  email?: string;
 }
 
 class CompanySocialsDto {
-  @ApiPropertyOptional({ example: 'https://example.com' })
-  @ValidateIf((_, value) => value !== undefined && value !== null && value !== '')
+  @ApiPropertyOptional({ example: "https://example.com" })
+  @ValidateIf(
+    (_, value) => value !== undefined && value !== null && value !== "",
+  )
   @IsUrl()
-  website?: string
+  website?: string;
 
-  @ApiPropertyOptional({ example: 'vk.com/test' })
+  @ApiPropertyOptional({ example: "vk.com/test" })
   @IsOptional()
   @IsString()
-  vk?: string
+  vk?: string;
 
-  @ApiPropertyOptional({ example: 'youtube.com/test' })
+  @ApiPropertyOptional({ example: "youtube.com/test" })
   @IsOptional()
   @IsString()
-  youtube?: string
+  youtube?: string;
 
-  @ApiPropertyOptional({ example: '+79998887766' })
+  @ApiPropertyOptional({ example: "+79998887766" })
   @IsOptional()
   @IsString()
-  whatsapp?: string
+  whatsapp?: string;
 
-  @ApiPropertyOptional({ example: '@test' })
+  @ApiPropertyOptional({ example: "@test" })
   @IsOptional()
   @IsString()
-  telegram?: string
+  telegram?: string;
 
-  @ApiPropertyOptional({ example: 'https://dzen.ru/test' })
+  @ApiPropertyOptional({ example: "https://dzen.ru/test" })
   @IsOptional()
   @IsString()
-  yandexDzen?: string
+  yandexDzen?: string;
 }
 
 export class UpdateCompanyAccountDto {
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  submit_for_moderation?: boolean;
+
   @ApiPropertyOptional({ type: CompanyProfileDto })
   @IsOptional()
   @ValidateNested()
   @Type(() => CompanyProfileDto)
-  profile?: CompanyProfileDto
+  profile?: CompanyProfileDto;
 
   @ApiPropertyOptional({ type: CompanyContactsDto })
   @IsOptional()
   @ValidateNested()
   @Type(() => CompanyContactsDto)
-  contacts?: CompanyContactsDto
+  contacts?: CompanyContactsDto;
 
   @ApiPropertyOptional({ type: CompanySocialsDto })
   @IsOptional()
   @ValidateNested()
   @Type(() => CompanySocialsDto)
-  socials?: CompanySocialsDto
+  socials?: CompanySocialsDto;
 
-  @ApiPropertyOptional({ example: 'Тестовая компания' })
+  @ApiPropertyOptional({ example: "Тестовая компания" })
   @IsOptional()
   @IsString()
-  name?: string
+  name?: string;
 
-  @ApiPropertyOptional({ example: 'Описание компании' })
+  @ApiPropertyOptional({ example: "Описание компании" })
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  description?: string
+  description?: string;
 
-  @ApiPropertyOptional({ example: 'Челябинская область' })
+  @ApiPropertyOptional({ example: "Челябинская область" })
   @IsOptional()
   @IsString()
-  region?: string
+  region?: string;
 
-  @ApiPropertyOptional({ example: ['Челябинская область'] })
+  @ApiPropertyOptional({ example: ["Челябинская область"] })
   @IsOptional()
   @IsArray()
-  regions?: string[]
+  regions?: string[];
 
-  @ApiPropertyOptional({ example: 'Строительство' })
+  @ApiPropertyOptional({ example: "Строительство" })
   @IsOptional()
   @IsString()
-  activity_type?: string
+  activity_type?: string;
 
-  @ApiPropertyOptional({ example: 'https://example.com' })
+  @ApiPropertyOptional({ example: "https://example.com" })
   @IsOptional()
   @IsUrl()
-  website?: string
+  website?: string;
 
-  @ApiPropertyOptional({ example: 'https://example.com/logo.png' })
+  @ApiPropertyOptional({ example: "https://example.com/logo.png" })
   @IsOptional()
   @IsUrl()
-  logo_url?: string
+  logo_url?: string;
 
-  @ApiPropertyOptional({ example: 'г. Москва, ул. Пример, 1' })
+  @ApiPropertyOptional({ example: "г. Москва, ул. Пример, 1" })
   @IsOptional()
   @IsString()
-  address?: string
+  address?: string;
 
   @ApiPropertyOptional({
-    example: { telegram: '@test', vk: 'vk.com/test' },
+    example: { telegram: "@test", vk: "vk.com/test" },
   })
   @IsOptional()
   @IsObject()
-  social_links?: Record<string, any>
+  social_links?: Record<string, any>;
 }

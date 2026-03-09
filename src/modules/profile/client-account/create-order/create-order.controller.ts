@@ -19,7 +19,7 @@ import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
 import { Public } from "@modules/auth/public.decorator";
 import { CreateOrderService } from "./create-order.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
-import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
+import { ClientUpdateOrderStatusDto } from "./dto/update-order-status.dto";
 
 @ApiTags("Profile")
 @ApiBearerAuth()
@@ -78,7 +78,7 @@ export class CreateOrderController {
   updateStatus(
     @Req() req: { user: { sub: string } },
     @Param("id", ParseIntPipe) id: number,
-    @Body() dto: UpdateOrderStatusDto,
+    @Body() dto: ClientUpdateOrderStatusDto,
   ) {
     return this.service.updateStatus(req.user.sub, id, dto.status);
   }

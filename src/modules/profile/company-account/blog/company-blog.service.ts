@@ -7,7 +7,7 @@ import { StorageService } from "@infrastructure/storage/storage.service";
 import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 import { resetPinnedByCompanyBlog } from "@modules/blogs/blogs.utils";
 import { CreateBlogDto } from "./dto/create-blog.dto";
-import { UpdateBlogDto } from "./dto/update-blog.dto";
+import { CompanyUpdateBlogDto } from "./dto/update-blog.dto";
 
 export type CompanyBlogStatus = "all" | "published" | "drafts" | "moderation";
 
@@ -123,7 +123,7 @@ export class CompanyBlogService {
     return this.mapItem({ ...saved, company }, company);
   }
 
-  async update(userId: string, blogId: string, dto: UpdateBlogDto) {
+  async update(userId: string, blogId: string, dto: CompanyUpdateBlogDto) {
     const { blog, company } = await this.getBlogByCompanyId(userId, blogId);
     if (blog.status !== BlogStatus.DRAFT) {
       throw new BadRequestException("Редактировать можно только черновик");

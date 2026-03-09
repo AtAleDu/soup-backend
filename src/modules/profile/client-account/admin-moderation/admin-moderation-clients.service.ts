@@ -23,6 +23,7 @@ export class AdminModerationClientsService {
       select: {
         clientId: true,
         full_name: true,
+        avatar_url: true,
         createdAt: true,
         user: { id: true, name: true, email: true },
       },
@@ -33,6 +34,7 @@ export class AdminModerationClientsService {
       id: c.clientId,
       full_name: c.full_name ?? c.user?.name ?? null,
       email: c.user?.email ?? null,
+      avatar_url: c.avatar_url ?? null,
       createdAt: c.createdAt,
     }));
   }

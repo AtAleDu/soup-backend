@@ -131,7 +131,7 @@ export class EditCompanyAccountService {
       this.validateRequiredProfileFields(company, updateData)
     }
 
-    if (hasProfileUpdate) {
+    if (dto.submit_for_moderation === true) {
       updateData.status = CompanyStatus.MODERATION
       updateData.rejectionReason = null
     }

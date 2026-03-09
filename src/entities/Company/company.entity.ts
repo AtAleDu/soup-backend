@@ -58,7 +58,7 @@ export class Company {
     type: "enum",
     enum: CompanyStatus,
     enumName: "companies_status_enum",
-    default: CompanyStatus.MODERATION,
+    default: CompanyStatus.PENDING,
   })
   status: CompanyStatus;
 
