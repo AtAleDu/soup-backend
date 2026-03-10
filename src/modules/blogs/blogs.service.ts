@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, DataSource, In } from "typeorm";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
@@ -22,14 +26,14 @@ export class BlogsService {
   async findAll(companyId?: string, userId?: string) {
     const parsedCompanyId = companyId ? Number(companyId) : undefined;
     const hasCompanyId = Number.isFinite(parsedCompanyId);
-    
+
     const blogs = await this.repo.find({
       where: {
         status: BlogStatus.PUBLISHED,
         ...(hasCompanyId ? { companyId: parsedCompanyId } : {}),
       },
       relations: { company: true },
-      order: hasCompanyId 
+      order: hasCompanyId
         ? { pinnedByCompany: "DESC", createdAt: "DESC" }
         : { isPinned: "DESC", createdAt: "DESC" },
     });
@@ -43,7 +47,7 @@ export class BlogsService {
       relations: { company: true },
     });
     if (!item) throw new NotFoundException("Blog not found");
-    
+
     const [enriched] = await this.enrichWithLikes([item], userId);
     return enriched;
   }
@@ -51,13 +55,15 @@ export class BlogsService {
   async enrichWithLikes(blogs: Blog[], userId?: string) {
     if (blogs.length === 0) return blogs;
 
-    const blogIds = blogs.map(b => b.id);
-    
+    const blogIds = blogs.map((b) => b.id);
+
     const refreshedBlogs = await this.repo.find({
       where: { id: In(blogIds) },
       select: ["id", "likeCount"],
     });
-    const likesCountMap = new Map(refreshedBlogs.map(b => [b.id, b.likeCount || 0]));
+    const likesCountMap = new Map(
+      refreshedBlogs.map((b) => [b.id, b.likeCount || 0]),
+    );
 
     let userLikesSet = new Set<string>();
     if (userId) {
@@ -65,32 +71,40 @@ export class BlogsService {
         where: { userId, blogId: In(blogIds) },
         select: ["blogId"],
       });
-      userLikesSet = new Set(userLikes.map(l => l.blogId));
+      userLikesSet = new Set(userLikes.map((l) => l.blogId));
     }
 
-    return blogs.map(blog => ({
+    return blogs.map((blog) => ({
       ...blog,
       likesCount: likesCountMap.get(blog.id) || 0,
       likedByMe: userId ? userLikesSet.has(blog.id) : false,
     }));
   }
 
-  async checkLikedByMe(blogId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
-    const blog = await this.repo.findOne({ 
+  async checkLikedByMe(
+    blogId: string,
+    userId: string,
+  ): Promise<{ liked: boolean; likeCount: number }> {
+    const blog = await this.repo.findOne({
       where: { id: blogId, status: BlogStatus.PUBLISHED },
       select: ["id", "likeCount"],
     });
     if (!blog) throw new NotFoundException("Blog not found");
 
     const like = await this.likesRepo.findOne({ where: { blogId, userId } });
-    return { 
+    return {
       liked: !!like,
       likeCount: blog.likeCount || 0,
     };
   }
 
-  async toggleLike(blogId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
-    const blog = await this.repo.findOne({ where: { id: blogId, status: BlogStatus.PUBLISHED } });
+  async toggleLike(
+    blogId: string,
+    userId: string,
+  ): Promise<{ liked: boolean; likeCount: number }> {
+    const blog = await this.repo.findOne({
+      where: { id: blogId, status: BlogStatus.PUBLISHED },
+    });
     if (!blog) throw new NotFoundException("Blog not found");
 
     return this.dataSource.transaction(async (manager) => {
@@ -118,7 +132,9 @@ export class BlogsService {
             .execute();
         } catch (error: any) {
           if (error.code === "23505") {
-            const existingLike = await likesRepo.findOne({ where: { blogId, userId } });
+            const existingLike = await likesRepo.findOne({
+              where: { blogId, userId },
+            });
             if (existingLike) {
               await likesRepo.remove(existingLike);
               await blogRepo
@@ -133,13 +149,15 @@ export class BlogsService {
           }
         }
       }
-      
-      const updatedBlog = await blogRepo.findOne({ 
+
+      const updatedBlog = await blogRepo.findOne({
         where: { id: blogId },
         select: ["id", "likeCount"],
       });
-      const updatedLike = await likesRepo.findOne({ where: { blogId, userId } });
-      
+      const updatedLike = await likesRepo.findOne({
+        where: { blogId, userId },
+      });
+
       return {
         liked: !!updatedLike,
         likeCount: updatedBlog?.likeCount || 0,
@@ -148,10 +166,15 @@ export class BlogsService {
   }
 
   async pin(id: string) {
-    const blog = await this.repo.findOne({ where: { id }, relations: { company: true } });
+    const blog = await this.repo.findOne({
+      where: { id },
+      relations: { company: true },
+    });
     if (!blog) throw new NotFoundException("Blog not found");
     if (blog.status !== BlogStatus.PUBLISHED) {
-      throw new BadRequestException("Закрепить можно только опубликованный блог");
+      throw new BadRequestException(
+        "Закрепить можно только опубликованный блог",
+      );
     }
     return this.repo.manager.transaction(async (manager) => {
       await resetPinnedBlog(id, manager);
@@ -161,17 +184,26 @@ export class BlogsService {
   }
 
   async unpin(id: string) {
-    const blog = await this.repo.findOne({ where: { id }, relations: { company: true } });
+    const blog = await this.repo.findOne({
+      where: { id },
+      relations: { company: true },
+    });
     if (!blog) throw new NotFoundException("Blog not found");
     blog.isPinned = false;
     return this.repo.save(blog);
   }
 
-  async uploadBlogImageForAdmin(file: Express.Multer.File): Promise<{ url: string }> {
+  async uploadBlogImageForAdmin(
+    file: Express.Multer.File,
+  ): Promise<{ url: string }> {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
+    if (
+      !(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(
+        file.mimetype,
+      )
+    ) {
       throw new BadRequestException(
         "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
       );
@@ -216,13 +248,17 @@ export class BlogsService {
   }
 
   async updateForAdmin(id: string, dto: UpdateBlogDto) {
-    const blog = await this.repo.findOne({ where: { id }, relations: { company: true } });
+    const blog = await this.repo.findOne({
+      where: { id },
+      relations: { company: true },
+    });
     if (!blog) throw new NotFoundException("Blog not found");
     if (dto.status !== undefined) {
       blog.status = dto.status;
       if (dto.status === BlogStatus.PUBLISHED) blog.approvedAt = new Date();
     }
-    if (dto.rejectionReason !== undefined) blog.rejectionReason = dto.rejectionReason;
+    if (dto.rejectionReason !== undefined)
+      blog.rejectionReason = dto.rejectionReason;
     if (dto.title !== undefined) blog.title = dto.title;
     if (dto.description !== undefined) blog.description = dto.description;
     if (dto.imageUrl !== undefined) blog.imageUrl = dto.imageUrl;

@@ -6,10 +6,11 @@ import { CompanyStatus } from "@entities/Company/company-status.enum";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 import { CompanyServiceStatus } from "@entities/CompanyService/company-service-status.enum";
+import { OrderSuggestion } from "@entities/OrderSuggestion/order-suggestion.entity";
 
 export type CompanyNotificationItem = {
   id: string;
-  entityType: "blog" | "service" | "company";
+  entityType: "blog" | "service" | "company" | "order_suggestion";
   entityId: string;
   entityTitle: string;
   status: "rejected" | "approved";
@@ -26,6 +27,8 @@ export class CompanyNotificationsService {
     private readonly blogs: Repository<Blog>,
     @InjectRepository(CompanyService)
     private readonly services: Repository<CompanyService>,
+    @InjectRepository(OrderSuggestion)
+    private readonly orderSuggestions: Repository<OrderSuggestion>,
   ) {}
 
   private async getCompanyByUser(userId: string) {
@@ -38,8 +41,13 @@ export class CompanyNotificationsService {
     const company = await this.getCompanyByUser(userId);
     const companyId = company.companyId;
 
-    const [blogRejected, blogApproved, servicesActive, servicesRejected] =
-      await Promise.all([
+    const [
+      blogRejected,
+      blogApproved,
+      servicesActive,
+      servicesRejected,
+      suggestions,
+    ] = await Promise.all([
         this.blogs.find({
           where: {
             companyId,
@@ -64,7 +72,12 @@ export class CompanyNotificationsService {
           where: { companyId, status: CompanyServiceStatus.REJECTED },
           order: { updatedAt: "DESC" },
         }),
-      ]);
+      this.orderSuggestions.find({
+        where: { companyId },
+        relations: { order: true },
+        order: { createdAt: "DESC" },
+      }),
+    ]);
 
     const toDateStr = (d: Date | string) =>
       d instanceof Date ? d.toISOString() : String(d);
@@ -161,11 +174,23 @@ export class CompanyNotificationsService {
             }
           : null;
 
+    const orderSuggestionItems: CompanyNotificationItem[] = suggestions.map(
+      (s) => ({
+        id: `order_suggestion-${s.id}`,
+        entityType: "order_suggestion" as const,
+        entityId: String(s.orderId),
+        entityTitle: s.order?.title ?? "Заказ",
+        status: "approved" as const,
+        createdAt: toDateStr(s.createdAt),
+      }),
+    );
+
     const merged = [
       ...blogRejectedItems,
       ...blogApprovedItems,
       ...(serviceItem ? [serviceItem] : []),
       ...(companyItem ? [companyItem] : []),
+      ...orderSuggestionItems,
     ].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),

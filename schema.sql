@@ -21,6 +21,9 @@ CREATE TABLE "order_responses" ("id" SERIAL NOT NULL, "order_id" integer NOT NUL
 CREATE INDEX "IDX_30c387319c744b3c1001d7acfa" ON "order_responses" ("company_id", "created_at") ;
 CREATE INDEX "IDX_365b206d4c1a46fb182f49e48e" ON "order_responses" ("order_id", "created_at") ;
 CREATE UNIQUE INDEX "IDX_86587e9a723d764748350138e1" ON "order_responses" ("order_id", "company_id") ;
+CREATE TABLE "order_suggestions" ("id" SERIAL NOT NULL, "order_id" integer NOT NULL, "company_id" integer NOT NULL, "created_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_order_suggestions" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "IDX_order_suggestions_order_company" ON "order_suggestions" ("order_id", "company_id");
+CREATE INDEX "IDX_order_suggestions_company_created" ON "order_suggestions" ("company_id", "created_at");
 CREATE TABLE "password_reset_tokens" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "userId" uuid NOT NULL, "tokenHash" character varying NOT NULL, "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL, "usedAt" TIMESTAMP WITH TIME ZONE, "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), CONSTRAINT "PK_d16bebd73e844c48bca50ff8d3d" PRIMARY KEY ("id"));
 CREATE INDEX "IDX_d6a19d4b4f6c62dcd29daa497e" ON "password_reset_tokens" ("userId") ;
 CREATE INDEX "IDX_1143abb8c3fad8b06dd857a8c9" ON "password_reset_tokens" ("tokenHash") ;
@@ -45,6 +48,8 @@ ALTER TABLE "blogs" ADD CONSTRAINT "FK_c74a8139b946aa64379c5a9cc44" FOREIGN KEY 
 ALTER TABLE "companies" ADD CONSTRAINT "FK_ee0839cba07cb0c52602021ad4b" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE "order_responses" ADD CONSTRAINT "FK_2a93514ac38079c6906ae9c1bf1" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE "order_responses" ADD CONSTRAINT "FK_27662ce7f26ea02b3eb17b2a9c5" FOREIGN KEY ("company_id") REFERENCES "companies"("companyId") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE "order_suggestions" ADD CONSTRAINT "FK_order_suggestions_order" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE "order_suggestions" ADD CONSTRAINT "FK_order_suggestions_company" FOREIGN KEY ("company_id") REFERENCES "companies"("companyId") ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE "user_favorites" ADD CONSTRAINT "FK_5238ce0a21cc77dc16c8efe3d36" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE "user_favorites" ADD CONSTRAINT "FK_8d4e5b674c33610b25b95be768a" FOREIGN KEY ("company_id") REFERENCES "companies"("companyId") ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE "contractors_subcategories" ADD CONSTRAINT "FK_56ad77898517e076c43e3ea303a" FOREIGN KEY ("category_id") REFERENCES "contractors_categories"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

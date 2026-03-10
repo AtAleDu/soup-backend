@@ -22,6 +22,7 @@ import { BlogLike } from "./BlogLike/blog-like.entity";
 import { Client } from "./Client/client.entity";
 import { Favorite } from "./Favorite/favorite.entity";
 import { OrderResponse } from "./OrderResponse/order-response.entity";
+import { OrderSuggestion } from "./OrderSuggestion/order-suggestion.entity";
 import { AdsCart } from "./AdsCart/ads-cart.entity";
 import { AdsCartItem } from "./AdsCartItem/ads-cart-item.entity";
 
@@ -38,6 +39,7 @@ import { AdsCartItem } from "./AdsCartItem/ads-cart-item.entity";
       Company,
       Favorite,
       OrderResponse,
+      OrderSuggestion,
       AdsCart,
       AdsCartItem,
       Contest,

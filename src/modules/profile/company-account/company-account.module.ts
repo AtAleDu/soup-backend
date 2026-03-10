@@ -23,6 +23,8 @@ import { Ad } from '@entities/Ad/ad.entity'
 import { AdsExpirationScheduler, CompanyAdsController, CompanyAdsService } from './ads'
 import { AdsCartModule } from './ads/cart/ads-cart.module'
 import { OrderResponse } from '@entities/OrderResponse/order-response.entity'
+import { Order } from '@entities/Order/order.entity'
+import { OrderSuggestion } from '@entities/OrderSuggestion/order-suggestion.entity'
 import { CompanyOrdersController, CompanyOrdersService } from './orders'
 import { CompanyNotificationsController } from './notifications/company-notifications.controller'
 import { CompanyNotificationsService } from './notifications/company-notifications.service'
@@ -41,6 +43,8 @@ import { CompanyNotificationsService } from './notifications/company-notificatio
       AdPosition,
       Ad,
       OrderResponse,
+      Order,
+      OrderSuggestion,
     ]),
     StorageModule,
     AdsCartModule,

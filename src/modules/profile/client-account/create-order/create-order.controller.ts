@@ -20,13 +20,18 @@ import { Public } from "@modules/auth/public.decorator";
 import { CreateOrderService } from "./create-order.service";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { ClientUpdateOrderStatusDto } from "./dto/update-order-status.dto";
+import { SuggestOrderService } from "../suggest-order";
+import { SuggestOrderDto } from "../suggest-order/dto/suggest-order.dto";
 
 @ApiTags("Profile")
 @ApiBearerAuth()
 @Controller("profile/client/orders")
 @UseGuards(JwtAuthGuard)
 export class CreateOrderController {
-  constructor(private readonly service: CreateOrderService) {}
+  constructor(
+    private readonly service: CreateOrderService,
+    private readonly suggestOrderService: SuggestOrderService,
+  ) {}
 
   @ApiOperation({ summary: "Загрузить файл/фото к заказу (доступно без авторизации)" })
   @Public()
@@ -81,5 +86,18 @@ export class CreateOrderController {
     @Body() dto: ClientUpdateOrderStatusDto,
   ) {
     return this.service.updateStatus(req.user.sub, id, dto.status);
+  }
+
+  @ApiOperation({
+    summary: "Предложить заказ компании",
+    description: "Создаёт запись о предложении заказа компании. Компания получит уведомление о предложенном заказе.",
+  })
+  @Post(":id/suggest")
+  suggest(
+    @Req() req: { user: { sub: string } },
+    @Param("id", ParseIntPipe) id: number,
+    @Body() dto: SuggestOrderDto,
+  ) {
+    return this.suggestOrderService.suggest(id, req.user.sub, dto);
   }
 }

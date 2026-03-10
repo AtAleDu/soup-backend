@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Client } from "@entities/Client/client.entity";
 import { Order } from "@entities/Order/order.entity";
+import { Company } from "@entities/Company/company.entity";
+import { OrderSuggestion } from "@entities/OrderSuggestion/order-suggestion.entity";
 import { StorageModule } from "@infrastructure/storage/storage.module";
 import {
   AdminModerationClientsController,
@@ -18,10 +20,11 @@ import {
   EditClientAccountService,
 } from "./edit-account";
 import { CreateOrderController, CreateOrderService } from "./create-order";
+import { SuggestOrderService } from "./suggest-order";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Client, Order]),
+    TypeOrmModule.forFeature([Client, Order, Company, OrderSuggestion]),
     StorageModule,
   ],
   controllers: [
@@ -36,6 +39,7 @@ import { CreateOrderController, CreateOrderService } from "./create-order";
     ClientNotificationsService,
     EditClientAccountService,
     CreateOrderService,
+    SuggestOrderService,
     AdminModerationClientsService,
   ],
 })
