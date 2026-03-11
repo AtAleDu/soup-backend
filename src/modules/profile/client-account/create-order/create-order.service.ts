@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Client } from "@entities/Client/client.entity";
+import { ClientStatus } from "@entities/Client/client-status.enum";
 import { Order, OrderStatus } from "@entities/Order/order.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
 import { UPLOAD_ORDER_FILE } from "@infrastructure/upload/upload-constraints";
@@ -32,6 +33,11 @@ export class CreateOrderService {
 
   async create(userId: string, dto: CreateOrderDto): Promise<Order> {
     const client = await this.getClientByUserId(userId);
+    if (client.status !== ClientStatus.ACTIVE) {
+      throw new ForbiddenException(
+        "Создавать заказы могут только клиенты, которые прошли модерацию",
+      );
+    }
 
     const order = this.orders.create({
       clientId: client.clientId,
@@ -56,7 +62,11 @@ export class CreateOrderService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!(UPLOAD_ORDER_FILE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
+    if (
+      !(UPLOAD_ORDER_FILE.allowedMimeTypes as readonly string[]).includes(
+        file.mimetype,
+      )
+    ) {
       throw new BadRequestException(
         "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG, PDF, DOC, DOCX",
       );
@@ -84,14 +94,17 @@ export class CreateOrderService {
     return { url: uploadResult.url };
   }
 
-  async uploadFile(
-    userId: string | undefined,
-    file,
-  ): Promise<{ url: string }> {
-    const pathPrefix =
-      userId != null
-        ? `personal-account/client-account/order-files/${(await this.getClientByUserId(userId)).clientId}`
-        : "personal-account/client-account/order-files/guest";
+  async uploadFile(userId: string | undefined, file): Promise<{ url: string }> {
+    let pathPrefix = "personal-account/client-account/order-files/guest";
+    if (userId != null) {
+      const client = await this.getClientByUserId(userId);
+      if (client.status !== ClientStatus.ACTIVE) {
+        throw new ForbiddenException(
+          "Загружать файлы к заказу могут только клиенты, которые прошли модерацию",
+        );
+      }
+      pathPrefix = `personal-account/client-account/order-files/${client.clientId}`;
+    }
     return this.doUploadFile(file, pathPrefix);
   }
 
@@ -126,6 +139,11 @@ export class CreateOrderService {
     status: string,
   ): Promise<Order> {
     const client = await this.getClientByUserId(userId);
+    if (client.status !== ClientStatus.ACTIVE) {
+      throw new ForbiddenException(
+        "Менять статус заказа могут только клиенты, которые прошли модерацию",
+      );
+    }
 
     const order = await this.orders.findOne({
       where: { id: orderId },

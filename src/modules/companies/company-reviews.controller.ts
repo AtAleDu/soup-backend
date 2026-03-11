@@ -39,23 +39,23 @@ export class CompanyReviewsController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Оставить отзыв (только клиент)" })
+  @ApiOperation({ summary: "Оставить отзыв (клиент active или админ)" })
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("client")
+  @Roles("client", "ADMIN")
   createReview(
     @Param("companyId", ParseIntPipe) companyId: number,
-    @Req() req: { user: { sub: string } },
+    @Req() req: { user: { sub: string; role: string } },
     @Body() dto: CreateCompanyReviewDto,
   ) {
-    return this.service.createReview(companyId, req.user.sub, dto);
+    return this.service.createReview(companyId, req.user.sub, req.user.role, dto);
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Загрузить фото к отзыву" })
+  @ApiOperation({ summary: "Загрузить фото к отзыву (клиент active или админ)" })
   @Post(":reviewId/upload-image")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("client")
+  @Roles("client", "ADMIN")
   @UseInterceptors(
     FileInterceptor("image", {
       storage: memoryStorage(),
@@ -71,13 +71,14 @@ export class CompanyReviewsController {
   uploadImage(
     @Param("companyId", ParseIntPipe) companyId: number,
     @Param("reviewId", ParseIntPipe) reviewId: number,
-    @Req() req: { user: { sub: string } },
+    @Req() req: { user: { sub: string; role: string } },
     @UploadedFile() file,
   ) {
     return this.service.uploadReviewImage(
       companyId,
       reviewId,
       req.user.sub,
+      req.user.role,
       file,
     );
   }

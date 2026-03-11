@@ -46,15 +46,4 @@ export class FavoritesController {
   list(@Req() req: { user: { sub: string } }) {
     return this.service.list(req.user.sub);
   }
-
-  @ApiOperation({ summary: "Проверить, в избранном ли компания" })
-  @ApiResponse({ status: 200, description: "true/false" })
-  @ApiResponse({ status: 401, description: "Не авторизован" })
-  @Get("check/:companyId")
-  check(
-    @Req() req: { user: { sub: string } },
-    @Param("companyId", ParseIntPipe) companyId: number,
-  ) {
-    return this.service.isFavorite(req.user.sub, companyId);
-  }
 }

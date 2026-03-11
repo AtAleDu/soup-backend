@@ -75,7 +75,7 @@ export class BlogsController {
   @ApiResponse({ status: 404, description: "Блог не найден" })
   @UseGuards(JwtAuthGuard)
   @Post(":id/likes/toggle")
-  toggleLike(@Param("id") id: string, @Req() req: any) {
-    return this.service.toggleLike(id, req.user.sub);
+  toggleLike(@Param("id") id: string, @Req() req: { user: { sub: string; role: string } }) {
+    return this.service.toggleLike(id, req.user.sub, req.user.role);
   }
 }

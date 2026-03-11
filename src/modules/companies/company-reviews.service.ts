@@ -10,6 +10,7 @@ import { Company } from "@entities/Company/company.entity";
 import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
 import { CompanyReviewReply } from "@entities/CompanyReviewReply/company-review-reply.entity";
 import { Client } from "@entities/Client/client.entity";
+import { ClientStatus } from "@entities/Client/client-status.enum";
 import { StorageService } from "@infrastructure/storage/storage.service";
 import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 import { CreateCompanyReviewDto } from "./dto/create-company-review.dto";
@@ -83,12 +84,22 @@ export class CompanyReviewsService {
     return { reviews: mapped, total: mapped.length };
   }
 
-  /** Создать отзыв (только клиент) */
+  /** Создать отзыв (клиент со статусом active или админ) */
   async createReview(
     companyId: number,
     userId: string,
+    role: string,
     dto: CreateCompanyReviewDto,
   ) {
+    if (role !== "ADMIN") {
+      const client = await this.clients.findOne({ where: { userId } });
+      if (!client || client.status !== ClientStatus.ACTIVE) {
+        throw new ForbiddenException(
+          "Оставлять отзывы могут только клиенты, которые прошли модерацию",
+        );
+      }
+    }
+
     const company = await this.companies.findOne({
       where: { companyId },
       select: { companyId: true },
@@ -116,17 +127,31 @@ export class CompanyReviewsService {
     return this.mapReview(saved, null);
   }
 
-  /** Загрузить фото к отзыву (только автор отзыва или после создания) */
+  /** Загрузить фото к отзыву (клиент active или админ, только к своему отзыву) */
   async uploadReviewImage(
     companyId: number,
     reviewId: number,
     userId: string,
+    role: string,
     file,
   ): Promise<{ url: string }> {
+    if (role !== "ADMIN") {
+      const client = await this.clients.findOne({ where: { userId } });
+      if (!client || client.status !== ClientStatus.ACTIVE) {
+        throw new ForbiddenException(
+          "Загружать фото к отзыву могут только клиенты, которые прошли модерацию",
+        );
+      }
+    }
+
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
+    if (
+      !(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(
+        file.mimetype,
+      )
+    ) {
       throw new BadRequestException(
         "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
       );

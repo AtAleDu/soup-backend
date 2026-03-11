@@ -38,8 +38,16 @@ export class EditClientAccountService {
     }
 
     if (dto.contacts !== undefined) {
-      updateData.contacts = dto.contacts.filter(
+      const filtered = dto.contacts.filter(
         (item) => typeof item.value === "string" && item.value.trim() !== "",
+      );
+      const existingEmail = client.contacts?.find(
+        (c) => c.type === "email",
+      )?.value;
+      updateData.contacts = filtered.map((c) =>
+        c.type === "email" && existingEmail != null
+          ? { ...c, value: existingEmail }
+          : c,
       );
     }
 

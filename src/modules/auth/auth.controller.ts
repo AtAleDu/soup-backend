@@ -52,6 +52,10 @@ export class AuthController {
     description: "Access token выдан, refresh token установлен в cookie",
   })
   @ApiResponse({ status: 401, description: "Неверные учетные данные" })
+  @ApiResponse({
+    status: 403,
+    description: "Email не подтверждён, требуется верификация (body: code, verificationId)",
+  })
   @Post("login")
   async login(
     @Body() body: LoginDto,

@@ -2,12 +2,13 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Favorite } from "@entities/Favorite/favorite.entity";
 import { Company } from "@entities/Company/company.entity";
+import { Client } from "@entities/Client/client.entity";
 import { FavoritesService } from "./favorites.service";
 import { FavoritesController } from "./favorites.controller";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Favorite, Company]),
+    TypeOrmModule.forFeature([Favorite, Company, Client]),
   ],
   controllers: [FavoritesController],
   providers: [FavoritesService],

@@ -55,22 +55,7 @@ export class EditCompanyAccountService {
           .slice(0, 1)
         updateData.phones = phones
       }
-      if (dto.contacts.emails !== undefined) {
-        const emails = dto.contacts.emails
-          .filter(
-            (value): value is string =>
-              typeof value === 'string' && value.trim() !== '',
-          )
-          .slice(0, 1)
-        updateData.emails = emails
-        updateData.email = emails[0] ?? null
-      } else if (dto.contacts.email !== undefined) {
-        updateData.email = dto.contacts.email
-        updateData.emails =
-          dto.contacts.email && dto.contacts.email.trim() !== ''
-            ? [dto.contacts.email]
-            : []
-      }
+      // Поле почты не редактируется в ЛК, только при верификации
     }
 
     const legacySocialLinks = dto.social_links ?? {}

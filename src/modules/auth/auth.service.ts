@@ -1,6 +1,7 @@
 import {
   Injectable,
   BadRequestException,
+  ForbiddenException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -121,16 +122,13 @@ export class AuthService {
       });
     }
 
-    // Временно без отправки кода — сразу активируем пользователя
-    // try {
-    //   return await this.verificationService.create(user.id, user.email);
-    // } catch (error) {
-    //   await this.companies.delete({ userId: user.id });
-    //   await this.users.delete(user.id);
-    //   throw error;
-    // }
-    await this.users.update(user.id, { status: UserStatus.ACTIVE });
-    return {};
+    try {
+      return await this.verificationService.create(user.id, user.email);
+    } catch (error) {
+      await this.companies.delete({ userId: user.id });
+      await this.users.delete(user.id);
+      throw error;
+    }
   }
 
   // Подтверждение регистрации по коду и автоматический логин пользователя
@@ -189,12 +187,31 @@ export class AuthService {
       throw new UnauthorizedException("Неверный email или пароль");
     }
 
-    if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException("Email не подтверждён");
-    }
-
-    // Проверка пароля
+    // Проверка пароля до проверки статуса, чтобы не раскрывать наличие пользователя
     await this.passwordService.compare(dto.password, user.password);
+
+    if (user.status !== UserStatus.ACTIVE) {
+      const existing = await this.sessions.findOne({
+        where: {
+          userId: user.id,
+          status: VerificationStatus.PENDING,
+        },
+        order: { createdAt: "DESC" },
+      });
+      const now = Date.now();
+      const hasValidSession =
+        existing && existing.expiresAt.getTime() > now;
+
+      const verificationId = hasValidSession
+        ? existing!.id
+        : (await this.verificationService.create(user.id, user.email))
+            .verificationId;
+
+      throw new ForbiddenException({
+        code: "EMAIL_NOT_VERIFIED",
+        verificationId,
+      });
+    }
 
     // Генерация токенов
     const tokens = await this.tokenService.issue(user);
@@ -371,6 +388,29 @@ export class AuthService {
     user.email = newEmail;
     await this.users.save(user);
 
+    if (user.role === UserRole.CLIENT) {
+      const client = await this.clients.findOne({
+        where: { userId: user.id },
+      });
+      const contacts = Array.isArray(client?.contacts)
+        ? client.contacts.map((c) =>
+            c.type === "email" ? { ...c, value: newEmail } : c,
+          )
+        : [];
+      const hasEmail = contacts.some((c) => c.type === "email");
+      const newContacts = hasEmail
+        ? contacts
+        : [...contacts, { type: "email" as const, value: newEmail }];
+      await this.clients.update({ userId: user.id }, { contacts: newContacts });
+    }
+
+    if (user.role === UserRole.СOMPANY) {
+      await this.companies.update(
+        { userId: user.id },
+        { email: newEmail },
+      );
+    }
+
     const code = generateVerificationCode();
     const newSession = await this.sessions.save({
       userId: session.userId,
@@ -388,6 +428,26 @@ export class AuthService {
       await this.sessions.delete(newSession.id);
       user.email = previousEmail;
       await this.users.save(user);
+      if (user.role === UserRole.CLIENT) {
+        const client = await this.clients.findOne({
+          where: { userId: user.id },
+        });
+        if (client?.contacts) {
+          const contacts = client.contacts.map((c) =>
+            c.type === "email" ? { ...c, value: previousEmail } : c,
+          );
+          await this.clients.update(
+            { userId: user.id },
+            { contacts },
+          );
+        }
+      }
+      if (user.role === UserRole.СOMPANY) {
+        await this.companies.update(
+          { userId: user.id },
+          { email: previousEmail },
+        );
+      }
       throw error;
     }
 

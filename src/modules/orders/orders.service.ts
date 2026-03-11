@@ -30,7 +30,9 @@ export class OrdersService {
   async findAllForAdmin(status?: string): Promise<Order[]> {
     const filterStatus = status ?? OrderStatus.MODERATION;
     const allowed = Object.values(OrderStatus);
-    const safeStatus = allowed.includes(filterStatus as (typeof allowed)[number])
+    const safeStatus = allowed.includes(
+      filterStatus as (typeof allowed)[number],
+    )
       ? filterStatus
       : OrderStatus.MODERATION;
     return this.orders.find({
@@ -86,7 +88,10 @@ export class OrdersService {
   /**
    * Список заказов всех пользователей по статусу (для каталога / откликов компаний).
    */
-  async findAllByStatus(status: string = OrderStatus.ACTIVE, sort?: string): Promise<Order[]> {
+  async findAllByStatus(
+    status: string = OrderStatus.ACTIVE,
+    sort?: string,
+  ): Promise<Order[]> {
     const allowed = Object.values(OrderStatus);
     const filterStatus = allowed.includes(status as (typeof allowed)[number])
       ? status
@@ -120,7 +125,9 @@ export class OrdersService {
   async findOne(
     id: number,
     userId: string,
-  ): Promise<(Order & { responsesCount: number; isResponded: boolean }) | null> {
+  ): Promise<
+    (Order & { responsesCount: number; isResponded: boolean }) | null
+  > {
     const order = await this.orders.findOne({ where: { id } });
     if (!order) return null;
 
@@ -174,9 +181,10 @@ export class OrdersService {
       social_links: false,
     };
 
-    const phone = privacy.phone && !order.hidePhone ? findContact("phone") : null;
+    const phone =
+      privacy.phone && !order.hidePhone ? findContact("phone") : null;
     const email = privacy.email
-      ? findContact("email") ?? order.client.user?.email ?? null
+      ? (findContact("email") ?? order.client.user?.email ?? null)
       : null;
     const telegram = privacy.social_links ? findContact("telegram") : null;
     const max = privacy.social_links ? findContact("max") : null;
@@ -203,7 +211,7 @@ export class OrdersService {
     }
     if (company.status !== CompanyStatus.ACTIVE) {
       throw new ForbiddenException(
-        "Отклик доступен только компаниям со статусом active",
+        "Отклик доступен только компаниям, которые прошли модерацию",
       );
     }
 
@@ -215,7 +223,9 @@ export class OrdersService {
       throw new NotFoundException("Заказ не найден");
     }
     if (order.status !== OrderStatus.ACTIVE) {
-      throw new BadRequestException("Откликнуться можно только на активный заказ");
+      throw new BadRequestException(
+        "Откликнуться можно только на активный заказ",
+      );
     }
     if (order.client.userId === userId) {
       throw new ForbiddenException("Нельзя откликаться на собственный заказ");
@@ -228,7 +238,9 @@ export class OrdersService {
       throw new ConflictException("Вы уже откликнулись на этот заказ");
     }
 
-    const deadlineOffer = dto.deadlineOffer ? new Date(dto.deadlineOffer) : null;
+    const deadlineOffer = dto.deadlineOffer
+      ? new Date(dto.deadlineOffer)
+      : null;
     if (deadlineOffer && Number.isNaN(deadlineOffer.getTime())) {
       throw new BadRequestException("Некорректный формат deadlineOffer");
     }

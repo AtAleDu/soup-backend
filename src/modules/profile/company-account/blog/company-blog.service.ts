@@ -1,7 +1,13 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Company } from "@entities/Company/company.entity";
+import { CompanyStatus } from "@entities/Company/company-status.enum";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
 import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
@@ -110,7 +116,13 @@ export class CompanyBlogService {
 
   async create(userId: string, dto: CreateBlogDto) {
     const company = await this.getCompanyByUser(userId);
-    const status = dto.publish === true ? BlogStatus.MODERATION : BlogStatus.DRAFT;
+    if (company.status !== CompanyStatus.ACTIVE) {
+      throw new ForbiddenException(
+        "Создавать блоги могут только компании, которые прошли модерацию",
+      );
+    }
+    const status =
+      dto.publish === true ? BlogStatus.MODERATION : BlogStatus.DRAFT;
     const blog = this.blogs.create({
       companyId: company.companyId,
       title: dto.title,
@@ -157,8 +169,14 @@ export class CompanyBlogService {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
-      throw new BadRequestException("Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG");
+    if (
+      !(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(
+        file.mimetype,
+      )
+    ) {
+      throw new BadRequestException(
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
+      );
     }
     if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
       throw new BadRequestException("Размер файла превышает 5 МБ");
@@ -187,7 +205,9 @@ export class CompanyBlogService {
   async pinByCompany(userId: string, blogId: string) {
     const { blog, company } = await this.getBlogByCompanyId(userId, blogId);
     if (blog.status !== BlogStatus.PUBLISHED) {
-      throw new BadRequestException("Закрепить можно только опубликованный блог");
+      throw new BadRequestException(
+        "Закрепить можно только опубликованный блог",
+      );
     }
     return this.blogs.manager.transaction(async (manager) => {
       await resetPinnedByCompanyBlog(company.companyId, blogId, manager);

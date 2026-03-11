@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Client } from "@entities/Client/client.entity";
+import { ClientStatus } from "@entities/Client/client-status.enum";
 import { Order, OrderStatus } from "@entities/Order/order.entity";
 import { Company } from "@entities/Company/company.entity";
 import { CompanyStatus } from "@entities/Company/company-status.enum";
@@ -27,10 +28,19 @@ export class SuggestOrderService {
     private readonly orderSuggestions: Repository<OrderSuggestion>,
   ) {}
 
-  async suggest(orderId: number, userId: string, dto: SuggestOrderDto): Promise<{ success: boolean }> {
+  async suggest(
+    orderId: number,
+    userId: string,
+    dto: SuggestOrderDto,
+  ): Promise<{ success: boolean }> {
     const client = await this.clients.findOne({ where: { userId } });
     if (!client) {
       throw new ForbiddenException("Доступно только клиентам");
+    }
+    if (client.status !== ClientStatus.ACTIVE) {
+      throw new ForbiddenException(
+        "Предлагать заказ могут только клиенты, которые прошли модерацию",
+      );
     }
 
     const order = await this.orders.findOne({
@@ -57,7 +67,9 @@ export class SuggestOrderService {
       where: { orderId, companyId: dto.companyId },
     });
     if (existing) {
-      throw new ConflictException("Вы уже предлагали этот заказ данной компании");
+      throw new ConflictException(
+        "Вы уже предлагали этот заказ данной компании",
+      );
     }
 
     const suggestion = this.orderSuggestions.create({

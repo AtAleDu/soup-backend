@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -7,6 +8,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, DataSource, In } from "typeorm";
 import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { BlogLike } from "@entities/BlogLike/blog-like.entity";
+import { Client } from "@entities/Client/client.entity";
+import { ClientStatus } from "@entities/Client/client-status.enum";
+import { Company } from "@entities/Company/company.entity";
+import { CompanyStatus } from "@entities/Company/company-status.enum";
 import { StorageService } from "@infrastructure/storage/storage.service";
 import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
 import { resetPinnedBlog } from "./blogs.utils";
@@ -19,6 +24,10 @@ export class BlogsService {
     private readonly repo: Repository<Blog>,
     @InjectRepository(BlogLike)
     private readonly likesRepo: Repository<BlogLike>,
+    @InjectRepository(Client)
+    private readonly clients: Repository<Client>,
+    @InjectRepository(Company)
+    private readonly companies: Repository<Company>,
     private readonly dataSource: DataSource,
     private readonly storage: StorageService,
   ) {}
@@ -101,7 +110,22 @@ export class BlogsService {
   async toggleLike(
     blogId: string,
     userId: string,
+    role: string,
   ): Promise<{ liked: boolean; likeCount: number }> {
+    if (role !== "ADMIN") {
+      const client = await this.clients.findOne({ where: { userId } });
+      if (client?.status === ClientStatus.ACTIVE) {
+        // allowed
+      } else {
+        const company = await this.companies.findOne({ where: { userId } });
+        if (company?.status !== CompanyStatus.ACTIVE) {
+          throw new ForbiddenException(
+            "Лайкать блоги могут только пользователи, которые прошли модерацию",
+          );
+        }
+      }
+    }
+
     const blog = await this.repo.findOne({
       where: { id: blogId, status: BlogStatus.PUBLISHED },
     });
