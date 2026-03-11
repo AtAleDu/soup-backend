@@ -1,5 +1,5 @@
-import { Controller, Get, Query } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from "@nestjs/swagger";
+import { Controller, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from "@nestjs/swagger";
 import { ContestsService } from "./contests.service";
 
 @ApiTags("Contests")
@@ -23,5 +23,15 @@ export class ContestsController {
   @Get("contests/past")
   findPast(@Query("time") time?: string) {
     return this.contestsService.findPastPublished(time);
+  }
+
+  // PUBLIC: получить конкурс по id
+  @ApiOperation({ summary: "Получить конкурс по id" })
+  @ApiParam({ name: "id", type: Number })
+  @ApiResponse({ status: 200, description: "Конкурс" })
+  @ApiResponse({ status: 404, description: "Конкурс не найден" })
+  @Get("contests/:id")
+  findOne(@Param("id", ParseIntPipe) id: number) {
+    return this.contestsService.findOne(id);
   }
 }

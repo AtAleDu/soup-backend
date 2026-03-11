@@ -1,4 +1,4 @@
-import { IsDateString, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsDateString, IsOptional, IsString } from "class-validator";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 
 export class UpdateContestDto {
@@ -42,4 +42,11 @@ export class UpdateContestDto {
   @IsString()
   imageUrl?: string;
 
+  @ApiPropertyOptional({
+    example: false,
+    description: "Является ли конкурс рекламным",
+  })
+  @IsOptional()
+  @IsBoolean()
+  isAds?: boolean;
 }

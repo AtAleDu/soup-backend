@@ -19,4 +19,7 @@ export class Contest {
 
   @Column({ nullable: true })
   imageUrl?: string;
+
+  @Column({ type: "boolean", default: false })
+  isAds: boolean;
 }
