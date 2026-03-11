@@ -10,10 +10,14 @@ export class ContestsController {
   // PUBLIC: получить текущие опубликованные конкурсы
   @ApiOperation({ summary: "Получить текущие конкурсы" })
   @ApiQuery({ name: "time", required: false, enum: ["week", "month", "all"] })
+  @ApiQuery({ name: "free", required: false, type: Boolean, description: "Только бесплатные" })
   @ApiResponse({ status: 200, description: "Список текущих конкурсов" })
   @Get("contests/current")
-  findCurrent(@Query("time") time?: string) {
-    return this.contestsService.findCurrentPublished(time);
+  findCurrent(
+    @Query("time") time?: string,
+    @Query("free") free?: string,
+  ) {
+    return this.contestsService.findCurrentPublished(time, free);
   }
 
   // PUBLIC: получить прошедшие конкурсы

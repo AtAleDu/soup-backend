@@ -65,7 +65,7 @@ export class ContestsService {
     return contest;
   }
 
-  async findCurrentPublished(time?: string) {
+  async findCurrentPublished(time?: string, free?: string) {
     const today = new Date().toISOString().slice(0, 10);
     const qb = this.repo
       .createQueryBuilder("contest")
@@ -76,6 +76,12 @@ export class ContestsService {
       qb.andWhere("contest.startDate >= :since", { since: startDateSince(7) });
     } else if (time === "month") {
       qb.andWhere("contest.startDate >= :since", { since: startDateSince(30) });
+    }
+
+    if (free === "1" || free === "true") {
+      qb.andWhere(
+        "(contest.participationCost IS NULL OR contest.participationCost = '' OR TRIM(LOWER(contest.participationCost)) = 'бесплатно' OR contest.participationCost = '0')",
+      );
     }
 
     return qb.getMany();

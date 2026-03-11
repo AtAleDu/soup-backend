@@ -22,4 +22,16 @@ export class Contest {
 
   @Column({ type: "boolean", default: false })
   isAds: boolean;
+
+  @Column({ type: "text", nullable: true })
+  description?: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  prizeFund?: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  organizer?: string;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  participationCost?: string;
 }

@@ -49,4 +49,24 @@ export class UpdateContestDto {
   @IsOptional()
   @IsBoolean()
   isAds?: boolean;
+
+  @ApiPropertyOptional({ description: "Описание конкурса" })
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @ApiPropertyOptional({ description: "Призовой фонд" })
+  @IsOptional()
+  @IsString()
+  prizeFund?: string;
+
+  @ApiPropertyOptional({ description: "Заказчик конкурса" })
+  @IsOptional()
+  @IsString()
+  organizer?: string;
+
+  @ApiPropertyOptional({ description: "Стоимость участия" })
+  @IsOptional()
+  @IsString()
+  participationCost?: string;
 }
