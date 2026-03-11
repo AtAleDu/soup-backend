@@ -9,9 +9,26 @@ import { Repository } from "typeorm";
 import { Client } from "@entities/Client/client.entity";
 import { ClientStatus } from "@entities/Client/client-status.enum";
 import { Order, OrderStatus } from "@entities/Order/order.entity";
+import { OrderResponse } from "@entities/OrderResponse/order-response.entity";
+import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
 import { UPLOAD_ORDER_FILE } from "@infrastructure/upload/upload-constraints";
 import { CreateOrderDto } from "./dto/create-order.dto";
+
+export type ClientOrderResponseItem = {
+  id: number;
+  orderId: number;
+  companyId: number;
+  companyName: string | null;
+  companyLogoUrl: string | null;
+  rating: number;
+  reviewsCount: number;
+  message: string | null;
+  priceFrom: number | null;
+  priceTo: number | null;
+  status: string;
+  createdAt: Date;
+};
 
 @Injectable()
 export class CreateOrderService {
@@ -20,6 +37,10 @@ export class CreateOrderService {
     private readonly clients: Repository<Client>,
     @InjectRepository(Order)
     private readonly orders: Repository<Order>,
+    @InjectRepository(OrderResponse)
+    private readonly orderResponses: Repository<OrderResponse>,
+    @InjectRepository(CompanyReview)
+    private readonly companyReviews: Repository<CompanyReview>,
     private readonly storage: StorageService,
   ) {}
 
@@ -108,7 +129,10 @@ export class CreateOrderService {
     return this.doUploadFile(file, pathPrefix);
   }
 
-  async findOne(userId: string, orderId: number): Promise<Order> {
+  async findOne(
+    userId: string,
+    orderId: number,
+  ): Promise<Order & { responsesCount: number }> {
     const client = await this.getClientByUserId(userId);
     const order = await this.orders.findOne({
       where: { id: orderId, clientId: client.clientId },
@@ -116,7 +140,66 @@ export class CreateOrderService {
     if (!order) {
       throw new NotFoundException("Заказ не найден");
     }
-    return order;
+    const responsesCount = await this.orderResponses.count({
+      where: { orderId },
+    });
+    return { ...order, responsesCount };
+  }
+
+  async findOrderResponses(
+    userId: string,
+    orderId: number,
+  ): Promise<ClientOrderResponseItem[]> {
+    const client = await this.getClientByUserId(userId);
+    const order = await this.orders.findOne({
+      where: { id: orderId, clientId: client.clientId },
+    });
+    if (!order) {
+      throw new NotFoundException("Заказ не найден");
+    }
+    const responses = await this.orderResponses.find({
+      where: { orderId },
+      relations: { company: true },
+      order: { createdAt: "DESC" },
+    });
+    if (responses.length === 0) return [];
+
+    const companyIds = [...new Set(responses.map((r) => r.companyId))];
+    const rawRatings = await this.companyReviews
+      .createQueryBuilder("review")
+      .select("review.companyId", "companyId")
+      .addSelect("COALESCE(AVG(review.rating), 0)", "avgRating")
+      .addSelect("COUNT(review.id)", "reviewsCount")
+      .where("review.companyId IN (:...companyIds)", { companyIds })
+      .groupBy("review.companyId")
+      .getRawMany<{ companyId: number; avgRating: string; reviewsCount: string }>();
+
+    const ratingByCompany = new Map<number, { rating: number; reviewsCount: number }>();
+    for (const row of rawRatings) {
+      ratingByCompany.set(row.companyId, {
+        rating: Number(row.avgRating ?? 0),
+        reviewsCount: Number(row.reviewsCount ?? 0),
+      });
+    }
+
+    return responses.map((r) => {
+      const { rating = 0, reviewsCount = 0 } =
+        ratingByCompany.get(r.companyId) ?? {};
+      return {
+        id: r.id,
+        orderId: r.orderId,
+        companyId: r.companyId,
+        companyName: r.company?.name ?? null,
+        companyLogoUrl: r.company?.logo_url ?? null,
+        rating: Number.isFinite(rating) ? rating : 0,
+        reviewsCount: Number.isFinite(reviewsCount) ? reviewsCount : 0,
+        message: r.message,
+        priceFrom: r.priceFrom,
+        priceTo: r.priceTo,
+        status: r.status,
+        createdAt: r.createdAt,
+      };
+    });
   }
 
   async findAll(userId: string, status?: string): Promise<Order[]> {

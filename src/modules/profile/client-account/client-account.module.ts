@@ -3,6 +3,8 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Client } from "@entities/Client/client.entity";
 import { Order } from "@entities/Order/order.entity";
 import { Company } from "@entities/Company/company.entity";
+import { OrderResponse } from "@entities/OrderResponse/order-response.entity";
+import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
 import { OrderSuggestion } from "@entities/OrderSuggestion/order-suggestion.entity";
 import { StorageModule } from "@infrastructure/storage/storage.module";
 import {
@@ -24,7 +26,14 @@ import { SuggestOrderService } from "./suggest-order";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Client, Order, Company, OrderSuggestion]),
+    TypeOrmModule.forFeature([
+      Client,
+      Order,
+      Company,
+      OrderResponse,
+      CompanyReview,
+      OrderSuggestion,
+    ]),
     StorageModule,
   ],
   controllers: [

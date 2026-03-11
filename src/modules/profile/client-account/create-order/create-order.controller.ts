@@ -69,6 +69,15 @@ export class CreateOrderController {
     return this.service.findAll(req.user.sub, status);
   }
 
+  @ApiOperation({ summary: "Список откликов компаний на заказ" })
+  @Get(":id/responses")
+  findOrderResponses(
+    @Req() req: { user: { sub: string } },
+    @Param("id", ParseIntPipe) id: number,
+  ) {
+    return this.service.findOrderResponses(req.user.sub, id);
+  }
+
   @ApiOperation({ summary: "Получить заказ по id" })
   @Get(":id")
   findOne(
