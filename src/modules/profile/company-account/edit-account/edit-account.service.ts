@@ -143,7 +143,6 @@ export class EditCompanyAccountService {
       | null
     const name = updateData.name ?? company.name
     const description = updateData.description ?? company.description
-    const logo = updateData.logo_url ?? company.logo_url
     const regions = (updateData.regions ?? company.regions ?? []) as
       | string[]
       | null
@@ -170,7 +169,6 @@ export class EditCompanyAccountService {
     if (Array.isArray(regions) && regions.length > 3) {
       throw new BadRequestException('Можно указать не более 3 регионов')
     }
-    if (typeof logo !== 'string' || logo.trim().length === 0) missingFields.push('logo')
     if (!hasRequiredPhone) missingFields.push('phone')
     if (!hasRequiredEmail) missingFields.push('email')
 
