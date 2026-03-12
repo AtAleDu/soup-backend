@@ -10,17 +10,24 @@ export class NewsController {
   // PUBLIC: получить список новостей
   @ApiOperation({ summary: "Получить список новостей" })
   @ApiQuery({ name: "time", required: false, enum: ["week", "month", "all"] })
-  @ApiQuery({ name: "badge", required: false, description: "Фильтр по категории (badge)" })
+  @ApiQuery({ name: "category", required: false, description: "Фильтр по категории" })
   @ApiQuery({ name: "withAds", required: false, description: "Смешать ленту с рекламой" })
   @ApiResponse({ status: 200, description: "Список новостей" })
   @Get()
   findAll(
     @Query("time") time?: string,
-    @Query("badge") badge?: string,
+    @Query("category") category?: string,
     @Query("withAds") withAds?: string,
   ) {
     const withAdsEnabled = withAds === "1" || withAds === "true";
-    return this.service.findAll(time, badge, withAdsEnabled);
+    return this.service.findAll(time, category, withAdsEnabled);
+  }
+
+  @ApiOperation({ summary: "Получить уникальные категории новостей" })
+  @ApiResponse({ status: 200, description: "Список категорий новостей" })
+  @Get("categories")
+  findCategories() {
+    return this.service.findCategories();
   }
 
   // PUBLIC: получить новость по ID
