@@ -6,7 +6,9 @@ import { Company } from "@entities/Company/company.entity";
 import { OrderResponse } from "@entities/OrderResponse/order-response.entity";
 import { CompanyReview } from "@entities/CompanyReview/company-review.entity";
 import { OrderSuggestion } from "@entities/OrderSuggestion/order-suggestion.entity";
+import { NotificationRead } from "@entities/NotificationRead/notification-read.entity";
 import { StorageModule } from "@infrastructure/storage/storage.module";
+import { NotificationReadService } from "../notifications/notification-read.service";
 import {
   AdminModerationClientsController,
   AdminModerationClientsService,
@@ -33,6 +35,7 @@ import { SuggestOrderService } from "./suggest-order";
       OrderResponse,
       CompanyReview,
       OrderSuggestion,
+      NotificationRead,
     ]),
     StorageModule,
   ],
@@ -50,6 +53,7 @@ import { SuggestOrderService } from "./suggest-order";
     CreateOrderService,
     SuggestOrderService,
     AdminModerationClientsService,
+    NotificationReadService,
   ],
 })
 export class ClientAccountModule {}

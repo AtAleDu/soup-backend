@@ -28,6 +28,8 @@ import { OrderSuggestion } from '@entities/OrderSuggestion/order-suggestion.enti
 import { CompanyOrdersController, CompanyOrdersService } from './orders'
 import { CompanyNotificationsController } from './notifications/company-notifications.controller'
 import { CompanyNotificationsService } from './notifications/company-notifications.service'
+import { NotificationRead } from '@entities/NotificationRead/notification-read.entity'
+import { NotificationReadService } from '../notifications/notification-read.service'
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import { CompanyNotificationsService } from './notifications/company-notificatio
       OrderResponse,
       Order,
       OrderSuggestion,
+      NotificationRead,
     ]),
     StorageModule,
     AdsCartModule,
@@ -70,6 +73,7 @@ import { CompanyNotificationsService } from './notifications/company-notificatio
     CompanyAdsService,
     AdsExpirationScheduler,
     CompanyOrdersService,
+    NotificationReadService,
   ],
 })
 export class CompanyAccountModule {}

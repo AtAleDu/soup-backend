@@ -7,6 +7,7 @@ import { Blog, BlogStatus } from "@entities/Blog/blog.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 import { CompanyServiceStatus } from "@entities/CompanyService/company-service-status.enum";
 import { OrderSuggestion } from "@entities/OrderSuggestion/order-suggestion.entity";
+import { NotificationReadService } from "../../notifications/notification-read.service";
 
 export type CompanyNotificationItem = {
   id: string;
@@ -16,7 +17,10 @@ export type CompanyNotificationItem = {
   status: "rejected" | "approved";
   rejectionReason?: string;
   createdAt: string;
+  read: boolean;
 };
+
+type CompanyNotificationItemRaw = Omit<CompanyNotificationItem, "read">;
 
 @Injectable()
 export class CompanyNotificationsService {
@@ -29,6 +33,7 @@ export class CompanyNotificationsService {
     private readonly services: Repository<CompanyService>,
     @InjectRepository(OrderSuggestion)
     private readonly orderSuggestions: Repository<OrderSuggestion>,
+    private readonly notificationReadService: NotificationReadService,
   ) {}
 
   private async getCompanyByUser(userId: string) {
@@ -82,7 +87,7 @@ export class CompanyNotificationsService {
     const toDateStr = (d: Date | string) =>
       d instanceof Date ? d.toISOString() : String(d);
 
-    const blogRejectedItems: CompanyNotificationItem[] = blogRejected.map(
+    const blogRejectedItems = blogRejected.map(
       (b) => ({
         id: b.id,
         entityType: "blog" as const,
@@ -94,7 +99,7 @@ export class CompanyNotificationsService {
       }),
     );
 
-    const blogApprovedItems: CompanyNotificationItem[] = blogApproved.map(
+    const blogApprovedItems = blogApproved.map(
       (b) => ({
         id: b.id,
         entityType: "blog" as const,
@@ -108,7 +113,7 @@ export class CompanyNotificationsService {
     const latestApprovedService = servicesActive[0];
     const latestRejectedService = servicesRejected[0];
 
-    let serviceItem: CompanyNotificationItem | null = null;
+    let serviceItem: CompanyNotificationItemRaw | null = null;
     if (latestApprovedService && latestRejectedService) {
       const approvedTime = new Date(latestApprovedService.updatedAt).getTime();
       const rejectedTime = new Date(latestRejectedService.updatedAt).getTime();
@@ -152,7 +157,7 @@ export class CompanyNotificationsService {
       };
     }
 
-    const companyItem: CompanyNotificationItem | null =
+    const companyItem: CompanyNotificationItemRaw | null =
       company.status === CompanyStatus.ACTIVE
         ? {
             id: `company-approved-${company.companyId}`,
@@ -174,7 +179,7 @@ export class CompanyNotificationsService {
             }
           : null;
 
-    const orderSuggestionItems: CompanyNotificationItem[] = suggestions.map(
+    const orderSuggestionItems = suggestions.map(
       (s) => ({
         id: `order_suggestion-${s.id}`,
         entityType: "order_suggestion" as const,
@@ -196,6 +201,15 @@ export class CompanyNotificationsService {
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 
-    return merged;
+    const readIds = await this.notificationReadService.getReadIds(
+      userId,
+      "company",
+      merged.map((i) => i.id),
+    );
+
+    return merged.map((item) => ({
+      ...item,
+      read: readIds.has(item.id),
+    }));
   }
 }
