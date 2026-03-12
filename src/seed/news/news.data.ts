@@ -29,18 +29,6 @@ export const NEWS_DATA: Partial<NewsEntity>[] = [
       "Проект сохраняет индустриальный характер.",
     ],
   },
-
-  {
-    image:
-      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80",
-    category: "Реклама",
-    title: "Комплексное благоустройство под ключ",
-    author: "Редакция Soup",
-    description:
-      "Подберём материалы, подрядчиков и готовые решения.",
-    isAds: true,
-  },
-
   {
     image:
       "https://s3.twcstorage.ru/4b615622-soup/news/%D1%84%D1%83%D1%82%D0%B1%20%D0%BF%D0%BE%D0%BB%D0%B5.svg",

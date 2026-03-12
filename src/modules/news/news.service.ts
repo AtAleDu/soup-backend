@@ -53,7 +53,7 @@ export class NewsService {
     return mixed;
   }
 
-  async findAll(time?: string, badge?: string, withAds?: boolean) {
+  async findAll(time?: string, category?: string, withAds?: boolean) {
     const qb = this.repo
       .createQueryBuilder("news")
       .orderBy("news.isImportantNew", "DESC")
@@ -66,8 +66,8 @@ export class NewsService {
       qb.andWhere("news.createdAt >= :since", { since });
     }
 
-    if (badge) {
-      qb.andWhere("news.category = :badge", { badge });
+    if (category) {
+      qb.andWhere("news.category = :category", { category });
     }
 
     if (withAds) {
@@ -90,6 +90,18 @@ export class NewsService {
       .getOne();
 
     return this.buildNewsWithSingleBanner(list, ad ?? null);
+  }
+
+  async findCategories() {
+    const rows = await this.repo
+      .createQueryBuilder("news")
+      .select("DISTINCT TRIM(news.category)", "category")
+      .where("news.category IS NOT NULL")
+      .andWhere("TRIM(news.category) <> ''")
+      .orderBy("category", "ASC")
+      .getRawMany<{ category: string }>();
+
+    return rows.map((row) => row.category);
   }
 
   async findOne(id: string) {
