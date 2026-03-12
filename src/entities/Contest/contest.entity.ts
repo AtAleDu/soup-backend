@@ -1,9 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from "typeorm";
 
 @Entity("contests")
 export class Contest {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @CreateDateColumn({ type: "timestamp" })
+  createdAt: Date;
 
   @Column()
   title: string;

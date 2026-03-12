@@ -65,6 +65,17 @@ export class ContestsService {
     return contest;
   }
 
+  /**
+   * Возвращает последние созданные конкурсы (для сайдбара и т.п.).
+   * Сортировка по createdAt DESC, ограничение по limit.
+   */
+  async findLatest(limit: number = 3): Promise<Contest[]> {
+    return this.repo.find({
+      order: { createdAt: "DESC" },
+      take: limit,
+    });
+  }
+
   async findCurrentPublished(time?: string, free?: string) {
     const today = new Date().toISOString().slice(0, 10);
     const qb = this.repo

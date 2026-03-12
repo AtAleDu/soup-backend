@@ -29,6 +29,17 @@ export class ContestsController {
     return this.contestsService.findPastPublished(time);
   }
 
+  // PUBLIC: последние созданные конкурсы (для сайдбара)
+  @ApiOperation({ summary: "Получить последние созданные конкурсы" })
+  @ApiQuery({ name: "limit", required: false, type: Number, description: "Макс. кол-во (по умолчанию 3)" })
+  @ApiResponse({ status: 200, description: "Список конкурсов" })
+  @Get("contests/latest")
+  findLatest(@Query("limit") limit?: string) {
+    const limitNum = limit != null ? parseInt(limit, 10) : 3;
+    const safeLimit = Number.isNaN(limitNum) || limitNum < 1 ? 3 : Math.min(limitNum, 100);
+    return this.contestsService.findLatest(safeLimit);
+  }
+
   // PUBLIC: получить конкурс по id
   @ApiOperation({ summary: "Получить конкурс по id" })
   @ApiParam({ name: "id", type: Number })
