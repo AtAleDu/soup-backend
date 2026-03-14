@@ -115,10 +115,18 @@ export async function buildInvoicePdf(params: BuildInvoicePdfParams): Promise<Bu
   draw(`ЛИЦЕВОЙ СЧЕТ № ${invoiceNumber}`, MARGIN, { bold: true });
   draw(`от ${formatDateRu(invoiceDate)}`, MARGIN);
   draw('Заказчик:', MARGIN, { bold: true });
-  draw(advertiser.shortName || advertiser.fullName, MARGIN);
-  if (advertiser.email) draw(advertiser.email, MARGIN);
-  if (advertiser.phone) draw(advertiser.phone, MARGIN);
+  if (advertiser.shortName) draw(advertiser.shortName, MARGIN);
+  if (advertiser.fullName) draw(advertiser.fullName, MARGIN);
+  if (advertiser.inn || advertiser.kpp) {
+    draw(`ИНН/КПП: ${advertiser.inn || '—'}/${advertiser.kpp || '—'}`, MARGIN);
+  }
   if (advertiser.legalAddress) draw(`Юридический адрес: ${advertiser.legalAddress}`, MARGIN);
+  if (advertiser.postalCode || advertiser.postalAddress) {
+    const postal = [advertiser.postalCode, advertiser.postalAddress].filter(Boolean).join(', ');
+    draw(`Почтовый адрес: ${postal}`, MARGIN);
+  }
+  if (advertiser.phone) draw(`Телефон: ${advertiser.phone}`, MARGIN);
+  if (advertiser.email) draw(`Эл. почта: ${advertiser.email}`, MARGIN);
   y -= LINE_HEIGHT;
 
   const tableTop = y;
