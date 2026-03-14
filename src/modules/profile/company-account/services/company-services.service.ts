@@ -204,7 +204,6 @@ export class CompanyServicesService {
         regions: [],
         address: "",
         phones: [],
-        emails: [],
         email: "",
         socialLinks: {},
       },

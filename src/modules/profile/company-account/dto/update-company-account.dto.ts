@@ -61,21 +61,6 @@ class CompanyContactsDto {
   @Type(() => CompanyPhoneDto)
   phones?: CompanyPhoneDto[];
 
-  @ApiPropertyOptional({
-    example: ["contact@company.com", "sales@company.com"],
-  })
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }: { value: unknown }) =>
-    Array.isArray(value)
-      ? value.filter(
-          (v): v is string => typeof v === "string" && v.trim() !== "",
-        )
-      : value,
-  )
-  @IsEmail({}, { each: true })
-  emails?: string[];
-
   @ApiPropertyOptional({ example: "contact@company.com" })
   @ValidateIf(
     (_, value) => value !== undefined && value !== null && value !== "",

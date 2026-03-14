@@ -55,7 +55,12 @@ export class EditCompanyAccountService {
           .slice(0, 1)
         updateData.phones = phones
       }
-      // Поле почты не редактируется в ЛК, только при верификации
+      if (dto.contacts.email !== undefined) {
+        updateData.email =
+          typeof dto.contacts.email === 'string' && dto.contacts.email.trim() !== ''
+            ? dto.contacts.email.trim()
+            : null
+      }
     }
 
     const legacySocialLinks = dto.social_links ?? {}
@@ -138,9 +143,8 @@ export class EditCompanyAccountService {
     const phones = (updateData.phones ?? company.phones ?? []) as
       | Array<{ phone?: string | null }>
       | null
-    const emails = (updateData.emails ?? company.emails ?? []) as
-      | Array<string | null>
-      | null
+    const email =
+      (updateData.email ?? company.email) as string | null | undefined
     const name = updateData.name ?? company.name
     const description = updateData.description ?? company.description
     const regions = (updateData.regions ?? company.regions ?? []) as
@@ -154,11 +158,8 @@ export class EditCompanyAccountService {
         )
       : false
 
-    const hasRequiredEmail = Array.isArray(emails)
-      ? emails.some(
-          (value) => typeof value === 'string' && value.trim().length > 0,
-        )
-      : false
+    const hasRequiredEmail =
+      typeof email === 'string' && email.trim().length > 0
 
     const missingFields: string[] = []
     if (typeof name !== 'string' || name.trim().length === 0) missingFields.push('name')
