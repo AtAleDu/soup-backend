@@ -12,6 +12,7 @@ export class AdsController {
   @ApiOperation({ summary: 'Публичная выдача рекламы' })
   @ApiQuery({ name: 'placement', required: false })
   @ApiQuery({ name: 'adKind', required: false })
+  @ApiQuery({ name: 'sortBy', required: false })
   @ApiQuery({ name: 'limit', required: false })
   @Get()
   getAds(@Query() query: GetAdsQueryDto) {

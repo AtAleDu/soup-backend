@@ -5,6 +5,7 @@ export const ADS_SEED_DATA = [
   {
     adKind: AdKind.BANNER,
     placement: "banner",
+    sortOrder: 0,
     title: "Озеленение дворов под ключ",
     description: "Проектирование и благоустройство территорий с гарантией",
     imageUrl: "https://s3.twcstorage.ru/4b615622-soup/ads-mock.svg",
@@ -14,6 +15,7 @@ export const ADS_SEED_DATA = [
   {
     adKind: AdKind.BANNER,
     placement: "banner",
+    sortOrder: 0,
     title: "Производство МАФ для парков",
     description: "Собственное производство и монтаж в вашем регионе",
     imageUrl: "https://s3.twcstorage.ru/4b615622-soup/ads-mock.svg",
@@ -23,10 +25,31 @@ export const ADS_SEED_DATA = [
   {
     adKind: AdKind.BANNER,
     placement: "banner",
+    sortOrder: 0,
     title: "Системы полива для ЖК",
     description: "Автополив, сервисное обслуживание, гарантия качества",
     imageUrl: "https://s3.twcstorage.ru/4b615622-soup/ads-mock.svg",
     targetUrl: "https://example.com/watering",
+    status: AdStatus.ACTIVE,
+  },
+  {
+    adKind: AdKind.BANNER,
+    placement: "main-page-banner",
+    sortOrder: 1,
+    title: "Комплексное благоустройство территорий",
+    description: null,
+    imageUrl: "https://s3.twcstorage.ru/4b615622-soup/ads-mock.svg",
+    targetUrl: "/catalog",
+    status: AdStatus.ACTIVE,
+  },
+  {
+    adKind: AdKind.BANNER,
+    placement: "main-page-banner",
+    sortOrder: 2,
+    title: "СУП продукт",
+    description: null,
+    imageUrl: "https://s3.twcstorage.ru/4b615622-soup/ads-mock.svg",
+    targetUrl: "/catalog/company",
     status: AdStatus.ACTIVE,
   },
 ] as const;

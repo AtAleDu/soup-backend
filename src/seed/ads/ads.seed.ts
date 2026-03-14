@@ -12,21 +12,24 @@ export async function seedAds(dataSource: DataSource) {
   const adRepo = dataSource.getRepository(Ad);
   const company = await companyRepo.findOne({ where: {} });
 
-  if (!company) {
-    return;
-  }
-
   const startDate = formatDateOnly(new Date());
   const endDate = formatDateOnly(
     new Date(Date.now() + 1000 * 60 * 60 * 24 * 90),
   );
 
   for (const data of ADS_SEED_DATA) {
+    const isMainPageBanner = data.placement === "main-page-banner";
+    const companyId = isMainPageBanner ? null : company?.companyId ?? null;
+
+    if (!isMainPageBanner && !companyId) {
+      continue;
+    }
+
     const existing = await adRepo.findOne({
       where: {
-        companyId: company.companyId,
         placement: data.placement,
         title: data.title,
+        ...(isMainPageBanner ? {} : { companyId }),
       },
     });
 
@@ -45,7 +48,7 @@ export async function seedAds(dataSource: DataSource) {
     }
 
     await adRepo.save({
-      companyId: company.companyId,
+      companyId,
       positionId: null,
       ...data,
       startDate,

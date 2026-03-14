@@ -17,6 +17,7 @@ import { AdStatus, type AdStatusValue } from './ad-status.enum'
 @Index(['companyId'])
 @Index(['positionId'])
 @Index(['placement'])
+@Index(['sortOrder'])
 @Index(['adKind'])
 @Index(['status'])
 @Index(['startDate'])
@@ -25,12 +26,15 @@ export class Ad {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column({ name: 'company_id', type: 'int' })
-  companyId: number
+  @Column({ name: 'company_id', type: 'int', nullable: true })
+  companyId: number | null
 
-  @ManyToOne(() => Company, (company) => company.ads, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Company, (company) => company.ads, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
   @JoinColumn({ name: 'company_id' })
-  company: Company
+  company: Company | null
 
   @Column({ name: 'position_id', type: 'int', nullable: true })
   positionId: number | null
@@ -44,6 +48,9 @@ export class Ad {
 
   @Column({ type: 'varchar', default: 'banner' })
   placement: string
+
+  @Column({ name: 'sort_order', type: 'int', default: 0 })
+  sortOrder: number
 
   @Column({ nullable: true })
   title: string | null

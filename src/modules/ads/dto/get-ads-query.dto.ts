@@ -13,6 +13,11 @@ export class GetAdsQueryDto {
   @IsString()
   adKind?: string
 
+  @ApiPropertyOptional({ example: 'created_at' })
+  @IsOptional()
+  @IsString()
+  sortBy?: string
+
   @ApiPropertyOptional({ example: 1, default: 1 })
   @IsOptional()
   @Type(() => Number)

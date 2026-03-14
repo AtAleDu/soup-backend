@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Ad } from '@entities/Ad/ad.entity'
+import { StorageModule } from '@infrastructure/storage/storage.module'
 import { AdsService } from './ads.service'
 import { AdsController } from './ads.controller'
 import { AdminAdsController } from './admin/admin-ads.controller'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ad])],
+  imports: [TypeOrmModule.forFeature([Ad]), StorageModule],
   providers: [AdsService],
   controllers: [AdsController, AdminAdsController],
   exports: [AdsService],
