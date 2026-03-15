@@ -27,7 +27,12 @@ export class CompanyService {
   @Column()
   category: string;
 
-  @Column({ name: "category_description", type: "varchar", length: 500, nullable: true })
+  @Column({
+    name: "category_description",
+    type: "varchar",
+    length: 500,
+    nullable: true,
+  })
   categoryDescription: string | null;
 
   @Column()
@@ -35,6 +40,9 @@ export class CompanyService {
 
   @Column("text", { array: true, name: "image_urls", default: [] })
   imageUrls: string[];
+
+  @Column("text", { array: true, name: "video_urls", default: [] })
+  videoUrls: string[];
 
   @Column({
     type: "enum",

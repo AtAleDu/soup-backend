@@ -41,7 +41,7 @@ export class CompanyServicesController {
     return this.service.saveServices(req.user.sub, dto);
   }
 
-  @ApiOperation({ summary: "Загрузить изображение услуги" })
+  @ApiOperation({ summary: "Загрузить фото или видео услуги" })
   @ApiResponse({ status: 200 })
   @Post("upload-image")
   @UseInterceptors(
@@ -50,7 +50,7 @@ export class CompanyServicesController {
     }),
   )
   uploadImage(@Req() req, @UploadedFile() file) {
-    return this.service.uploadServiceImage(req.user.sub, file);
+    return this.service.uploadServiceMedia(req.user.sub, file);
   }
 }
 

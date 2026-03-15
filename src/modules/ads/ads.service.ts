@@ -188,7 +188,7 @@ export class AdsService {
     }
 
     if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
-      throw new BadRequestException('Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG')
+      throw new BadRequestException('Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG, HEIF')
     }
 
     if (file.size > UPLOAD_IMAGE.maxSizeBytes) {

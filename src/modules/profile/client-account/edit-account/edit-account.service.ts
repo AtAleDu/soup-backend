@@ -84,7 +84,7 @@ export class EditClientAccountService {
     }
     if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
       throw new BadRequestException(
-        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG, HEIF",
       );
     }
     if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
