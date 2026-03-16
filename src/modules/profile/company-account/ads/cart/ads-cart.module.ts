@@ -22,5 +22,6 @@ import { CompanyAdsCartService } from './cart.service'
   ],
   controllers: [CompanyAdsCartController],
   providers: [CompanyAdsCartService],
+  exports: [CompanyAdsCartService],
 })
 export class AdsCartModule {}
