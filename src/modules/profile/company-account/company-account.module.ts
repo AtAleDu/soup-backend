@@ -27,6 +27,7 @@ import { AdsCartModule } from './ads/cart/ads-cart.module'
 import { CompanyAdsAdvertiser } from '@entities/CompanyAdsAdvertiser/company-ads-advertiser.entity'
 import { AdsInvoice } from '@entities/AdsInvoice/ads-invoice.entity'
 import { AdsInvoiceController } from './ads/invoice/invoice.controller'
+import { AdminAdsInvoicesController } from './ads/invoice/admin-invoice.controller'
 import { AdsInvoiceService } from './ads/invoice/invoice.service'
 import { AdsInvoiceOverdueScheduler } from './ads/invoice/invoice-overdue.scheduler'
 import { OrderResponse } from '@entities/OrderResponse/order-response.entity'
@@ -72,6 +73,7 @@ import { NotificationReadService } from '../notifications/notification-read.serv
     CompanyAdsController,
     CompanyAdsAdvertiserController,
     AdsInvoiceController,
+    AdminAdsInvoicesController,
     CompanyOrdersController,
   ],
   providers: [

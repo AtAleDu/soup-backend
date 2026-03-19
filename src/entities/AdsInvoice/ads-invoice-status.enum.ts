@@ -1,6 +1,6 @@
 export const AdsInvoiceStatus = {
   MODERATION: "moderation",
-  APPROVED: "approved",
+  PAID: "paid",
   REJECTED: "rejected",
   OVERDUE: "overdue",
 } as const;
