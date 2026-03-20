@@ -6,7 +6,12 @@ import { Tariff } from '@entities/Tarif/tariff.entity'
 import { AdPosition } from '@entities/Ad/ad-position.entity'
 import { Company } from '@entities/Company/company.entity'
 import { Ad } from '@entities/Ad/ad.entity'
+import { AdClick } from '@entities/Ad/ad-click.entity'
 import { AdKind } from '@entities/Ad/ad-kind.enum'
+import type {
+  CompanyAdsStatisticsResponseDto,
+  CompanyAdsStatisticsRange,
+} from './dto/company-ads-statistics.dto'
 
 const DEFAULT_TARIFF_NAME = 'basic'
 const DEFAULT_AD_POSITION_PRICE = 5000
@@ -28,7 +33,41 @@ export class CompanyAdsService {
     private readonly companies: Repository<Company>,
     @InjectRepository(Ad)
     private readonly ads: Repository<Ad>,
+    @InjectRepository(AdClick)
+    private readonly adClicks: Repository<AdClick>,
   ) {}
+
+  private resolveDateRange(range?: string, from?: string, to?: string) {
+    const now = new Date()
+
+    if (range === 'week') {
+      const fromDate = new Date(now)
+      fromDate.setDate(fromDate.getDate() - 7)
+      return { fromDate, toDate: now }
+    }
+
+    if (range === 'month') {
+      const fromDate = new Date(now)
+      fromDate.setDate(fromDate.getDate() - 30)
+      return { fromDate, toDate: now }
+    }
+
+    // period (fallback)
+    const fromDate = from ? new Date(from) : (() => {
+      const d = new Date(now)
+      d.setDate(d.getDate() - 30)
+      return d
+    })()
+    const toDate = to ? new Date(to) : now
+
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+      const fallbackFrom = new Date(now)
+      fallbackFrom.setDate(fallbackFrom.getDate() - 30)
+      return { fromDate: fallbackFrom, toDate: now }
+    }
+
+    return { fromDate, toDate }
+  }
 
   private async getUserById(userId: string) {
     const user = await this.users.findOne({
@@ -236,5 +275,92 @@ export class CompanyAdsService {
     )
 
     return { affected: typeof result?.rowCount === 'number' ? result.rowCount : 0 }
+  }
+
+  async getAdsStatistics(
+    userId: string,
+    params: { range?: string; from?: string; to?: string },
+  ): Promise<CompanyAdsStatisticsResponseDto> {
+    const company = await this.getCompanyByUserId(userId)
+    const { fromDate, toDate } = this.resolveDateRange(
+      params.range as CompanyAdsStatisticsRange | undefined,
+      params.from,
+      params.to,
+    )
+
+    const baseQb = this.adClicks
+      .createQueryBuilder('click')
+      .innerJoin('click.ad', 'ad')
+      .where('ad.companyId = :companyId', { companyId: company.companyId })
+      .andWhere('click.createdAt >= :fromDate AND click.createdAt < :toDate', {
+        fromDate,
+        toDate,
+      })
+
+    const [sourcesRows, itemsRows, profileTransitions, bannerClicks, newsClicks, callClicks] =
+      await Promise.all([
+        baseQb
+          .clone()
+          .select('ad.placement', 'placement')
+          .addSelect('COUNT(click.id)', 'clicksCount')
+          .groupBy('ad.placement')
+          .orderBy('COUNT(click.id)', 'DESC')
+          .getRawMany<{ placement: string; clicksCount: string }>(),
+        baseQb
+          .clone()
+          .select('ad.id', 'id')
+          .addSelect('ad.title', 'title')
+          .addSelect('ad.placement', 'placement')
+          .addSelect('COUNT(click.id)', 'clicksCount')
+          .groupBy('ad.id')
+          .addGroupBy('ad.title')
+          .addGroupBy('ad.placement')
+          .orderBy('COUNT(click.id)', 'DESC')
+          .limit(20)
+          .getRawMany<{ id: number; title: string | null; placement: string | null; clicksCount: string }>(),
+        baseQb
+          .clone()
+          .andWhere('ad.targetUrl LIKE :profilePattern', {
+            profilePattern: `%catalog/company?id=${company.companyId}%`,
+          })
+          .select('COUNT(click.id)', 'count')
+          .getRawOne<{ count: string }>(),
+        baseQb
+          .clone()
+          .andWhere('ad.placement = :bannerPlacement', { bannerPlacement: 'banner' })
+          .select('COUNT(click.id)', 'count')
+          .getRawOne<{ count: string }>(),
+        baseQb
+          .clone()
+          .andWhere('ad.placement ILIKE :newsPattern', { newsPattern: '%news%' })
+          .select('COUNT(click.id)', 'count')
+          .getRawOne<{ count: string }>(),
+        baseQb
+          .clone()
+          .andWhere('ad.targetUrl ILIKE :telPattern', { telPattern: 'tel:%' })
+          .select('COUNT(click.id)', 'count')
+          .getRawOne<{ count: string }>(),
+      ])
+
+    const toNum = (value: string | null | undefined) => Number(value ?? 0)
+
+    return {
+      summary: {
+        profileTransitions: toNum(profileTransitions?.count),
+        bannerClicks: toNum(bannerClicks?.count),
+        newsClicks: toNum(newsClicks?.count),
+        callClicks: toNum(callClicks?.count),
+      },
+      sources: (sourcesRows ?? []).map((row) => ({
+        placement: row.placement,
+        clicksCount: toNum(row.clicksCount),
+      })),
+      items: (itemsRows ?? []).map((row) => ({
+        id: Number(row.id),
+        title: row.title ?? null,
+        placement: row.placement ?? null,
+        clicksCount: toNum(row.clicksCount),
+      })),
+    }
   }
 }

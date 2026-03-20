@@ -5,11 +5,13 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
 import { Company } from '@entities/Company/company.entity'
 import { AdPosition } from './ad-position.entity'
+import { AdClick } from './ad-click.entity'
 import { AdKind, type AdKindValue } from './ad-kind.enum'
 import { AdStatus, type AdStatusValue } from './ad-status.enum'
 
@@ -93,4 +95,7 @@ export class Ad {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date
+
+  @OneToMany(() => AdClick, (click) => click.ad)
+  clicks: AdClick[]
 }

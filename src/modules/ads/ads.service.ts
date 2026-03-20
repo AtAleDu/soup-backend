@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Ad } from '@entities/Ad/ad.entity'
+import { AdClick } from '@entities/Ad/ad-click.entity'
 import { AdStatus } from '@entities/Ad/ad-status.enum'
 import { StorageService } from '@infrastructure/storage/storage.service'
 import { UPLOAD_IMAGE } from '@infrastructure/upload/upload-constraints'
@@ -14,6 +15,8 @@ export class AdsService {
   constructor(
     @InjectRepository(Ad)
     private readonly ads: Repository<Ad>,
+    @InjectRepository(AdClick)
+    private readonly adClicks: Repository<AdClick>,
     private readonly storage: StorageService,
   ) {}
 
@@ -87,6 +90,7 @@ export class AdsService {
     }
 
     await this.ads.increment({ id }, 'clicksCount', 1)
+    await this.adClicks.insert({ adId: id, createdAt: new Date() })
     return ad.targetUrl
   }
 

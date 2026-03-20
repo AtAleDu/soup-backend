@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AdBanner } from "./Ad/ad-banner.entity";
+import { AdClick } from "./Ad/ad-click.entity";
 import { Ad } from "./Ad/ad.entity";
 import { AdPosition } from "./Ad/ad-position.entity";
 import { Article } from "./Article/article.entity";
@@ -32,6 +33,7 @@ import { NotificationRead } from "./NotificationRead/notification-read.entity";
     TypeOrmModule.forFeature([
       AdBanner,
       Ad,
+      AdClick,
       AdPosition,
       Article,
       Blog,

@@ -20,6 +20,7 @@ import { ContractorTypeEntity } from '@entities/Contractor/contractor-categories
 import { Tariff } from '@entities/Tarif/tariff.entity'
 import { AdPosition } from '@entities/Ad/ad-position.entity'
 import { Ad } from '@entities/Ad/ad.entity'
+import { AdClick } from '@entities/Ad/ad-click.entity'
 import { AdsExpirationScheduler, CompanyAdsController, CompanyAdsService } from './ads'
 import { AdsCartModule } from './ads/cart/ads-cart.module'
 import { OrderResponse } from '@entities/OrderResponse/order-response.entity'
@@ -44,6 +45,7 @@ import { NotificationReadService } from '../notifications/notification-read.serv
       Tariff,
       AdPosition,
       Ad,
+      AdClick,
       OrderResponse,
       Order,
       OrderSuggestion,
