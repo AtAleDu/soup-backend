@@ -25,10 +25,13 @@ import { NewsService } from "../news.service";
 import { CreateNewsDto } from "../dto/create-news.dto";
 import { UpdateNewsDto } from "../dto/update-news.dto";
 import { JwtAuthGuard } from "../../auth/jwt/jwt-auth.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { Roles } from "@modules/auth/guards/roles.decorator";
 
 @ApiTags("News")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/news")
 export class AdminNewsController {
   constructor(private readonly service: NewsService) {}

@@ -17,14 +17,11 @@ import { AdsCartItem } from '@entities/AdsCartItem/ads-cart-item.entity'
 import { AdsCartItemType } from '@entities/AdsCartItem/ads-cart-item-type.enum'
 import { AddAdsCartItemDto } from './dto/add-ads-cart-item.dto'
 import { UpdateAdsCartItemDto } from './dto/update-ads-cart-item.dto'
-
-const DEFAULT_CART_CURRENCY = 'RUB'
-const DEFAULT_ADS_POSITION_PERIOD_DAYS = 30
-const DEFAULT_ADS_POSITION_MONTH_PRICE = 5000
-const MAX_BANNERS_PER_POSITION = 5
-const AD_POSITION_MONTH_PRICE_BY_CODE: Record<string, number> = {
-  banner: 5000,
-}
+import {
+  DEFAULT_ADS_POSITION_PERIOD_DAYS,
+  DEFAULT_CART_CURRENCY,
+  MAX_BANNERS_PER_COMPANY,
+} from '../config/ads.constants'
 
 @Injectable()
 export class CompanyAdsCartService {
@@ -60,10 +57,12 @@ export class CompanyAdsCartService {
   }
 
   private resolveUnitPrice(position: AdPosition, periodDays: number) {
-    const rawPrice = this.toNumber(position.price)
-    const fallbackPrice =
-      AD_POSITION_MONTH_PRICE_BY_CODE[position.code] ?? DEFAULT_ADS_POSITION_MONTH_PRICE
-    const basePrice = rawPrice > 0 ? rawPrice : fallbackPrice
+    const basePrice = this.toNumber(position.price)
+    if (basePrice <= 0) {
+      throw new BadRequestException(
+        `Для рекламной позиции "${position.code}" не задана корректная цена`,
+      )
+    }
     const normalizedPeriod = periodDays / DEFAULT_ADS_POSITION_PERIOD_DAYS
     return basePrice * normalizedPeriod
   }
@@ -78,11 +77,10 @@ export class CompanyAdsCartService {
     return AdsCartItemType.POSITION
   }
 
-  private async resolveCreatedBannersCount(companyId: number, positionId: number) {
+  private async resolveCompanyCreatedBannersCount(companyId: number) {
     const count = await this.ads.count({
       where: {
         companyId,
-        positionId,
         adKind: AdKind.BANNER,
         isActive: true,
       },
@@ -100,7 +98,7 @@ export class CompanyAdsCartService {
         isActive: true,
       },
       order: { id: 'DESC' },
-      take: MAX_BANNERS_PER_POSITION,
+      take: MAX_BANNERS_PER_COMPANY,
     })
 
     if (!drafts.length) {
@@ -283,18 +281,12 @@ export class CompanyAdsCartService {
         throw new NotFoundException('Рекламная позиция не найдена')
       }
 
-      const createdBannersCount = await this.resolveCreatedBannersCount(
+      const createdBannersCount = await this.resolveCompanyCreatedBannersCount(
         company.companyId,
-        position.id,
       )
-      if (createdBannersCount < 1) {
+      if (createdBannersCount > MAX_BANNERS_PER_COMPANY) {
         throw new BadRequestException(
-          'Сначала создайте хотя бы один баннер для выбранной позиции',
-        )
-      }
-      if (createdBannersCount > MAX_BANNERS_PER_POSITION) {
-        throw new BadRequestException(
-          `Для позиции можно использовать максимум ${MAX_BANNERS_PER_POSITION} баннеров`,
+          `Для компании можно использовать максимум ${MAX_BANNERS_PER_COMPANY} баннер`,
         )
       }
 

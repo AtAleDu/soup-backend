@@ -16,13 +16,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@modules/auth/jwt/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/guards/roles.decorator';
 import { AdsInvoiceService } from './invoice.service';
 import { AdsInvoiceStatus } from '@entities/AdsInvoice/ads-invoice-status.enum';
 import type { AdsInvoiceStatusValue } from '@entities/AdsInvoice/ads-invoice-status.enum';
 
 @ApiTags('AdsInvoicesAdmin')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('admin/ads/invoices')
 export class AdminAdsInvoicesController {
   constructor(private readonly service: AdsInvoiceService) {}

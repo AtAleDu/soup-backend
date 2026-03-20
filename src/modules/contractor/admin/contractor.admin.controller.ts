@@ -12,10 +12,13 @@ import { UpdateContractorTypeDto } from '../dto/update-contractor.dto'
 import { ContractorTypeDto } from '../dto/contractor.dto'
 import { AdminContractorTypeDto } from '../dto/admin-contractor.dto'
 import { JwtAuthGuard } from "../../auth/jwt/jwt-auth.guard";
+import { RolesGuard } from '@modules/auth/guards/roles.guard'
+import { Roles } from '@modules/auth/guards/roles.decorator'
 
 @ApiTags('Contractors')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('admin/contractors')
 export class ContractorAdminController {
   constructor(private readonly service: ContractorService) {}

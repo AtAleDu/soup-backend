@@ -36,7 +36,7 @@ export class CompanyAdPositionDto {
   @ApiProperty({ example: 3 })
   createdBannersCount: number
 
-  @ApiProperty({ example: 5 })
+  @ApiProperty({ example: 1 })
   maxBanners: number
 
   @ApiProperty({ example: true })

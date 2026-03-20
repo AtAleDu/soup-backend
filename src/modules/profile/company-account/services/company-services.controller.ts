@@ -13,6 +13,8 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { Roles } from "@modules/auth/guards/roles.decorator";
 import { CompanyServicesService } from "./company-services.service";
 import { SaveCompanyServicesDto } from "./dto/save-company-services.dto";
 import { CompanyServicesResponseDto } from "./dto/company-service.dto";
@@ -56,7 +58,8 @@ export class CompanyServicesController {
 
 @ApiTags("Admin moderation services")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/moderation/services")
 export class AdminModerationServicesController {
   constructor(private readonly service: CompanyServicesService) {}

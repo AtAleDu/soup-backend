@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, LessThan, Repository } from 'typeorm';
+import { randomUUID } from 'crypto';
 import { Company } from '@entities/Company/company.entity';
 import { AdsInvoice } from '@entities/AdsInvoice/ads-invoice.entity';
 import { AdsInvoiceStatus } from '@entities/AdsInvoice/ads-invoice-status.enum';
@@ -58,7 +59,7 @@ export class AdsInvoiceService {
         throw new BadRequestException('Компания не найдена');
       }
 
-      const invoiceNumber = `INV-${Date.now()}`;
+      const invoiceNumber = `INV-${randomUUID()}`;
       const invoiceDate = new Date();
       const advertiserData = advertiser.data as Record<string, unknown>;
       const cartSnapshot = {

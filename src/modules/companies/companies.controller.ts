@@ -17,6 +17,8 @@ import {
 } from "@nestjs/swagger";
 import { CompaniesService } from "./companies.service";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { Roles } from "@modules/auth/guards/roles.decorator";
 import { UpdateCompanyModerationDto } from "./dto/update-company-moderation.dto";
 
 @ApiTags("Companies")
@@ -44,7 +46,8 @@ export class CompaniesController {
 
 @ApiTags("Admin moderation companies")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/moderation/companies")
 export class AdminModerationCompaniesController {
   constructor(private readonly service: CompaniesService) {}

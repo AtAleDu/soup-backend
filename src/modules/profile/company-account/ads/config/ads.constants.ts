@@ -1,0 +1,4 @@
+export const DEFAULT_TARIFF_NAME = 'basic'
+export const DEFAULT_ADS_POSITION_PERIOD_DAYS = 30
+export const DEFAULT_CART_CURRENCY = 'RUB'
+export const MAX_BANNERS_PER_COMPANY = 1

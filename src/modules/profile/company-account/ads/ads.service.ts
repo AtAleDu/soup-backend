@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { User } from '@entities/User/user.entity'
@@ -7,13 +7,10 @@ import { AdPosition } from '@entities/Ad/ad-position.entity'
 import { Company } from '@entities/Company/company.entity'
 import { Ad } from '@entities/Ad/ad.entity'
 import { AdKind } from '@entities/Ad/ad-kind.enum'
-
-const DEFAULT_TARIFF_NAME = 'basic'
-const DEFAULT_AD_POSITION_PRICE = 5000
-const AD_POSITION_PRICE_BY_CODE: Record<string, number> = {
-  banner: 5000,
-}
-const MAX_BANNERS_PER_POSITION = 5
+import {
+  DEFAULT_TARIFF_NAME,
+  MAX_BANNERS_PER_COMPANY,
+} from './config/ads.constants'
 
 @Injectable()
 export class CompanyAdsService {
@@ -52,13 +49,15 @@ export class CompanyAdsService {
 
   private mapAdPosition(
     position: AdPosition,
-    createdBannersCount: number,
+    companyCreatedBannersCount: number,
     previewBanners: Ad[],
   ) {
-    const rawPrice = Number(position.price)
-    const fallbackPrice =
-      AD_POSITION_PRICE_BY_CODE[position.code] ?? DEFAULT_AD_POSITION_PRICE
-    const price = rawPrice > 0 ? rawPrice : fallbackPrice
+    const price = Number(position.price)
+    if (price <= 0) {
+      throw new BadRequestException(
+        `Для рекламной позиции "${position.code}" не задана корректная цена`,
+      )
+    }
 
     return {
       id: position.id,
@@ -67,10 +66,10 @@ export class CompanyAdsService {
       description: position.description,
       price,
       sortOrder: position.sort_order,
-      createdBannersCount,
-      maxBanners: MAX_BANNERS_PER_POSITION,
+      createdBannersCount: companyCreatedBannersCount,
+      maxBanners: MAX_BANNERS_PER_COMPANY,
       canAddToCart:
-        createdBannersCount > 0 && createdBannersCount <= MAX_BANNERS_PER_POSITION,
+        companyCreatedBannersCount <= MAX_BANNERS_PER_COMPANY,
       previewBanners: previewBanners.map((banner) => ({
         id: banner.id,
         imageUrl: banner.imageUrl,
@@ -192,14 +191,15 @@ export class CompanyAdsService {
       list.push(banner)
       bannersByPositionId.set(positionId, list)
     }
+    const companyCreatedBannersCount = banners.length
 
     return {
       positions: positions.map((position) => {
         const positionBanners = bannersByPositionId.get(position.id) ?? []
         return this.mapAdPosition(
           position,
-          positionBanners.length,
-          positionBanners.slice(0, MAX_BANNERS_PER_POSITION),
+          companyCreatedBannersCount,
+          positionBanners.slice(0, MAX_BANNERS_PER_COMPANY),
         )
       }),
     }

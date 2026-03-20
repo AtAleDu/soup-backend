@@ -26,10 +26,13 @@ import { ContestsService } from "../contests.service";
 import { CreateContestDto } from "../dto/create-contest.dto";
 import { UpdateContestDto } from "../dto/update-contest.dto";
 import { JwtAuthGuard } from "../../auth/jwt/jwt-auth.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { Roles } from "@modules/auth/guards/roles.decorator";
 
 @ApiTags("Contests")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/contests")
 export class AdminContestsController {
   constructor(private readonly contestsService: ContestsService) {}
