@@ -30,6 +30,7 @@ type AdvertiserData = {
 };
 
 type CartItemSnapshot = {
+  tariffId?: number | null;
   positionTitle?: string | null;
   tariffName?: string | null;
   quantity: number;
@@ -112,8 +113,8 @@ export async function buildInvoicePdf(params: BuildInvoicePdfParams): Promise<Bu
   draw(`Сч № ${INVOICE_RECIPIENT.correspondentAccount}`, MARGIN);
   y -= LINE_HEIGHT;
 
-  draw(`ЛИЦЕВОЙ СЧЕТ № ${invoiceNumber}`, MARGIN, { bold: true });
-  draw(`от ${formatDateRu(invoiceDate)}`, MARGIN);
+  draw('Счёт на оплату', MARGIN, { bold: true });
+  draw(`Дата: ${formatDateRu(invoiceDate)}`, MARGIN);
   draw('Заказчик:', MARGIN, { bold: true });
   if (advertiser.shortName) draw(advertiser.shortName, MARGIN);
   if (advertiser.fullName) draw(advertiser.fullName, MARGIN);
