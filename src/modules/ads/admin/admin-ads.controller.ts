@@ -1,13 +1,19 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
-import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { AdsService } from '../ads.service'
 import { RejectAdDto } from '../dto/reject-ad.dto'
 import { CreateAdminAdDto } from '../dto/create-admin-ad.dto'
 import { UpdateAdminAdDto } from '../dto/update-admin-ad.dto'
+import { JwtAuthGuard } from '@modules/auth/jwt/jwt-auth.guard'
+import { RolesGuard } from '@modules/auth/guards/roles.guard'
+import { Roles } from '@modules/auth/guards/roles.decorator'
 
 @ApiTags('AdsAdmin')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 @Controller('admin/ads')
 export class AdminAdsController {
   constructor(private readonly service: AdsService) {}

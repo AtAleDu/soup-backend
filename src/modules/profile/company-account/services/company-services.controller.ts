@@ -13,6 +13,8 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { Roles } from "@modules/auth/guards/roles.decorator";
 import { CompanyServicesService } from "./company-services.service";
 import { SaveCompanyServicesDto } from "./dto/save-company-services.dto";
 import { CompanyServicesResponseDto } from "./dto/company-service.dto";
@@ -41,7 +43,7 @@ export class CompanyServicesController {
     return this.service.saveServices(req.user.sub, dto);
   }
 
-  @ApiOperation({ summary: "Загрузить изображение услуги" })
+  @ApiOperation({ summary: "Загрузить фото или видео услуги" })
   @ApiResponse({ status: 200 })
   @Post("upload-image")
   @UseInterceptors(
@@ -50,13 +52,14 @@ export class CompanyServicesController {
     }),
   )
   uploadImage(@Req() req, @UploadedFile() file) {
-    return this.service.uploadServiceImage(req.user.sub, file);
+    return this.service.uploadServiceMedia(req.user.sub, file);
   }
 }
 
 @ApiTags("Admin moderation services")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/moderation/services")
 export class AdminModerationServicesController {
   constructor(private readonly service: CompanyServicesService) {}

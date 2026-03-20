@@ -24,13 +24,16 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { Roles } from "@modules/auth/guards/roles.decorator";
 import { BlogStatus } from "@entities/Blog/blog.entity";
 import { BlogsService } from "../blogs.service";
 import { UpdateBlogDto } from "../dto/update-blog.dto";
 
 @ApiTags("Blogs")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/blogs")
 export class AdminBlogsController {
   constructor(private readonly service: BlogsService) {}

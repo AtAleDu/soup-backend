@@ -26,6 +26,8 @@ import { OrderResponse } from "./OrderResponse/order-response.entity";
 import { OrderSuggestion } from "./OrderSuggestion/order-suggestion.entity";
 import { AdsCart } from "./AdsCart/ads-cart.entity";
 import { AdsCartItem } from "./AdsCartItem/ads-cart-item.entity";
+import { CompanyAdsAdvertiser } from "./CompanyAdsAdvertiser/company-ads-advertiser.entity";
+import { AdsInvoice } from "./AdsInvoice/ads-invoice.entity";
 import { NotificationRead } from "./NotificationRead/notification-read.entity";
 
 @Module({
@@ -45,6 +47,8 @@ import { NotificationRead } from "./NotificationRead/notification-read.entity";
       OrderSuggestion,
       AdsCart,
       AdsCartItem,
+      CompanyAdsAdvertiser,
+      AdsInvoice,
       Contest,
       CatalogFilter,
       SearchIndex,

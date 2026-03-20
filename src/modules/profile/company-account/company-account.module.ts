@@ -22,7 +22,15 @@ import { AdPosition } from '@entities/Ad/ad-position.entity'
 import { Ad } from '@entities/Ad/ad.entity'
 import { AdClick } from '@entities/Ad/ad-click.entity'
 import { AdsExpirationScheduler, CompanyAdsController, CompanyAdsService } from './ads'
+import { CompanyAdsAdvertiserController } from './ads/advertiser/advertiser.controller'
+import { CompanyAdsAdvertiserService } from './ads/advertiser/advertiser.service'
 import { AdsCartModule } from './ads/cart/ads-cart.module'
+import { CompanyAdsAdvertiser } from '@entities/CompanyAdsAdvertiser/company-ads-advertiser.entity'
+import { AdsInvoice } from '@entities/AdsInvoice/ads-invoice.entity'
+import { AdsInvoiceController } from './ads/invoice/invoice.controller'
+import { AdminAdsInvoicesController } from './ads/invoice/admin-invoice.controller'
+import { AdsInvoiceService } from './ads/invoice/invoice.service'
+import { AdsInvoiceOverdueScheduler } from './ads/invoice/invoice-overdue.scheduler'
 import { OrderResponse } from '@entities/OrderResponse/order-response.entity'
 import { Order } from '@entities/Order/order.entity'
 import { OrderSuggestion } from '@entities/OrderSuggestion/order-suggestion.entity'
@@ -36,6 +44,8 @@ import { NotificationReadService } from '../notifications/notification-read.serv
   imports: [
     TypeOrmModule.forFeature([
       Company,
+      CompanyAdsAdvertiser,
+      AdsInvoice,
       User,
       Blog,
       CompanyReview,
@@ -63,6 +73,9 @@ import { NotificationReadService } from '../notifications/notification-read.serv
     CompanyServicesController,
     AdminModerationServicesController,
     CompanyAdsController,
+    CompanyAdsAdvertiserController,
+    AdsInvoiceController,
+    AdminAdsInvoicesController,
     CompanyOrdersController,
   ],
   providers: [
@@ -73,6 +86,9 @@ import { NotificationReadService } from '../notifications/notification-read.serv
     CompanyNotificationsService,
     CompanyServicesService,
     CompanyAdsService,
+    CompanyAdsAdvertiserService,
+    AdsInvoiceService,
+    AdsInvoiceOverdueScheduler,
     AdsExpirationScheduler,
     CompanyOrdersService,
     NotificationReadService,

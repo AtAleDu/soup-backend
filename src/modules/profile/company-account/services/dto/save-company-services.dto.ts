@@ -26,6 +26,16 @@ class SaveCompanyServiceItemDto {
   @IsArray()
   @IsString({ each: true })
   imageUrls?: string[];
+
+  @ApiProperty({
+    example: ["https://example.com/service.mp4"],
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  videoUrls?: string[];
 }
 
 class SaveCompanyServiceCategoryDto {

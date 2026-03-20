@@ -209,6 +209,7 @@ export class CompaniesService {
           name: string;
           subcategory: string;
           imageUrls: string[];
+          videoUrls: string[];
         }[];
       }
     >();
@@ -225,6 +226,7 @@ export class CompaniesService {
         name: row.service,
         subcategory: row.service,
         imageUrls: Array.isArray(row.imageUrls) ? row.imageUrls : [],
+        videoUrls: Array.isArray(row.videoUrls) ? row.videoUrls : [],
       });
     });
 

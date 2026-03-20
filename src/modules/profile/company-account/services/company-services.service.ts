@@ -9,10 +9,22 @@ import { Company } from "@entities/Company/company.entity";
 import { CompanyService } from "@entities/CompanyService/company-service.entity";
 import { CompanyServiceStatus } from "@entities/CompanyService/company-service-status.enum";
 import { ContractorTypeEntity } from "@entities/Contractor/contractor-categories.entity";
+import { User } from "@entities/User/user.entity";
 import { StorageService } from "@infrastructure/storage/storage.service";
-import { UPLOAD_IMAGE } from "@infrastructure/upload/upload-constraints";
+import {
+  UPLOAD_IMAGE,
+  UPLOAD_VIDEO,
+} from "@infrastructure/upload/upload-constraints";
 import { SaveCompanyServicesDto } from "./dto/save-company-services.dto";
 import { UpdateCompanyServicesModerationDto } from "./dto/update-company-services-moderation.dto";
+
+type TariffFeatures = {
+  categories?: number | "all";
+  subcategories?: number | "all";
+  photos?: number | "all";
+  videos?: number | "all";
+  [key: string]: unknown;
+};
 
 @Injectable()
 export class CompanyServicesService {
@@ -23,6 +35,8 @@ export class CompanyServicesService {
     private readonly services: Repository<CompanyService>,
     @InjectRepository(ContractorTypeEntity)
     private readonly contractorCategories: Repository<ContractorTypeEntity>,
+    @InjectRepository(User)
+    private readonly users: Repository<User>,
     private readonly storage: StorageService,
   ) {}
 
@@ -49,6 +63,7 @@ export class CompanyServicesService {
           name: string;
           subcategory: string;
           imageUrls: string[];
+          videoUrls: string[];
         }[];
       }
     >();
@@ -65,6 +80,7 @@ export class CompanyServicesService {
         name: row.service,
         subcategory: row.service,
         imageUrls: Array.isArray(row.imageUrls) ? row.imageUrls : [],
+        videoUrls: Array.isArray(row.videoUrls) ? row.videoUrls : [],
       });
     });
 
@@ -73,8 +89,87 @@ export class CompanyServicesService {
     };
   }
 
+  /** Лимиты категорий/подкатегорий/фото/видео из БД (user.tariff.features). */
+  private async getTariffLimits(userId: string) {
+    const user = await this.users.findOne({
+      where: { id: userId },
+      relations: ["tariff"],
+    });
+    const features = (user?.tariff?.features ?? null) as TariffFeatures | null;
+    const maxCategories =
+      features?.categories === "all" || features?.categories == null
+        ? null
+        : typeof features?.categories === "number"
+          ? features.categories
+          : null;
+    const maxSubcategories =
+      features?.subcategories === "all" || features?.subcategories == null
+        ? null
+        : typeof features?.subcategories === "number"
+          ? features.subcategories
+          : null;
+    const maxPhotos =
+      features?.photos === "all" || features?.photos == null
+        ? null
+        : typeof features?.photos === "number"
+          ? features.photos
+          : null;
+    const maxVideos =
+      features?.videos === "all" || features?.videos == null
+        ? null
+        : typeof features?.videos === "number"
+          ? features.videos
+          : null;
+    return { maxCategories, maxSubcategories, maxPhotos, maxVideos };
+  }
+
   async saveServices(userId: string, dto: SaveCompanyServicesDto) {
     const company = await this.getCompanyByUser(userId);
+
+    const { maxCategories, maxSubcategories, maxPhotos, maxVideos } =
+      await this.getTariffLimits(userId);
+    if (maxCategories != null && dto.categories.length > maxCategories) {
+      throw new BadRequestException(
+        `По вашему тарифу можно указать не более ${maxCategories} категорий`,
+      );
+    }
+    if (maxSubcategories != null) {
+      for (const cat of dto.categories) {
+        if (cat.services.length > maxSubcategories) {
+          throw new BadRequestException(
+            `По вашему тарифу в одной категории можно указать не более ${maxSubcategories} услуг (подкатегорий)`,
+          );
+        }
+      }
+    }
+    const totalPhotos = dto.categories.reduce(
+      (sum, cat) =>
+        sum +
+        (cat.services?.reduce(
+          (s, svc) => s + (Array.isArray(svc.imageUrls) ? svc.imageUrls.length : 0),
+          0,
+        ) ?? 0),
+      0,
+    );
+    const totalVideos = dto.categories.reduce(
+      (sum, cat) =>
+        sum +
+        (cat.services?.reduce(
+          (s, svc) => s + (Array.isArray(svc.videoUrls) ? svc.videoUrls.length : 0),
+          0,
+        ) ?? 0),
+      0,
+    );
+    if (maxPhotos != null && totalPhotos > maxPhotos) {
+      throw new BadRequestException(
+        `По вашему тарифу можно загрузить не более ${maxPhotos} фото на все услуги`,
+      );
+    }
+    if (maxVideos != null && totalVideos > maxVideos) {
+      throw new BadRequestException(
+        `По вашему тарифу можно загрузить не более ${maxVideos} видео на все услуги`,
+      );
+    }
 
     await this.services.delete({ companyId: company.companyId });
 
@@ -88,6 +183,7 @@ export class CompanyServicesService {
             index === 0 ? (category.description ?? null) : null,
           service: service.name,
           imageUrls: Array.isArray(service.imageUrls) ? service.imageUrls : [],
+          videoUrls: Array.isArray(service.videoUrls) ? service.videoUrls : [],
           status: CompanyServiceStatus.MODERATION,
           rejectionReason: null,
         }),
@@ -159,6 +255,7 @@ export class CompanyServicesService {
           name: string;
           subcategory: string;
           imageUrls: string[];
+          videoUrls: string[];
         }[];
       }
     >();
@@ -177,6 +274,7 @@ export class CompanyServicesService {
         name: row.service,
         subcategory: row.service,
         imageUrls: Array.isArray(row.imageUrls) ? row.imageUrls : [],
+        videoUrls: Array.isArray(row.videoUrls) ? row.videoUrls : [],
       });
     });
 
@@ -189,7 +287,10 @@ export class CompanyServicesService {
           })
         : [];
     const iconByTitle = new Map(
-      categoryIcons.map((category) => [category.title, category.logoUrl ?? null]),
+      categoryIcons.map((category) => [
+        category.title,
+        category.logoUrl ?? null,
+      ]),
     );
     grouped.forEach((value) => {
       value.iconUrl = iconByTitle.get(value.category) ?? null;
@@ -235,7 +336,7 @@ export class CompanyServicesService {
         : CompanyServiceStatus.REJECTED;
     if (
       nextStatus === CompanyServiceStatus.REJECTED &&
-      !(dto.rejectionReason?.trim())
+      !dto.rejectionReason?.trim()
     ) {
       throw new BadRequestException("Укажите причину отказа");
     }
@@ -255,21 +356,35 @@ export class CompanyServicesService {
     return { success: true, count: updatedServices.length };
   }
 
-  async uploadServiceImage(userId: string, file) {
+  async uploadServiceMedia(userId: string, file: Express.Multer.File) {
     if (!file?.buffer) {
       throw new BadRequestException("Файл не передан");
     }
-    if (!(UPLOAD_IMAGE.allowedMimeTypes as readonly string[]).includes(file.mimetype)) {
+    const isImage = (
+      UPLOAD_IMAGE.allowedMimeTypes as readonly string[]
+    ).includes(file.mimetype);
+    const isVideo = (
+      UPLOAD_VIDEO.allowedMimeTypes as readonly string[]
+    ).includes(file.mimetype);
+    if (isImage) {
+      if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
+        throw new BadRequestException("Размер файла превышает 5 МБ");
+      }
+    } else if (isVideo) {
+      if (file.size > UPLOAD_VIDEO.maxSizeBytes) {
+        throw new BadRequestException("Размер файла превышает 50 МБ");
+      }
+    } else {
       throw new BadRequestException(
-        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG",
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG, HEIF (до 5 МБ); MP4, WebM, HEVC (до 50 МБ)",
       );
-    }
-    if (file.size > UPLOAD_IMAGE.maxSizeBytes) {
-      throw new BadRequestException("Размер файла превышает 5 МБ");
     }
 
     const company = await this.getCompanyByUser(userId);
-    const ext = file.originalname?.match(/\.[a-z]+$/i)?.[0] ?? ".jpg";
+    const ext =
+      file.originalname?.match(/\.[a-z0-9]+$/i)?.[0] ??
+      (isImage ? ".jpg" : ".mp4");
+    const subdir = isImage ? "service-images" : "service-videos";
     const uploadResult = await this.storage.upload(
       {
         buffer: file.buffer,
@@ -278,10 +393,14 @@ export class CompanyServicesService {
         originalName: `service${ext}`,
       },
       {
-        allowedMimeTypes: [...UPLOAD_IMAGE.allowedMimeTypes],
-        maxSizeBytes: UPLOAD_IMAGE.maxSizeBytes,
+        allowedMimeTypes: isImage
+          ? [...UPLOAD_IMAGE.allowedMimeTypes]
+          : [...UPLOAD_VIDEO.allowedMimeTypes],
+        maxSizeBytes: isImage
+          ? UPLOAD_IMAGE.maxSizeBytes
+          : UPLOAD_VIDEO.maxSizeBytes,
         isPublic: true,
-        pathPrefix: `personal-account/company-account/service-images/${company.companyId}`,
+        pathPrefix: `personal-account/company-account/${subdir}/${company.companyId}`,
       },
     );
 

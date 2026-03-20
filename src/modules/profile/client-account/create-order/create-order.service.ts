@@ -89,7 +89,7 @@ export class CreateOrderService {
       )
     ) {
       throw new BadRequestException(
-        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG, PDF, DOC, DOCX",
+        "Недопустимый формат. Разрешены: PNG, JPEG, WebP, SVG, HEIF, PDF, DOC, DOCX",
       );
     }
     if (file.size > UPLOAD_ORDER_FILE.maxSizeBytes) {

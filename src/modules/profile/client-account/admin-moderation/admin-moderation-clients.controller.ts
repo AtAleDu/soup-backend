@@ -14,12 +14,15 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { Roles } from "@modules/auth/guards/roles.decorator";
 import { UpdateClientModerationDto } from "../dto/update-client-moderation.dto";
 import { AdminModerationClientsService } from "./admin-moderation-clients.service";
 
 @ApiTags("Admin moderation clients")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/moderation/clients")
 export class AdminModerationClientsController {
   constructor(

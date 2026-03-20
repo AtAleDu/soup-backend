@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { PutObjectCommand, S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
+import { getSignedUrl as getS3SignedUrl } from "@aws-sdk/s3-request-presigner"
 import { randomUUID } from "crypto"
 
 type UploadConstraints = {
@@ -120,6 +121,21 @@ export class StorageService {
       return `${this.endpoint.replace(/\/$/, "")}/${this.bucket}/${key}`
     }
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`
+  }
+
+  async getSignedUrl(key: string, expiresInSeconds = 300): Promise<string> {
+    if (!key) {
+      throw new BadRequestException("Не задан ключ файла")
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    })
+
+    return getS3SignedUrl(this.client, command, {
+      expiresIn: expiresInSeconds,
+    })
   }
 
   private getRequired(name: string): string {

@@ -18,13 +18,16 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "@modules/auth/jwt/jwt-auth.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { Roles } from "@modules/auth/guards/roles.decorator";
 import { OrdersService } from "../orders.service";
 import { UpdateOrderStatusDto } from "../dto/update-order-status.dto";
 import { OrderStatus } from "@entities/Order/order.entity";
 
 @ApiTags("Orders")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("ADMIN")
 @Controller("admin/orders")
 export class AdminOrdersController {
   constructor(private readonly service: OrdersService) {}

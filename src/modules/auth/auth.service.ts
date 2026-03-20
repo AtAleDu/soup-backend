@@ -104,6 +104,7 @@ export class AuthService {
       await this.companies.save({
         name: user.name,
         userId: user.id,
+        email: user.email,
         status: CompanyStatus.PENDING,
       });
     }
@@ -148,6 +149,10 @@ export class AuthService {
 
     user.status = UserStatus.ACTIVE;
     await this.users.save(user);
+
+    if (user.role === UserRole.СOMPANY) {
+      await this.companies.update({ userId: user.id }, { email: user.email });
+    }
 
     // После успешной активации сразу логиним пользователя
     const tokens = await this.tokenService.issue(user);
@@ -199,8 +204,7 @@ export class AuthService {
         order: { createdAt: "DESC" },
       });
       const now = Date.now();
-      const hasValidSession =
-        existing && existing.expiresAt.getTime() > now;
+      const hasValidSession = existing && existing.expiresAt.getTime() > now;
 
       const verificationId = hasValidSession
         ? existing!.id
@@ -405,10 +409,7 @@ export class AuthService {
     }
 
     if (user.role === UserRole.СOMPANY) {
-      await this.companies.update(
-        { userId: user.id },
-        { email: newEmail },
-      );
+      await this.companies.update({ userId: user.id }, { email: newEmail });
     }
 
     const code = generateVerificationCode();
@@ -436,10 +437,7 @@ export class AuthService {
           const contacts = client.contacts.map((c) =>
             c.type === "email" ? { ...c, value: previousEmail } : c,
           );
-          await this.clients.update(
-            { userId: user.id },
-            { contacts },
-          );
+          await this.clients.update({ userId: user.id }, { contacts });
         }
       }
       if (user.role === UserRole.СOMPANY) {
