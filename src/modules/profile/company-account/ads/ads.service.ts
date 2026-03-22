@@ -14,6 +14,11 @@ import {
   MAX_BANNERS_PER_COMPANY,
 } from './config/ads.constants'
 
+import type {
+  CompanyAdsStatisticsRange,
+  CompanyAdsStatisticsResponseDto,
+} from './dto/company-ads-statistics.dto'
+
 @Injectable()
 export class CompanyAdsService {
   constructor(
