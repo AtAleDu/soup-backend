@@ -37,8 +37,16 @@ export class AdsInvoice {
   @Column({ name: "invoice_number", type: "varchar", unique: true })
   invoiceNumber: string;
 
-  @Column({ type: "varchar", default: AdsInvoiceStatus.MODERATION })
+  @Column({ type: "varchar", default: AdsInvoiceStatus.AWAITING_PAYMENT })
   status: AdsInvoiceStatusValue;
+
+  /** До какого момента компания может нажать «Оплачено» */
+  @Column({ name: "payment_due_at", type: "timestamptz", nullable: true })
+  paymentDueAt: Date | null;
+
+  /** Когда счёт перешёл в overdue (для окна показа ещё 24 ч) */
+  @Column({ name: "overdue_started_at", type: "timestamptz", nullable: true })
+  overdueStartedAt: Date | null;
 
   @Column({ name: "pdf_url", type: "varchar" })
   pdfUrl: string;

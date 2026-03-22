@@ -1,11 +1,12 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, LessThan, Repository } from 'typeorm';
+import { Brackets, DataSource, LessThanOrEqual, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Company } from '@entities/Company/company.entity';
 import { AdsInvoice } from '@entities/AdsInvoice/ads-invoice.entity';
@@ -17,11 +18,28 @@ import { CompanyAdsAdvertiserService } from '../advertiser/advertiser.service';
 import { CompanyAdsCartService } from '../cart/cart.service';
 import { StorageService } from '@infrastructure/storage/storage.service';
 import { buildInvoicePdf } from './build-invoice-pdf';
-import { INVOICE_PAYMENT_DEADLINE_DAYS } from '../invoice-recipient.constants';
+import {
+  COMPANY_INVOICE_OVERDUE_GRACE_HOURS,
+  COMPANY_INVOICE_PAYMENT_DEADLINE_DAYS,
+} from '../invoice-recipient.constants';
 
 const PDF_MIME = 'application/pdf';
 const PDF_MAX_BYTES = 10 * 1024 * 1024;
 const PDF_SIGNED_URL_TTL_SECONDS = 300;
+
+const RENEWAL_EXTEND_MS = 30 * 24 * 60 * 60 * 1000;
+
+function addDays(d: Date, days: number): Date {
+  const x = new Date(d);
+  x.setDate(x.getDate() + days);
+  return x;
+}
+
+function isAwaitingCompanyAction(status: AdsInvoiceStatusValue): boolean {
+  return (
+    status === AdsInvoiceStatus.AWAITING_PAYMENT || status === AdsInvoiceStatus.MODERATION
+  );
+}
 
 @Injectable()
 export class AdsInvoiceService {
@@ -61,55 +79,67 @@ export class AdsInvoiceService {
 
       const invoiceNumber = `INV-${randomUUID()}`;
       const invoiceDate = new Date();
+      const paymentDueAt = addDays(invoiceDate, COMPANY_INVOICE_PAYMENT_DEADLINE_DAYS);
       const advertiserData = advertiser.data as Record<string, unknown>;
+
       const cartSnapshot = {
-        items: cart.items,
+        items: cart.items.map((item: Record<string, unknown>) => ({
+          ...item,
+          tariffId: item.tariffId ?? null,
+          positionTitle: item.positionTitle ?? null,
+          tariffName: item.tariffName ?? null,
+          quantity: Number(item.quantity ?? 0),
+          periodDays: Number(item.periodDays ?? 0),
+          lineTotal: Number(item.lineTotal ?? 0),
+        })),
         total: cart.total,
         currency: cart.currency,
       };
 
       const totalNum = Number(cart.total);
-    const itemsSnapshot = cart.items.map(
-      (item: {
-        positionTitle?: string;
-        tariffName?: string;
-        quantity: number;
-        periodDays: number;
-        lineTotal: number | string;
-      }) => ({
-        positionTitle: item.positionTitle,
-        tariffName: item.tariffName,
-        quantity: Number(item.quantity),
-        periodDays: Number(item.periodDays),
-        lineTotal: Number(item.lineTotal),
-      }),
-    );
+      const itemsSnapshot = cart.items.map(
+        (item: {
+          tariffId?: number | null;
+          positionTitle?: string | null;
+          tariffName?: string | null;
+          quantity: number;
+          periodDays: number;
+          lineTotal: number | string;
+        }) => ({
+          tariffId: item.tariffId ?? undefined,
+          positionTitle: item.positionTitle,
+          tariffName: item.tariffName,
+          quantity: Number(item.quantity),
+          periodDays: Number(item.periodDays),
+          lineTotal: Number(item.lineTotal),
+        }),
+      );
 
-    const buffer = await buildInvoicePdf({
-      invoiceNumber,
-      invoiceDate,
-      advertiser: advertiser.data,
-      items: itemsSnapshot,
-      total: totalNum,
-    });
+      const buffer = await buildInvoicePdf({
+        invoiceNumber,
+        invoiceDate,
+        advertiser: advertiser.data,
+        items: itemsSnapshot,
+        total: totalNum,
+      });
 
-    const pathPrefix = `ads-invoices/company-${company.companyId}`;
-    const result = await this.storage.upload(
-      {
-        buffer,
-        mimeType: PDF_MIME,
-        size: buffer.length,
-        originalName: `${invoiceNumber}.pdf`,
-      },
-      {
-        pathPrefix,
-        allowedMimeTypes: [PDF_MIME],
-        maxSizeBytes: PDF_MAX_BYTES,
-        isPublic: false,
-      },
-    );
+      const pathPrefix = `ads-invoices/company-${company.companyId}`;
+      const result = await this.storage.upload(
+        {
+          buffer,
+          mimeType: PDF_MIME,
+          size: buffer.length,
+          originalName: `${invoiceNumber}.pdf`,
+        },
+        {
+          pathPrefix,
+          allowedMimeTypes: [PDF_MIME],
+          maxSizeBytes: PDF_MAX_BYTES,
+          isPublic: false,
+        },
+      );
 
-    const pdfStorageKey = result.key;
+      const pdfStorageKey = result.key;
 
       await this.invoices.save(
         this.invoices.create({
@@ -118,12 +148,16 @@ export class AdsInvoiceService {
           cartSnapshot,
           total: String(cart.total),
           invoiceNumber,
-          status: AdsInvoiceStatus.MODERATION,
+          status: AdsInvoiceStatus.AWAITING_PAYMENT,
+          paymentDueAt,
+          overdueStartedAt: null,
           pdfUrl: pdfStorageKey,
           paidAt: null,
           approvedAt: null,
         }),
       );
+
+      await this.cartService.clearActiveCart(userId);
 
       return { buffer, invoiceNumber };
     } catch (err) {
@@ -133,6 +167,37 @@ export class AdsInvoiceService {
       this.logger.error('createInvoice failed', err instanceof Error ? err.stack : String(err));
       throw err;
     }
+  }
+
+  async findForCompany(userId: string): Promise<AdsInvoice[]> {
+    const company = await this.companies.findOne({ where: { userId } });
+    if (!company) {
+      return [];
+    }
+
+    const now = new Date();
+    const graceMs = COMPANY_INVOICE_OVERDUE_GRACE_HOURS * 60 * 60 * 1000;
+    const overdueCutoff = new Date(now.getTime() - graceMs);
+
+    return this.invoices
+      .createQueryBuilder('inv')
+      .where('inv.companyId = :companyId', { companyId: company.companyId })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where('inv.status IN (:...awaiting)', {
+            awaiting: [AdsInvoiceStatus.AWAITING_PAYMENT, AdsInvoiceStatus.MODERATION],
+          }).orWhere(
+            new Brackets((qb2) => {
+              qb2
+                .where('inv.status = :overdue', { overdue: AdsInvoiceStatus.OVERDUE })
+                .andWhere('inv.overdueStartedAt IS NOT NULL')
+                .andWhere('inv.overdueStartedAt > :overdueCutoff', { overdueCutoff });
+            }),
+          );
+        }),
+      )
+      .orderBy('inv.createdAt', 'DESC')
+      .getMany();
   }
 
   async getPdfSignedUrlForAdmin(invoiceId: number): Promise<string> {
@@ -147,10 +212,67 @@ export class AdsInvoiceService {
     return this.storage.getSignedUrl(invoice.pdfUrl, PDF_SIGNED_URL_TTL_SECONDS);
   }
 
+  async getPdfSignedUrlForCompany(userId: string, invoiceId: number): Promise<string> {
+    const invoice = await this.assertInvoiceVisibleToCompany(userId, invoiceId);
+    if (!invoice.pdfUrl) {
+      throw new BadRequestException('Для счёта не найден PDF');
+    }
+    return this.storage.getSignedUrl(invoice.pdfUrl, PDF_SIGNED_URL_TTL_SECONDS);
+  }
+
+  private async assertInvoiceVisibleToCompany(
+    userId: string,
+    invoiceId: number,
+  ): Promise<AdsInvoice> {
+    const company = await this.companies.findOne({ where: { userId } });
+    if (!company) {
+      throw new NotFoundException('Компания не найдена');
+    }
+
+    const invoice = await this.invoices.findOne({ where: { id: invoiceId } });
+    if (!invoice || invoice.companyId !== company.companyId) {
+      throw new ForbiddenException('Нет доступа к счёту');
+    }
+
+    const visible = await this.findForCompany(userId);
+    if (!visible.some((i) => i.id === invoiceId)) {
+      throw new NotFoundException('Счёт не найден');
+    }
+
+    return invoice;
+  }
+
+  async markPaidByCompany(userId: string, invoiceId: number): Promise<AdsInvoice> {
+    const company = await this.companies.findOne({ where: { userId } });
+    if (!company) {
+      throw new NotFoundException('Компания не найдена');
+    }
+
+    const invoice = await this.invoices.findOne({ where: { id: invoiceId } });
+    if (!invoice || invoice.companyId !== company.companyId) {
+      throw new ForbiddenException('Нет доступа к счёту');
+    }
+
+    if (!isAwaitingCompanyAction(invoice.status)) {
+      throw new BadRequestException('Счёт нельзя отметить оплаченным в текущем статусе');
+    }
+
+    const now = new Date();
+    const due =
+      invoice.paymentDueAt ??
+      addDays(invoice.createdAt, COMPANY_INVOICE_PAYMENT_DEADLINE_DAYS);
+    if (due.getTime() < now.getTime()) {
+      throw new BadRequestException('Срок для отметки «Оплачено» истёк');
+    }
+
+    invoice.status = AdsInvoiceStatus.PAYMENT_REVIEW;
+    return this.invoices.save(invoice);
+  }
+
   async findForAdmin(status?: AdsInvoiceStatusValue): Promise<AdsInvoice[]> {
-    const where = status ? { status } : {};
+    const effectiveStatus = status ?? AdsInvoiceStatus.PAYMENT_REVIEW;
     return this.invoices.find({
-      where,
+      where: { status: effectiveStatus },
       relations: ['company'],
       order: { createdAt: 'DESC' },
     });
@@ -187,7 +309,7 @@ export class AdsInvoiceService {
     if (!invoice) {
       throw new NotFoundException('Счёт не найден');
     }
-    if (invoice.status !== AdsInvoiceStatus.MODERATION) {
+    if (invoice.status !== AdsInvoiceStatus.PAYMENT_REVIEW) {
       throw new BadRequestException('Счёт уже обработан');
     }
     invoice.status = AdsInvoiceStatus.REJECTED;
@@ -202,7 +324,7 @@ export class AdsInvoiceService {
     if (!invoice) {
       throw new NotFoundException('Счёт не найден');
     }
-    if (invoice.status !== AdsInvoiceStatus.MODERATION) {
+    if (invoice.status !== AdsInvoiceStatus.PAYMENT_REVIEW) {
       throw new BadRequestException('Счёт уже обработан');
     }
 
@@ -211,8 +333,11 @@ export class AdsInvoiceService {
       throw new BadRequestException('Для компании не найден пользователь');
     }
 
-    const [user, tariff] = await Promise.all([
-      this.users.findOne({ where: { id: companyUserId } }),
+    const [user, tariffFromInvoice] = await Promise.all([
+      this.users.findOne({
+        where: { id: companyUserId },
+        relations: ['tariff'],
+      }),
       this.resolveInvoiceTariff(invoice),
     ]);
     if (!user) {
@@ -220,12 +345,23 @@ export class AdsInvoiceService {
     }
 
     const now = new Date();
-    user.tariff = tariff;
-    user.tariffStartAt = now;
-    user.tariffEndAt =
-      tariff.duration_days != null
-        ? new Date(now.getTime() + tariff.duration_days * 24 * 60 * 60 * 1000)
-        : null;
+    const sameTariff =
+      user.tariff != null && user.tariff.id === tariffFromInvoice.id;
+    const stillActive =
+      user.tariffEndAt != null && user.tariffEndAt.getTime() > now.getTime();
+
+    if (sameTariff && stillActive && user.tariffEndAt) {
+      user.tariffEndAt = new Date(user.tariffEndAt.getTime() + RENEWAL_EXTEND_MS);
+    } else {
+      user.tariff = tariffFromInvoice;
+      user.tariffStartAt = now;
+      user.tariffEndAt =
+        tariffFromInvoice.duration_days != null
+          ? new Date(
+              now.getTime() + tariffFromInvoice.duration_days * 24 * 60 * 60 * 1000,
+            )
+          : null;
+    }
 
     invoice.status = AdsInvoiceStatus.PAID;
     invoice.paidAt = now;
@@ -239,15 +375,46 @@ export class AdsInvoiceService {
     return invoice;
   }
 
+  /** Счета без «Оплачено» за 7 дней → overdue + overdueStartedAt */
   async markOverdueInvoices(): Promise<number> {
-    const deadline = new Date();
-    deadline.setDate(deadline.getDate() - INVOICE_PAYMENT_DEADLINE_DAYS);
+    const now = new Date();
+    const legacyDeadline = addDays(now, -COMPANY_INVOICE_PAYMENT_DEADLINE_DAYS);
+
+    const result = await this.invoices
+      .createQueryBuilder()
+      .update(AdsInvoice)
+      .set({
+        status: AdsInvoiceStatus.OVERDUE,
+        overdueStartedAt: now,
+      })
+      .where('status IN (:...st)', {
+        st: [AdsInvoiceStatus.AWAITING_PAYMENT, AdsInvoiceStatus.MODERATION],
+      })
+      .andWhere(
+        new Brackets((sub) => {
+          sub
+            .where('paymentDueAt IS NOT NULL AND paymentDueAt < :now', { now })
+            .orWhere('paymentDueAt IS NULL AND createdAt < :legacyDeadline', {
+              legacyDeadline,
+            });
+        }),
+      )
+      .execute();
+
+    return result.affected ?? 0;
+  }
+
+  /** После overdue + 24 ч → expired (скрыто для компании) */
+  async markExpiredInvoices(): Promise<number> {
+    const graceMs = COMPANY_INVOICE_OVERDUE_GRACE_HOURS * 60 * 60 * 1000;
+    const boundary = new Date(Date.now() - graceMs);
+
     const result = await this.invoices.update(
       {
-        status: AdsInvoiceStatus.MODERATION,
-        createdAt: LessThan(deadline),
+        status: AdsInvoiceStatus.OVERDUE,
+        overdueStartedAt: LessThanOrEqual(boundary),
       },
-      { status: AdsInvoiceStatus.OVERDUE },
+      { status: AdsInvoiceStatus.EXPIRED },
     );
     return result.affected ?? 0;
   }

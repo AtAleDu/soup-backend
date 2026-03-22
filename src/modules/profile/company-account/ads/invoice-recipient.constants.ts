@@ -1,4 +1,11 @@
-export const INVOICE_PAYMENT_DEADLINE_DAYS = 5;
+/** Дней на оплату/отметку «Оплачено» с момента выставления счёта */
+export const COMPANY_INVOICE_PAYMENT_DEADLINE_DAYS = 7;
+
+/** Сколько часов показывать счёт компании после перехода в overdue, затем expired */
+export const COMPANY_INVOICE_OVERDUE_GRACE_HOURS = 24;
+
+/** @deprecated используйте COMPANY_INVOICE_PAYMENT_DEADLINE_DAYS */
+export const INVOICE_PAYMENT_DEADLINE_DAYS = COMPANY_INVOICE_PAYMENT_DEADLINE_DAYS;
 
 export const INVOICE_RECIPIENT = {
   name: 'ИП Зонов Дмитрий Александрович',

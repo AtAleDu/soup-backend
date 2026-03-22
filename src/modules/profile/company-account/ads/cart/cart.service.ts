@@ -218,6 +218,20 @@ export class CompanyAdsCartService {
     return { cart: this.mapCart(fullCart) }
   }
 
+  /** Удалить все позиции активной корзины (после выставления счёта) */
+  async clearActiveCart(userId: string): Promise<void> {
+    const company = await this.getCompanyByUserId(userId)
+    const cart = await this.carts.findOne({
+      where: { companyId: company.companyId, status: AdsCartStatus.ACTIVE },
+      order: { id: 'DESC' },
+    })
+    if (!cart) {
+      return
+    }
+    await this.cartItems.delete({ cartId: cart.id })
+    await this.recalculateCartTotals(cart.id)
+  }
+
   async addItemToCart(userId: string, dto: AddAdsCartItemDto) {
     const company = await this.getCompanyByUserId(userId)
     const cart = await this.getOrCreateActiveCart(company.companyId)
